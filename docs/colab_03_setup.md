@@ -212,4 +212,14 @@ A: Yes! Edit `config/gdelt_queries.yaml` locally, push to GitHub, re-run the Col
 3. **Drive storage full** — free up ~1 GB on your Drive before starting
 4. **No articles returned** — check `config/gdelt_queries.yaml` keywords; some queries may be too narrow
 
+### Specific to the smoke test (Cell 3)
+
+If Cell 3 fails with "Smoke test failed: 0 articles":
+
+1. **Check for `429 Too Many Requests`** in the cell output. The most common cause is rate limiting.
+2. **Wait 5-10 minutes** if rate-limited, then re-run Cell 3 alone.
+3. **The improved Cell 3 now tries all 4 queries** and gives a cleaner error message. It also `SystemExit(0)`s gracefully if all queries return 0 (treating it as a soft warning, not a hard error), so you can proceed to Cell 4.
+4. **If Cell 3 still fails after waiting, skip it and run Cell 4 directly.** Cell 4 has its own retry logic with exponential backoff (4s, 8s, 16s, 32s, 64s on 429) and will skip already-completed months on resume.
+5. **If Cell 4 returns 0 articles from a query**, that query's keywords are likely too narrow. Check the URL it tried (printed in the cell output) and try a more relaxed version.
+
 For any other issues, copy the error message and the cell number, and we'll debug together.

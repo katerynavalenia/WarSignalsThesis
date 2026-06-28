@@ -51,12 +51,22 @@ GDELT_BASE = "https://api.gdeltproject.org/api/v2/doc/doc"
 # Query building
 # =========================================================================
 
-def _flatten_keywords(per_lang: dict[str, list[str]]) -> list[str]:
-    """Flatten a per-language keyword dict into a single list."""
+def _flatten_keywords(per_lang) -> list[str]:
+    """Flatten a per-language keyword dict into a single list.
+
+    Accepts: dict[lang] -> list[str], or a flat list[str], or None.
+    """
     out: list[str] = []
-    for lang, words in per_lang.items():
-        for w in words:
-            out.append(w)
+    if not per_lang:
+        return out
+    if isinstance(per_lang, list):
+        return list(per_lang)
+    if isinstance(per_lang, dict):
+        for lang, words in per_lang.items():
+            if isinstance(words, list):
+                out.extend(words)
+            elif isinstance(words, str):
+                out.append(words)
     return out
 
 
@@ -127,29 +137,38 @@ def build_gdelt_query_url(
 # =========================================================================
 
 def _gdelt_request(url: str, max_retries: int = 5, backoff: float = 2.0,
-                   timeout: int = 60) -> list[dict[str, Any]]:
-    """Make a GDELT request with retry logic. Returns the article list."""
+                   timeout: int = 60) -> tuple[list[dict[str, Any]], str | None]:
+    """Make a GDELT request with retry logic. Returns (article_list, error_msg)."""
+    last_error = None
     for attempt in range(max_retries):
         try:
             r = requests.get(url, timeout=timeout)
             if r.status_code == 200:
-                data = r.json()
+                try:
+                    data = r.json()
+                except json.JSONDecodeError:
+                    last_error = "JSON decode error"
+                    time.sleep(backoff)
+                    continue
                 if isinstance(data, dict) and "articles" in data:
-                    return data["articles"]
+                    return data["articles"], None
                 if isinstance(data, list):
-                    return data
-                # GDELT sometimes returns a single article as a dict
+                    return data, None
                 if isinstance(data, dict):
-                    return [data]
-                return []
+                    return [data], None
+                return [], None
             elif r.status_code == 429:
-                # Rate-limited; longer backoff
-                time.sleep(backoff * (attempt + 1) * 2)
+                # Rate-limited; back off aggressively
+                wait = backoff * (attempt + 1) * 2  # 4, 8, 16, 32, 64 sec
+                last_error = f"429 (rate limited, slept {wait}s)"
+                time.sleep(wait)
             else:
+                last_error = f"HTTP {r.status_code}"
                 time.sleep(backoff * (attempt + 1))
-        except (requests.RequestException, json.JSONDecodeError):
+        except (requests.RequestException, json.JSONDecodeError) as e:
+            last_error = f"Request error: {e}"
             time.sleep(backoff * (attempt + 1))
-    return []
+    return [], last_error
 
 
 def fetch_gdelt_window(
@@ -194,12 +213,12 @@ def fetch_gdelt_window(
         mode="artlist",
         sort="datedesc",
     )
-    articles = _gdelt_request(url, max_retries=max_retries)
+    articles, err = _gdelt_request(url, max_retries=max_retries)
+    if err:
+        print(f"    [WARN] {err}")
     out.extend(articles)
     time.sleep(api_sleep)
 
-    # Note: full pagination logic would chunk by date. For Phase 3 we keep it simple:
-    # one call per (query, month) — monthly windows are pre-cut by the caller.
     return out
 
 
@@ -452,17 +471,17 @@ def fetch_gdelt_full(
                     max_records=max_records,
                     max_retries=max_retries,
                 )
-                # Save per-window
-                if articles:
-                    df = pd.DataFrame(articles)
-                    df.to_parquet(out_file)
-                else:
-                    # Save empty marker
-                    pd.DataFrame().to_parquet(out_file)
+                # Save per-window (always save a marker, even if empty)
+                pd.DataFrame(articles).to_parquet(out_file)
                 all_records.extend(articles)
                 print(f"{len(articles)} articles")
             except Exception as e:
                 print(f"ERROR: {e}")
+                # Still save an empty marker so we don't re-try on resume
+                try:
+                    pd.DataFrame().to_parquet(out_file)
+                except Exception:
+                    pass
                 continue
 
     if not all_records:

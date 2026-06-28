@@ -7,10 +7,12 @@
 #
 # Date range: 2022-09-29 → 2026-06-21 (matches attack data)
 #
-# Languages: see GDELT's language codes
-#   English, Russian, Ukrainian, German, French, Polish, Spanish, Italian
+# **Important constraint:** GDELT 2.0 has a URL length limit. Keep each
+# query under ~50 keywords total (English + native). Long OR lists
+# match almost nothing.
 #
-# Themes: GDELT GNS/GKG theme codes (use sparingly — too restrictive kills recall)
+# Languages: see GDELT's language codes
+#   English, Russian, Ukrainian, German, French, Polish
 
 queries:
 
@@ -18,92 +20,59 @@ queries:
   - name: russian_attack_direct
     description: >
       Articles directly referencing the Russian-Ukrainian conflict, with
-      strong country+weapon context. Used as the primary filter.
-    languages: [English, Russian, Ukrainian, German, French, Polish]
+      country+weapon context. SHORT keyword list for URL length limits.
+    languages: [English, Russian, Ukrainian]
     themes: []
-    keywords_any:  # country / actor keywords
-      english:    [Russia, Russian, Kremlin, Putin, Ukraine, Ukrainian, Kyiv, Kiev, Zelensky, Zelenskyy, "Volodymyr"]
-      russian:    [Россия, России, Кремль, Путин, Украина, Украины, Киев, Зеленский]
-      ukrainian:  [Росія, Росії, Кремль, Путін, Україна, України, Київ, Зеленський]
-      german:     [Russland, russisch, Kreml, Putin, Ukraine, ukrainisch, Kiew, Selenskyj]
-      french:     [Russie, russe, Kremlin, Poutine, Ukraine, ukrainien, Kiev, Zelensky]
-      polish:     [Rosja, rosyjski, Kreml, Putin, Ukraina, ukraiński, Kijów, Zełenski]
-    keywords_weapon_any:  # weapon / attack keywords
-      english:    [missile, missiles, drone, drones, airstrike, airstrikes, "air strike", "air strikes",
-                   Shahed, Kalibr, Iskander, Kinzhal, Lancet, "Kh-101", "S-300", "S-400",
-                   ballistic, cruise, explosion, explosions, attack, attacks, missile strike,
-                   drone strike, drone attack, missile attack, bombed, bombing, struck, fired]
-      russian:    [ракета, ракеты, дрон, БПЛА, удар, удары, взрыв, взрывы, атака, нападение,
-                   "Шахед", Калибр, Искандер, Кинжал, Lancet, "С-300", "С-400", баллистическая]
-      ukrainian:  [ракета, ракети, дрон, БпЛА, удар, удари, вибух, вибухи, атака, напад,
-                   "Шахед", Калібр, Іскандер, Кинджал, Lancet, "С-300", "С-400", балістична]
-      german:     [Rakete, Raketen, Drohne, Angriff, Explosion, Shahed, Kalibr, Iskander]
-      french:     [missile, drone, attaque, explosion, frappe, Shahed, Kalibr, Iskander]
-      polish:     [rakieta, dron, atak, eksplozja, Shahed, Kalibr, Iskander]
+    keywords_any:
+      english:    [Russia, Russian, Kremlin, Putin, Ukraine, Ukrainian, Kyiv, Zelensky]
+      russian:    [Россия, России, Кремль, Путин, Украина, Киев]
+      ukrainian:  [Росія, Росії, Кремль, Путін, Україна, Київ]
+    keywords_weapon_any:
+      english:    [missile, drone, Shahed, Iskander, airstrike, attack, explosion]
+      russian:    [ракета, дрон, Шахед, Искандер, удар, взрыв]
+      ukrainian:  [ракета, дрон, Шахед, Іскандер, удар, вибух]
 
   # Query 2: Ukrainian defense / air defense / energy strikes
   - name: ukraine_defense_energy
     description: >
       Coverage of Ukrainian air defense, energy infrastructure, and
-      defense-related topics. Catches articles that don't mention weapons
-      directly.
-    languages: [English, Ukrainian, German]
+      defense-related topics.
+    languages: [English, Ukrainian]
     themes: []
     keywords_any:
-      english:    ["air defense", "air-defense", "air defence", "air-defence",
-                   "energy infrastructure", "power grid", "blackout", "electricity",
-                   "thermal power", "hydroelectric", "substation", "transformer",
-                   "debris", "downed", "intercepted", "shoot down", "shot down",
-                   "Patriot", "NASAMS", "Iris-T", "Gepard", "Stinger", "Javelin",
-                   "HIMARS", "M270", "Leopard", "Abrams", "F-16", "fighter jet",
-                   "military aid", "defense aid", "security assistance"]
-      ukrainian:  [ППО, "повітряна оборона", "енергетична інфраструктура",
-                   "енергооб'єкт", "підстанція", "уламки", "збито", "збитий",
-                   "Patriot", "F-16", "військова допомога"]
-      german:     [Luftverteidigung, Patriot, Iris-T, F-16, Militärhilfe]
+      english:    ["air defense", "energy infrastructure", "power grid", "blackout",
+                   Patriot, "F-16", HIMARS, "military aid"]
+      ukrainian:  [ППО, Patriot, F-16]
+    keywords_weapon_any: {}
 
   # Query 3: Defense industry / military spending
   - name: defense_industry_western
     description: >
       Western defense industry, military spending, and arms transfers.
-      Captures the financial-market angle of the conflict.
     languages: [English, German, French]
     themes: []
     keywords_any:
-      english:    [Lockheed, Martin, Raytheon, RTX, Boeing, Northrop, Grumman, General Dynamics,
-                   BAE, Systems, Rheinmetall, Hensoldt, Thales, Leonardo, Saab, Kongsberg,
-                   Renk, "defense stock", "defense sector", "defense industry",
-                   "military spending", "defense spending", "arms sales", "arms export",
-                   "weapons sale", "weapons export", rearmament, rearm, rearming,
-                   "ammunition production", "shell production", "tank production",
-                   Pentagon, NATO, "European Defence Fund", EDIS, EDIP,
-                   PESCO, "Article 5", "defense budget", "defense contract"]
-      german:     [Rüstung, Rüstungsindustrie, Rüstungskonzern, Verteidigung, Bundeswehr,
-                   Rheinmetall, Hensoldt, Renk, "Rüstungsausgaben", "Verteidigungsausgaben",
-                   "Waffenlieferung", "Waffenexport", Wiederbewaffnung, Aufrüstung,
-                   NATO, Bundeswehr]
-      french:     [défense, armement, armements, "industrie de défense", Thales, Dassault,
-                   Safran, Airbus, "budget de la défense", "dépenses militaires",
-                   "vente d'armes", réarmement, OTAN, "industrie de l'armement"]
+      english:    [Lockheed, Raytheon, RTX, Boeing, Rheinmetall, BAE, Saab,
+                   "defense stock", rearmament, NATO, "military spending"]
+      german:     [Rüstung, Rheinmetall, Verteidigung, NATO]
+      french:     [défense, Thales, Safran, Airbus, OTAN, réarmement]
+    keywords_weapon_any: {}
 
   # Query 4: Energy markets (only insofar as war-related)
   - name: energy_war
     description: >
-      Energy market news tied to the conflict (e.g., gas storage, oil
-      sanctions, infrastructure strikes). Subset of war-driven energy news.
+      Energy market news tied to the conflict (gas, oil, sanctions).
     languages: [English, German, French]
     themes: []
     keywords_any:
-      english:    [Brent, WTI, "oil price", "natural gas", "Nord Stream", Nordstream,
-                   Gazprom, "OPEC+", "Russian oil", "Russian gas", "oil embargo",
-                   "oil sanction", "price cap", "G7 cap", "EU embargo",
-                   "strategic petroleum reserve"]
-      german:     [Ölpreis, Erdgas, "Nord Stream", Gazprom, "russisches Öl",
-                   Ölembargo, Preisdeckel]
-      french:     [pétrole, gaz, "Nord Stream", Gazprom, embargo, "prix du baril"]
+      english:    [Brent, "oil price", "natural gas", "Nord Stream", Gazprom,
+                   "Russian oil", "oil embargo", "price cap"]
+      german:     [Ölpreis, Erdgas, Gazprom, Ölembargo]
+      french:     [pétrole, gaz, embargo]
+    keywords_weapon_any: {}
 
-# Default language list (used when language-specific filter is not critical)
-default_languages: [English, Russian, Ukrainian, German, French, Polish]
+# Default language list
+default_languages: [English, Russian, Ukrainian]
 
 # Output config
 output:
