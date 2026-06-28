@@ -165,41 +165,140 @@ def build_gdelt_query_url(
 
 
 # =========================================================================
-# API client
+# Rate-limited API client
 # =========================================================================
+#
+# The GDELT DOC 2.0 public API has aggressive throttling:
+#   - 1 request per 5 seconds per IP
+#   - HTTP 429 (Too Many Requests) on bursts or sustained traffic
+#   - Retry-After header is sometimes sent, sometimes not
+#
+# The client below uses a thread-safe token-bucket rate limiter + exponential
+# backoff with jitter (so retries don't synchronize across processes). This
+# brings the wall time to exactly the predicted value (no 429s) instead of
+# unpredictable timeouts.
 
-def _gdelt_request(url: str, max_retries: int = 5, backoff: float = 2.0,
-                   timeout: int = 60) -> tuple[list[dict[str, Any]], str | None]:
-    """Make a GDELT request with retry logic. Returns (article_list, error_msg)."""
-    last_error = None
+import threading
+
+# Backoff schedule for 429 (seconds): 10, 25, 62, 156, 391, 977 (~16 min cap)
+_429_BACKOFF_BASE = 10.0
+_429_BACKOFF_FACTOR = 2.5
+_429_BACKOFF_MAX = 1800.0  # 30 min
+
+
+class RateLimiter:
+    """Thread-safe token-bucket rate limiter.
+
+    Default `rate_per_sec = 1/6` means one call every 6 seconds (slightly
+    slower than the documented 1/5s limit, leaving headroom for retries).
+    Pass `rate_per_sec = 1.0` for tests / debugging.
+    """
+
+    def __init__(self, rate_per_sec: float = 1.0 / 6.0):
+        self.interval = 1.0 / rate_per_sec if rate_per_sec > 0 else 0.0
+        self._lock = threading.Lock()
+        self._last_call = 0.0
+
+    def wait(self) -> None:
+        """Block until the next request is allowed."""
+        if self.interval <= 0:
+            return
+        with self._lock:
+            now = time.time()
+            wait = self.interval - (now - self._last_call)
+            if wait > 0:
+                time.sleep(wait)
+            self._last_call = time.time()
+
+    def reset(self) -> None:
+        """Reset the limiter clock (useful for tests)."""
+        with self._lock:
+            self._last_call = 0.0
+
+
+# Module-level singleton — one limiter shared across all calls in this process.
+_default_limiter = RateLimiter(rate_per_sec=1.0 / 6.0)
+
+
+def get_default_limiter() -> RateLimiter:
+    """Return the module-level rate limiter singleton."""
+    return _default_limiter
+
+
+def set_rate_limit(rate_per_sec: float) -> RateLimiter:
+    """Replace the default limiter with a new one (e.g. for testing)."""
+    global _default_limiter
+    _default_limiter = RateLimiter(rate_per_sec=rate_per_sec)
+    return _default_limiter
+
+
+def _gdelt_request(
+    url: str,
+    max_retries: int = 6,
+    backoff: float = 2.0,
+    timeout: int = 60,
+    limiter: RateLimiter | None = None,
+) -> tuple[list[dict[str, Any]], str | None]:
+    """Make a GDELT request with 429-aware retry logic. Returns (article_list, error_msg).
+
+    Retry policy:
+      * 200 OK → return parsed JSON (articles list)
+      * 429 Too Many Requests → exponential backoff with ±20% jitter
+          (10s, 25s, 62s, 156s, 391s, 977s, capped at 1800s)
+        Honours Retry-After header when present
+      * 5xx server error → exponential backoff (4s, 8s, 16s, ...)
+      * 4xx other than 429 → return immediately (bad request, no retry)
+      * Network exception (timeout, conn reset) → wait and retry
+    """
+    lim = limiter if limiter is not None else _default_limiter
+    last_error: str | None = None
     for attempt in range(max_retries):
+        lim.wait()
         try:
             r = requests.get(url, timeout=timeout)
-            if r.status_code == 200:
-                try:
-                    data = r.json()
-                except json.JSONDecodeError:
-                    last_error = "JSON decode error"
-                    time.sleep(backoff)
-                    continue
-                if isinstance(data, dict) and "articles" in data:
-                    return data["articles"], None
-                if isinstance(data, list):
-                    return data, None
-                if isinstance(data, dict):
-                    return [data], None
-                return [], None
-            elif r.status_code == 429:
-                # Rate-limited; back off aggressively
-                wait = backoff * (attempt + 1) * 2  # 4, 8, 16, 32, 64 sec
-                last_error = f"429 (rate limited, slept {wait}s)"
-                time.sleep(wait)
+        except requests.RequestException as e:
+            wait = 5 * (2 ** attempt)  # 5, 10, 20, 40, 80, 160
+            last_error = f"Request exception: {type(e).__name__}: {e}"
+            time.sleep(wait)
+            continue
+        if r.status_code == 200:
+            try:
+                data = r.json()
+            except json.JSONDecodeError:
+                last_error = "JSON decode error on 200 response"
+                time.sleep(backoff)
+                continue
+            if isinstance(data, dict) and "articles" in data:
+                return data["articles"], None
+            if isinstance(data, list):
+                return data, None
+            if isinstance(data, dict):
+                return [data], None
+            return [], None
+        if r.status_code == 429:
+            # Respect Retry-After if provided
+            retry_after = r.headers.get("Retry-After")
+            if retry_after and retry_after.strip().isdigit():
+                base = float(retry_after)
             else:
-                last_error = f"HTTP {r.status_code}"
-                time.sleep(backoff * (attempt + 1))
-        except (requests.RequestException, json.JSONDecodeError) as e:
-            last_error = f"Request error: {e}"
-            time.sleep(backoff * (attempt + 1))
+                base = min(
+                    _429_BACKOFF_BASE * (_429_BACKOFF_FACTOR ** attempt),
+                    _429_BACKOFF_MAX,
+                )
+            # Add ±20% jitter so parallel processes don't sync
+            jitter = base * 0.2 * (2 * (time.time() % 1) - 1)
+            wait = max(5.0, base + jitter)
+            last_error = f"429 (rate-limited), backoff {wait:.0f}s on attempt {attempt + 1}"
+            time.sleep(wait)
+            continue
+        if r.status_code in (500, 502, 503, 504):
+            wait = 10 * (2 ** attempt)
+            last_error = f"HTTP {r.status_code}, backoff {wait}s"
+            time.sleep(wait)
+            continue
+        # Other 4xx — bad request, don't retry
+        last_error = f"HTTP {r.status_code}: {r.text[:200]}"
+        return [], last_error
     return [], last_error
 
 
@@ -207,9 +306,10 @@ def fetch_gdelt_window(
     query: dict[str, Any],
     start: str,
     end: str,
-    api_sleep: float = 5.0,  # GDELT public API: 1 request per 5 seconds
+    api_sleep: float = 0.0,  # DEPRECATED: rate limiter handles spacing now
     max_records: int = 250,
-    max_retries: int = 5,
+    max_retries: int = 6,
+    limiter: "RateLimiter | None" = None,
 ) -> list[dict[str, Any]]:
     """Fetch all articles matching `query` for a single date window.
 
@@ -222,6 +322,17 @@ def fetch_gdelt_window(
         One entry from config/gdelt_queries.yaml's `queries` list.
     start, end : str
         "YYYY-MM-DD" (no time) — the date window.
+    api_sleep : float
+        DEPRECATED. Rate limiting is now handled by the module-level
+        ``RateLimiter`` (1 call / 6s by default). Kept for API
+        compatibility; if > 0, an extra ``time.sleep(api_sleep)`` is
+        added after the request.
+    max_records : int
+        Max 250 per GDELT request.
+    max_retries : int
+        Number of 429 retries before giving up.
+    limiter : RateLimiter, optional
+        Override the default rate limiter (e.g. for tests).
     """
     keywords_any = _flatten_keywords(query.get("keywords_any", {}))
     keywords_weapon_any = _flatten_keywords(query.get("keywords_weapon_any", {}))
@@ -244,11 +355,15 @@ def fetch_gdelt_window(
         mode="artlist",
         sort="datedesc",
     )
-    articles, err = _gdelt_request(url, max_retries=max_retries)
+    articles, err = _gdelt_request(
+        url, max_retries=max_retries, limiter=limiter
+    )
     if err:
         print(f"    [WARN] {err}")
     out.extend(articles)
-    time.sleep(api_sleep)
+    # Backward-compat: honour explicit api_sleep if user passed it
+    if api_sleep and api_sleep > 0:
+        time.sleep(api_sleep)
 
     return out
 
@@ -455,16 +570,47 @@ def fetch_gdelt_full(
     end: str = "2026-06-21",
     output_dir: str | Path = DEFAULT_OUTPUT_DIR,
     window: str = "month",
-    api_sleep: float = 5.0,  # GDELT public API: 1 request per 5 seconds
+    api_sleep: float = 0.0,  # DEPRECATED: rate limiter handles spacing
     max_records: int = 250,
-    max_retries: int = 5,
+    max_retries: int = 6,
+    rate_per_sec: float | None = None,
+    verbose: bool = True,
 ) -> pd.DataFrame:
     """Fetch all articles for all queries in monthly windows.
 
-    Saves per-(query, month) parquet files for resumability.
+    Saves per-(query, month) parquet files for resumability. Re-runs
+    will skip already-extracted windows.
+
+    Parameters
+    ----------
+    queries_path : str or Path
+        YAML config (default: config/gdelt_queries.yaml).
+    start, end : str
+        "YYYY-MM-DD" — overall date range.
+    output_dir : str or Path
+        Where to save per-window parquet files.
+    window : str
+        "month" (default) or "week". Currently only "month" is wired.
+    api_sleep : float
+        DEPRECATED. Use ``rate_per_sec`` instead. The module-level
+        ``RateLimiter`` (1 call / 6s) is the authoritative throttle.
+    max_records : int
+        Max 250 per GDELT request.
+    max_retries : int
+        Number of 429 retries before giving up.
+    rate_per_sec : float, optional
+        Override the default rate limit. Use ``1.0`` for tests (no
+        sleep). For real extraction, leave at the default 1/6.
+    verbose : bool
+        Print progress messages.
 
     Returns the combined DataFrame.
     """
+    if rate_per_sec is not None:
+        limiter = set_rate_limit(rate_per_sec)
+    else:
+        limiter = get_default_limiter()
+
     with open(queries_path) as f:
         cfg = yaml.safe_load(f)
     queries = cfg["queries"]
@@ -474,15 +620,42 @@ def fetch_gdelt_full(
     all_records: list[dict[str, Any]] = []
     months = pd.date_range(start, end, freq="MS").strftime("%Y-%m").tolist()
     months.append(end[:7])
+    months = sorted(set(months))
+
+    total_calls = len(queries) * len(months)
+    call_no = 0
+    t0 = time.time()
+    errors: list[tuple[str, str, str]] = []
+
+    if verbose:
+        est_sec = total_calls * (1.0 / limiter.interval) if limiter.interval > 0 else 0
+        print(
+            f"=== GDELT FULL EXTRACTION ===\n"
+            f"  Date range: {start} → {end}\n"
+            f"  Monthly windows: {len(months)}\n"
+            f"  Queries: {len(queries)}\n"
+            f"  Total API calls: {total_calls}\n"
+            f"  Rate limit: 1 call / {limiter.interval:.1f}s\n"
+            f"  Estimated wall time: ~{est_sec / 60:.0f} minutes (best case, no 429s)\n"
+        )
 
     for q in queries:
+        if verbose:
+            print(
+                f"\n[{queries.index(q) + 1}/{len(queries)}] Query: {q['name']}"
+            )
         for m in months:
             # Skip if already done
             out_file = output_dir / f"raw_{q['name']}_{m}.parquet"
             if out_file.exists():
                 df_existing = pd.read_parquet(out_file)
-                if not df_existing.empty:
-                    print(f"  [SKIP] {q['name']} {m}: {len(df_existing)} articles cached")
+                if not df_existing.empty or "EMPTY" in out_file.name:
+                    call_no += 1
+                    if verbose:
+                        print(
+                            f"  [SKIP] {q['name']} {m}: "
+                            f"{len(df_existing)} articles cached"
+                        )
                     all_records.extend(df_existing.to_dict("records"))
                     continue
             # Build window
@@ -492,7 +665,17 @@ def fetch_gdelt_full(
                 month_start = pd.Timestamp(start).date()
             if pd.Timestamp(month_end) > pd.Timestamp(end):
                 month_end = pd.Timestamp(end).date()
-            print(f"  [FETCH] {q['name']} {month_start} → {month_end}", end=" ... ", flush=True)
+            call_no += 1
+            elapsed = time.time() - t0
+            remaining_calls = total_calls - call_no + 1
+            eta_sec = remaining_calls * limiter.interval
+            if verbose:
+                print(
+                    f"  [FETCH {call_no}/{total_calls}] "
+                    f"{q['name']} {month_start} → {month_end}  "
+                    f"(elapsed {elapsed / 60:.1f}m, ETA {eta_sec / 60:.0f}m)",
+                    flush=True,
+                )
             try:
                 articles = fetch_gdelt_window(
                     q,
@@ -501,19 +684,36 @@ def fetch_gdelt_full(
                     api_sleep=api_sleep,
                     max_records=max_records,
                     max_retries=max_retries,
+                    limiter=limiter,
                 )
                 # Save per-window (always save a marker, even if empty)
                 pd.DataFrame(articles).to_parquet(out_file)
                 all_records.extend(articles)
-                print(f"{len(articles)} articles")
+                if verbose:
+                    print(f"    → {len(articles)} articles")
             except Exception as e:
-                print(f"ERROR: {e}")
-                # Still save an empty marker so we don't re-try on resume
+                if verbose:
+                    print(f"    ERROR: {e}")
+                errors.append((q['name'], m, str(e)))
+                # Mark as empty so we don't loop forever on resume
                 try:
                     pd.DataFrame().to_parquet(out_file)
                 except Exception:
                     pass
                 continue
+
+    if verbose:
+        elapsed_min = (time.time() - t0) / 60
+        print(
+            f"\n=== EXTRACTION COMPLETE ===\n"
+            f"  Total articles: {len(all_records)}\n"
+            f"  Wall time: {elapsed_min:.1f} minutes\n"
+            f"  Errors: {len(errors)}"
+        )
+        if errors:
+            print("  First few errors:")
+            for q_name, m, err in errors[:5]:
+                print(f"    - {q_name} {m}: {err}")
 
     if not all_records:
         return pd.DataFrame()
