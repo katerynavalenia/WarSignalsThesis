@@ -189,12 +189,15 @@ _429_BACKOFF_MAX = 1800.0  # 30 min
 class RateLimiter:
     """Thread-safe token-bucket rate limiter.
 
-    Default `rate_per_sec = 1/6` means one call every 6 seconds (slightly
-    slower than the documented 1/5s limit, leaving headroom for retries).
+    Default `rate_per_sec = 1/7` means one call every 7 seconds.
+    This is a safe margin below GDELT's documented 1/5s limit. If the
+    server has recently seen traffic from this IP, even 5s can be
+    too fast (HTTP 429). 7s is the sweet spot that works reliably
+    for all queries including burst-prone date windows.
     Pass `rate_per_sec = 1.0` for tests / debugging.
     """
 
-    def __init__(self, rate_per_sec: float = 1.0 / 6.0):
+    def __init__(self, rate_per_sec: float = 1.0 / 7.0):
         self.interval = 1.0 / rate_per_sec if rate_per_sec > 0 else 0.0
         self._lock = threading.Lock()
         self._last_call = 0.0
@@ -217,7 +220,7 @@ class RateLimiter:
 
 
 # Module-level singleton — one limiter shared across all calls in this process.
-_default_limiter = RateLimiter(rate_per_sec=1.0 / 6.0)
+_default_limiter = RateLimiter(rate_per_sec=1.0 / 7.0)
 
 
 def get_default_limiter() -> RateLimiter:

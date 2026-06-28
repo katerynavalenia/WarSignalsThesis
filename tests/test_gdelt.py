@@ -308,12 +308,12 @@ def test_rate_limiter_reset():
     assert elapsed < 0.05, f"reset() did not clear state: {elapsed}s"
 
 
-def test_rate_limiter_default_six_seconds():
-    """Default module limiter should be 1/6 sec (slightly slower than 1/5)."""
+def test_rate_limiter_default_seven_seconds():
+    """Default module limiter should be 1/7 sec (safe margin below 1/5)."""
     from src.data.gdelt import get_default_limiter
     lim = get_default_limiter()
-    assert 5.0 <= lim.interval <= 7.0, (
-        f"Default interval should be ~6s, got {lim.interval}"
+    assert 6.5 <= lim.interval <= 7.5, (
+        f"Default interval should be ~7s, got {lim.interval}"
     )
 
 
@@ -327,7 +327,7 @@ def test_set_rate_limit_replaces_singleton():
     assert get_default_limiter() is new_lim
     assert abs(new_lim.interval - 0.1) < 0.001
     # Restore default
-    set_rate_limit(rate_per_sec=1.0 / 6.0)
+    set_rate_limit(rate_per_sec=1.0 / 7.0)
 
 
 def test_gdelt_request_handles_429(monkeypatch):
@@ -878,9 +878,9 @@ def test_full_extraction_predictable_wall_time():
     n_queries = 4
     n_calls = n_months * n_queries
 
-    lim = RateLimiter(rate_per_sec=1.0 / 6.0)  # default 6 sec
+    lim = RateLimiter(rate_per_sec=1.0 / 7.0)  # default 7 sec
     sec = n_calls * lim.interval
-    # Sanity: ~180 calls × 6s = 1080s = 18 min
-    assert 1000 <= sec <= 1200, f"Unexpected wall time: {sec}s for {n_calls} calls"
+    # Sanity: ~180 calls × 7s = 1260s = 21 min
+    assert 1200 <= sec <= 1320, f"Unexpected wall time: {sec}s for {n_calls} calls"
     assert n_months == 45  # locked-in for the project date range
     assert n_calls == 180  # 45 × 4 queries
