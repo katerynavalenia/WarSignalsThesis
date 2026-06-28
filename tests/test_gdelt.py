@@ -248,3 +248,32 @@ def test_smoke_test_gdelt_api():
     q = cfg["queries"][0]
     articles = fetch_gdelt_window(q, "2024-01-15", "2024-01-15", api_sleep=0.6)
     assert isinstance(articles, list)
+
+
+
+def test_normalize_gdelt_datetime():
+    """Date normalization for GDELT format YYYYMMDDHHMMSS."""
+    from src.data.gdelt import _normalize_gdelt_datetime
+    assert _normalize_gdelt_datetime("2024-01-15") == "20240115000000"
+    assert _normalize_gdelt_datetime("2024-01-15 00:00:00") == "20240115000000"
+    assert _normalize_gdelt_datetime("2024-01-15 12:30:45") == "20240115123045"
+    assert _normalize_gdelt_datetime("20240115000000") == "20240115000000"
+    assert _normalize_gdelt_datetime("2024-01-15T12:30:45") == "20240115123045"
+    # Edge: empty string
+    assert _normalize_gdelt_datetime("") == ""
+    assert _normalize_gdelt_datetime("2024-01-15 12:30") == "20240115123000"  # short time
+
+
+def test_build_gdelt_query_url_date_normalized():
+    """build_gdelt_query_url should normalize dates to GDELT format."""
+    from src.data.gdelt import build_gdelt_query_url
+    url = build_gdelt_query_url(
+        keywords_any=["Ukraine"],
+        start="2024-01-15 00:00:00",
+        end="2024-01-15 23:59:59",
+    )
+    assert "startdatetime=20240115000000" in url
+    assert "enddatetime=20240115235959" in url
+    # Should NOT have dashes or colons
+    assert "2024-01-15" not in url
+    assert "00:00:00" not in url

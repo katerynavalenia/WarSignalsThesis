@@ -70,6 +70,39 @@ def _flatten_keywords(per_lang) -> list[str]:
     return out
 
 
+def _normalize_gdelt_datetime(s: str) -> str:
+    """Normalize a date/datetime string to GDELT's required format.
+
+    GDELT expects ``YYYYMMDDHHMMSS`` (no separators, no 'T', no 'Z').
+    Accepts:
+      - ``YYYY-MM-DD``           → ``YYYYMMDD000000``
+      - ``YYYY-MM-DD HH:MM:SS``  → ``YYYYMMDDHHMMSS``
+      - ``YYYYMMDDHHMMSS``       → unchanged
+    """
+    if not s:
+        return s
+    s = str(s).strip()
+    # Already in compact format
+    if len(s) == 14 and s.isdigit():
+        return s
+    # ISO-like format with date
+    if "T" in s:
+        s = s.replace("T", " ")
+    if " " in s:
+        date_part, time_part = s.split(" ", 1)
+    else:
+        date_part, time_part = s, "00:00:00"
+    date_clean = date_part.replace("-", "").replace("/", "")
+    time_clean = time_part.replace(":", "").replace("-", "")
+    if len(time_clean) == 0:
+        time_clean = "000000"
+    elif len(time_clean) < 6:
+        time_clean = time_clean.ljust(6, "0")
+    elif len(time_clean) > 6:
+        time_clean = time_clean[:6]
+    return date_clean + time_clean
+
+
 def build_gdelt_query_url(
     keywords_any: list[str] | None = None,
     keywords_weapon_any: list[str] | None = None,
@@ -94,7 +127,8 @@ def build_gdelt_query_url(
     themes : list of str
         GDELT GNS theme codes (e.g. "TERROR", "MILITARY_OPERATION").
     start, end : str
-        "YYYY-MM-DD HH:MM:SS" — start/end of the date window.
+        Date in any of: "YYYY-MM-DD", "YYYY-MM-DD HH:MM:SS", or
+        "YYYYMMDDHHMMSS". Will be normalized to GDELT's compact format.
     max_records : int
         Max 250 per GDELT.
     mode : str
@@ -109,8 +143,6 @@ def build_gdelt_query_url(
         parts.append("(" + " OR ".join(keywords_weapon_any) + ")")
     query = " AND ".join(parts) if parts else "*"
 
-    # Build the URL manually so we use %20 (not +) for spaces in datetimes
-    # (GDELT is strict about this).
     from urllib.parse import quote
     params = {
         "query": query,
@@ -124,9 +156,9 @@ def build_gdelt_query_url(
     if themes:
         params["theme"] = ",".join(themes)
     if start:
-        params["startdatetime"] = start
+        params["startdatetime"] = _normalize_gdelt_datetime(start)
     if end:
-        params["enddatetime"] = end
+        params["enddatetime"] = _normalize_gdelt_datetime(end)
 
     qs = "&".join(f"{k}={quote(str(v), safe='')}" for k, v in params.items())
     return f"{GDELT_BASE}?{qs}"
@@ -197,9 +229,8 @@ def fetch_gdelt_window(
     themes = query.get("themes", [])
 
     out: list[dict[str, Any]] = []
-    # Convert date to GDELT datetime strings
-    start_dt = f"{start} 00:00:00"
-    end_dt = f"{end} 23:59:59"
+    # Convert dates to GDELT format inside build_gdelt_query_url
+    # (accepts both "YYYY-MM-DD" and "YYYYMMDDHHMMSS" inputs)
 
     # GDELT artlist max is 250 per call. For long windows we may need pagination.
     url = build_gdelt_query_url(
@@ -207,8 +238,8 @@ def fetch_gdelt_window(
         keywords_weapon_any=keywords_weapon_any,
         languages=languages,
         themes=themes,
-        start=start_dt,
-        end=end_dt,
+        start=start,
+        end=end,
         max_records=max_records,
         mode="artlist",
         sort="datedesc",
