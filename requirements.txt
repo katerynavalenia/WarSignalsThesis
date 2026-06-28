@@ -1,0 +1,38 @@
+# Minimal dependencies for Phase 0–1 (project setup and financial-data audit)
+# Heavy ML and NLP dependencies will be added in later phases.
+
+# Core data processing
+pandas>=2.0
+numpy>=1.24
+pyarrow>=14.0          # Parquet support
+openpyxl>=3.1          # Bloomberg .xlsx
+xlrd>=2.0              # Bloomberg .xls (GPR data)
+
+# Configuration
+pyyaml>=6.0
+
+# Notebooks
+jupyter>=1.0
+ipykernel>=6.0
+
+# Visualization (for audit charts)
+matplotlib>=3.7
+seaborn>=0.12
+
+# Testing
+pytest>=7.0
+
+# ── Phase 3 — GDELT extraction (run in Colab) ──
+requests>=2.30        # GDELT API calls (network)
+datasketch>=1.10      # MinHash/LSH dedup (high RAM)
+langdetect>=1.0.9     # Language detection
+tqdm>=4.65            # Progress bars
+
+# ── Phase 4+ dependencies (add when needed) ──
+# transformers         # multilingual NLP (Phase 4) — Colab GPU
+# torch                # transformer backend (Phase 4) — Colab GPU
+# statsmodels          # econometric baselines (Phase 6)
+# arch                 # GARCH models (Phase 6)
+# lightgbm             # gradient boosting (Phase 7)
+# shap                 # feature attribution (Phase 7)
+# scikit-learn         # preprocessing, evaluation (Phase 5+)

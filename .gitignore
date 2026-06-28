@@ -1,0 +1,88 @@
+# ── Python ──────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# ── Jupyter ─────────────────────────────
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ── Environment / IDE ───────────────────
+.env
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ── Configuration (local copies) ────────
+config/paths.yaml
+config/*.local.yaml
+
+# ── Data (preserve structure, ignore content) ──
+# Raw data: ignore file contents but keep directory structure
+data/raw/**/*.csv
+data/raw/**/*.xlsx
+data/raw/**/*.xls
+data/raw/**/*.parquet
+data/raw/**/*.json
+data/raw/**/*.jsonl
+data/raw/**/*.txt
+data/raw/**/*.zip
+data/raw/**/*.gz
+data/raw/**/*.tar
+
+# Interim data
+data/interim/**/*.csv
+data/interim/**/*.parquet
+data/interim/**/*.json
+
+# Processed data
+data/processed/**/*.csv
+data/processed/**/*.parquet
+
+# External data
+data/external/**/*.csv
+data/external/**/*.parquet
+data/external/**/*.xlsx
+
+# ── Outputs (preserve structure, ignore content) ──
+outputs/figures/*.png
+outputs/figures/*.pdf
+outputs/figures/*.svg
+outputs/figures/*.jpg
+outputs/tables/*.csv
+outputs/tables/*.tex
+outputs/tables/*.xlsx
+outputs/model_objects/*.pkl
+outputs/model_objects/*.joblib
+outputs/model_objects/*.h5
+outputs/logs/*.log
+outputs/logs/*.txt
+
+# ── Thesis build artifacts ──────────────
+thesis/*.aux
+thesis/*.bbl
+thesis/*.blg
+thesis/*.fdb_latexmk
+thesis/*.fls
+thesis/*.log
+thesis/*.out
+thesis/*.synctex.gz
+thesis/*.toc
+
+# ── Secrets ─────────────────────────────
+*.pem
+*.key
+credentials.json
+secrets.yaml

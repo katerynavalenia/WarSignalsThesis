@@ -1,0 +1,71 @@
+# Model configuration template
+# Status: PLANNED — do not use until Phase 6+.
+# Heavy ML dependencies are not yet installed.
+
+# Forecast horizons (in trading days)
+horizons:
+  primary: 1
+  secondary: 5
+  optional_volatility: 20
+
+# Out-of-sample design
+validation:
+  method: "expanding_window"
+  initial_train_start: "2020-01-01"    # financial warm-up
+  test_fraction: 0.25                  # reserve final 25-30% for test
+  min_train_observations: 500
+  refit_frequency: 20                  # refit every 20 trading days
+
+# Information sets (horse race)
+information_sets:
+  F: "financial baseline"
+  P: "financial + physical attacks"
+  N: "financial + news"
+  PN: "financial + physical + news"
+  PNG: "financial + physical + news + narrative gaps"
+
+# Econometric benchmarks
+baselines:
+  returns:
+    - "historical_mean"
+    - "autoregressive"
+    - "linear_regression_controls"
+    - "regularized_linear"
+  volatility:
+    - "garch_1_1"
+    - "gjr_garch"
+    - "egarch"
+    - "ar_range_based"     # if OHLC available
+    - "har_rv"             # optional, only if intraday available
+
+# Machine learning
+ml:
+  algorithm: null           # "lightgbm" or "xgboost" — select after benchmarking
+  max_depth: 5              # shallow trees
+  learning_rate: 0.05       # conservative
+  n_estimators: 500         # with early stopping
+  early_stopping_rounds: 50
+  random_seed: 42
+
+# Evaluation metrics
+metrics:
+  returns:
+    - "MAE"
+    - "RMSE"
+    - "directional_accuracy"
+    - "correlation"
+  volatility:
+    - "QLIKE"
+    - "MAE"
+    - "MSE"
+    - "bias"
+
+# Statistical comparison
+comparison:
+  - "diebold_mariano"
+  - "clark_west"
+  - "model_confidence_set"
+
+# Seeds
+seeds:
+  global: 42
