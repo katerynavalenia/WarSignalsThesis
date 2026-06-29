@@ -1,6 +1,6 @@
 # Data Dictionary
 
-**Status:** Financial variables verified after Phase 1 (2026-06-28). Other variables remain **planned** or **unverified** until their respective audit phases.
+**Status:** Financial and attack variables verified (Phases 1-2, 2026-06-28). News variables verified at article level (Phase 3, 2026-06-29) and at daily level (pending pipeline run). Derived features for Phase 5+ are still **planned**.
 
 This dictionary follows the target master dataset schema from Section 6.1 of the [`Master_Thesis_Research_Completion_Plan.md`](../Master_Thesis_Research_Completion_Plan.md).
 
@@ -82,17 +82,56 @@ See [`phase1_financial_audit.md` §6](phase1_financial_audit.md) for the full de
 
 ## News and narrative variables
 
+**Phase 3 in progress** (GDELT GKG 2.0 extraction complete, pipeline ready). See [`phase3_gdelt_audit.md`](phase3_gdelt_audit.md) for full pipeline details.
+
+### Article-level variables (raw, before daily aggregation)
+
+**Source:** GDELT GKG 2.0 bulk download (5.1 GB, 12M articles, 46 months)
+
 | Variable | Unit | Frequency | Timing | Source | Status | Notes |
 |---|---|---|---|---|---|---|
-| `ua_news_volume` | count | daily | article date | GDELT | planned | Ukrainian source group |
-| `ru_news_volume` | count | daily | article date | GDELT | planned | Russian source group |
-| `west_news_volume` | count | daily | article date | GDELT | planned | Western source group |
-| `ua_sentiment` | score | daily | article date | NLP model | planned | |
-| `ru_sentiment` | score | daily | article date | NLP model | planned | |
-| `west_sentiment` | score | daily | article date | NLP model | planned | |
-| `ua_narrative_gap` | residual | daily | article date | derived | planned | $ObservedNews - \hat{E}(News \mid Attack)$ |
-| `ru_narrative_gap` | residual | daily | article date | derived | planned | |
-| `west_narrative_gap` | residual | daily | article date | derived | planned | |
+| `date` | string | per article | article date | GKG field 0 | **verified** | `YYYYMMDD` or `YYYYMMDDTHHMMSSZ` format |
+| `domain` | string | per article | — | GKG field 9 (RESOURCES) | **verified** | Source domain, e.g. `kyivpost.com` |
+| `url` | string | per article | — | GKG field 10 (SOURCEURLS) | **verified** | Full article URL, used for dedup |
+| `tone_avg` | float | per article | article date | GKG field 8 (TONE) | **verified** | Sentiment score (-100 to +100, typical range -10 to +10) |
+| `tone_positive` | float | per article | article date | GKG | **verified** | Positive sentiment score |
+| `tone_negative` | float | per article | article date | GKG | **verified** | Negative sentiment score |
+| `tone_polarity` | float | per article | article date | GKG | **verified** | Polarity (pos vs neg balance) |
+| `tone_activity` | float | per article | article date | GKG | **verified** | Activity density |
+| `countries` | string | per article | — | GKG field 4 (LOCATIONS) | **verified** | Semicolon-separated ISO codes (GKG uses UP/RS/UK/EI/GM/IS/JA/KS aliases) |
+| `persons` | string | per article | — | GKG field 5 | **verified** | Named persons mentioned |
+| `orgs` | string | per article | — | GKG field 6 | **verified** | Named organizations mentioned |
+| `themes` | string | per article | — | GKG field 3 | **verified** | GKG theme codes |
+| `query_name` | string | per article | — | derived | **verified** | Which of 4 queries matched: `russian_attack_direct`, `ukraine_defense_energy`, `defense_industry_western`, `energy_war` |
+| `source_group` | category | per article | — | hybrid classifier | **verified** | `ukrainian`, `russian`, `western`, `other` |
+| `classification_method` | category | per article | — | derived | **verified** | `domain` (manual), `country` (GKG), `tld` (heuristic), `fallback` |
+
+### Daily-level variables (after aggregation)
+
+**Source:** `scripts/phase3_post_process_enriched.py`, output `data/processed/news/news_daily_enriched.parquet`
+
+| Variable | Unit | Frequency | Timing | Source | Status | Notes |
+|---|---|---|---|---|---|---|
+| `date` | date | daily | — | derived | **verified** | Index of daily table |
+| `n_articles_ukrainian` | count | daily | article date | derived | **verified** | Articles in Ukrainian source group |
+| `n_articles_russian` | count | daily | article date | derived | **verified** | Articles in Russian source group |
+| `n_articles_western` | count | daily | article date | derived | **verified** | Articles in Western source group |
+| `n_articles_other` | count | daily | article date | derived | **verified** | Articles in "other" source group |
+| `n_articles_total` | count | daily | article date | derived | **verified** | Total articles (sum of groups) |
+| `tone_ukrainian` | score | daily | article date | derived | **verified** | Mean `tone_avg` of Ukrainian articles that day |
+| `tone_russian` | score | daily | article date | derived | **verified** | Mean `tone_avg` of Russian articles that day |
+| `tone_western` | score | daily | article date | derived | **verified** | Mean `tone_avg` of Western articles that day |
+| `tone_other` | score | daily | article date | derived | **verified** | Mean `tone_avg` of "other" articles that day |
+
+### Derived features (for event study, Phase 5+)
+
+| Variable | Unit | Frequency | Timing | Source | Status | Notes |
+|---|---|---|---|---|---|---|
+| `ua_news_surprise` | residual | daily | article date | derived | **planned** | $ObservedNews - \hat{E}(News \mid Attack)$ |
+| `ru_news_surprise` | residual | daily | article date | derived | **planned** | |
+| `west_news_surprise` | residual | daily | article date | derived | **planned** | |
+| `tone_gap_uk_west` | score diff | daily | article date | derived | **planned** | $tone\_ukrainian - tone\_western$ |
+| `tone_gap_ru_west` | score diff | daily | article date | derived | **planned** | $tone\_russian - tone\_western$ |
 
 ---
 

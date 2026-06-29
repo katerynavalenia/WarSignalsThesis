@@ -64,20 +64,33 @@
 
 | Source | Data | Coverage | Frequency | Status | Audit phase | Notes |
 |---|---|---|---|---|---|---|
-| GDELT | Article-level records | 2022-09-29 → 2026-06-21 (planned) | daily | **prep complete** | Phase 3 | Multilingual news — **run on Colab** (API extraction + dedup) |
-| GDELT | Tone / themes | TBD | daily | planned | Phase 4 | NLP features (Phase 4) |
+| GDELT GKG | Article-level records (12 cols incl. TONE, COUNTRIES) | 2022-09-29 → 2026-06-21 | daily | **extracted** | Phase 3 | 5.1 GB raw, 12M articles; stored locally + Google Drive |
+| GDELT GKG | Source classification (hybrid) | 2022-09-29 → 2026-06-21 | daily | **classified** | Phase 3 | 88.5% coverage via domain+country+TLD hybrid |
+| GDELT GKG | Tone per source group | 2022-09-29 → 2026-06-21 | daily | **pending pipeline run** | Phase 3 | Daily aggregate output ready |
 
-### GDELT audit checklist (Phase 3) — prep complete; Colab run pending
+### GDELT audit checklist (Phase 3)
 
-> **⚠️ Colab required.** GDELT article-level extraction involves hundreds of API calls (2–6 hours) and near-duplicate deduplication on 500K–2M articles (MinHash/LSH, high RAM). Run on Colab with Google Drive storage. See [`docs/colab_03_setup.md`](../colab_03_setup.md) for step-by-step instructions.
+> **✅ Extraction complete.** Bulk download via GKG raw files (no rate limit, no quota). 184 enriched parquets (12 columns: date, domain, url, tone_*, countries, persons, orgs, themes, query_name). Stored in `data/news_colab_sim/war_signals_phase3/raw_enriched/` and `WarSignalsThesis_Data/data/raw_enriched/` on Google Drive.
 
 - [x] Define multilingual keyword dictionary → `config/gdelt_queries.yaml` (4 queries, 6 languages: EN, RU, UA, DE, FR, PL)
-- [x] Build reproducible extraction → `src/data/gdelt.py` + `notebooks/colab_03_gdelt_extraction.ipynb`
-- [x] Separate source geography from language → `config/source_groups.yaml` (4 groups: Ukrainian / Russian / Western / Other)
-- [x] Classify sources into Ukrainian, Russian, Western groups → domain-based lookup
-- [x] Deduplicate (MinHash + LSH, 5-gram shingles, Jaccard ≥ 0.7) → in notebook Cell 5
-- [ ] Manually assess query precision → 100 articles to label (after Colab run)
+- [x] Build reproducible extraction → `gkg_bulk_download.py` (resumable monthly batches, memory-bounded)
+- [x] Separate source geography from language → `config/source_groups.yaml` (4 groups: Ukrainian / Russian / Western / Other) + `config/country_groups.yaml` (49 country codes including GKG-specific)
+- [x] Classify sources via hybrid method → `classify_source_enhanced()` in `src/data/gdelt.py` (domain → country → TLD → fallback)
+- [x] Deduplicate by URL → 11M articles after dedup (GKG bulk has no title field; URL is the only viable approach)
+- [x] 42 unit tests for classifier → `tests/test_classifier_enhanced.py` (all passing)
+- [x] Data sharing infrastructure → rclone + Google Drive + Colab notebook (see `docs/data_sharing.md`)
+- [ ] Run post-processing pipeline → `scripts/phase3_post_process_enriched.py --chunk-size 1000000` (chunked for memory safety)
+- [ ] Run sensitivity analysis → `scripts/phase3_sensitivity_analysis.py` (compares 5 strategies)
+- [ ] Manually assess classification precision → 400 articles in `manual_precision_audit_enriched.csv` to label
 - [x] Record extraction dates → in metadata
+
+### Infrastructure notes
+
+- **Local**: Data in `data/news_colab_sim/war_signals_phase3/raw_enriched/` (5.1 GB, 184 files)
+- **Google Drive**: `WarSignalsThesis_Data/data/raw_enriched/` (mirrored, 5.095 GiB)
+- **Colab**: `notebooks/colab_03b_phase3_pipeline.ipynb` — mounts Drive, clones repo, runs pipeline
+- **Multi-machine**: rclone + refresh token (see `docs/data_sharing.md` for setup)
+- **Cost**: $0 (within Google Drive free tier 15 GB)
 
 ---
 

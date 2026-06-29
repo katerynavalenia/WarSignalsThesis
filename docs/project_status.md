@@ -1,6 +1,6 @@
 # Project Status
 
-**Last updated:** 2026-06-28
+**Last updated:** 2026-06-29
 
 > See the [`Master_Thesis_Research_Completion_Plan.md`](../Master_Thesis_Research_Completion_Plan.md) for the full research plan and phase definitions.
 
@@ -16,7 +16,22 @@
 
 **Phase 2 — Physical attack dataset** ✅ Complete (see [`docs/phase2_attack_audit.md`](phase2_attack_audit.md))
 
-**Phase 3 — GDELT extraction and source classification** ⏳ In progress (Colab run pending)
+**Phase 3 — GDELT extraction and source classification** ⏳ In progress
+- Extraction: ✅ Complete (5.1 GB, 12M articles, 46 months, 12 columns incl. TONE, COUNTRIES)
+- Infrastructure: ✅ Complete (Google Drive + rclone, Colab notebook ready)
+- Pipeline: ⏳ Running on Google Colab (chunked for memory safety)
+- See [`docs/phase3_gdelt_audit.md`](phase3_gdelt_audit.md), [`docs/phase3_classification_audit.md`](phase3_classification_audit.md), [`docs/data_sharing.md`](data_sharing.md)
+
+---
+
+## Data sharing infrastructure (2026-06-29)
+
+- **Code**: GitHub `katerynavalenia/WarSignalsThesis` (version-controlled)
+- **Data**: Google Drive `WarSignalsThesis_Data/` (5.1 GB, folder ID `1i1kkelDYszQ5Bi5Hv94NGT6wjCHkbIWU`)
+- **Tooling**: rclone v1.60.1 with `tps_limit=10` (API-polite)
+- **Compute**: Local (30 GB RAM) or Colab (12.7 GB free, 35 GB Pro+)
+- **Setup verification**: `python scripts/verify_setup.py`
+- Full docs: [`docs/data_sharing.md`](data_sharing.md)
 
 ---
 

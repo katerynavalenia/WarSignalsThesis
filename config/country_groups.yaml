@@ -1,0 +1,81 @@
+# Phase 3 — Country → Source Group Mapping
+# =========================================
+#
+# Maps ISO 3166-1 alpha-2 country codes to source groups.
+# Used by the hybrid classifier in src/data/gdelt.py as Priority 2
+# (after manual curation, before TLD heuristic).
+#
+# Groups:
+#   - ukrainian: Ukraine
+#   - russian:   Russia
+#   - western:   NATO + EU + Five Eyes + allied democracies
+#   - other:     everything else (catch-all)
+
+groups:
+  ukrainian:
+    description: "Ukrainian media"
+    countries:
+      - "UA"  # Ukraine (ISO 3166-1)
+      - "UP"  # Ukraine (GKG LOCATIONS field)
+
+  russian:
+    description: "Russian media"
+    countries:
+      - "RU"  # Russia (ISO 3166-1)
+      - "RS"  # Russia (GKG LOCATIONS field)
+
+  western:
+    description: "NATO, EU, Five Eyes, and allied democracies"
+    countries:
+      # Five Eyes
+      - US  # United States
+      - GB  # United Kingdom
+      - "UK"  # United Kingdom (GKG code)
+      - CA  # Canada
+      - AU  # Australia
+      - "AS"  # Australia (GKG code, tentative)
+      - NZ  # New Zealand
+      # EU member states
+      - DE  # Germany
+      - "GM"  # Germany (GKG code)
+      - FR  # France
+      - IT  # Italy
+      - ES  # Spain
+      - NL  # Netherlands
+      - BE  # Belgium
+      - LU  # Luxembourg
+      - AT  # Austria
+      - IE  # Ireland
+      - "EI"  # Ireland (GKG code)
+      - DK  # Denmark
+      - FI  # Finland
+      - SE  # Sweden
+      - PT  # Portugal
+      - GR  # Greece
+      - CZ  # Czech Republic
+      - HU  # Hungary
+      - PL  # Poland
+      - RO  # Romania
+      - BG  # Bulgaria
+      - HR  # Croatia
+      - SK  # Slovakia
+      - SI  # Slovenia
+      - LT  # Lithuania
+      - LV  # Latvia
+      - EE  # Estonia
+      - CY  # Cyprus
+      - MT  # Malta
+      # Other Western European / NATO
+      - "CH"  # Switzerland
+      - "NO"  # Norway
+      - LI  # Liechtenstein
+      - MC  # Monaco
+      # East Asian allies
+      - JP  # Japan
+      - "JA"  # Japan (GKG code)
+      - KR  # South Korea
+      - "KS"  # South Korea (GKG code)
+      - TW  # Taiwan
+      # Other
+      - IL  # Israel
+      - "IS"  # Israel (GKG code, not Iceland!)

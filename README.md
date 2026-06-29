@@ -16,6 +16,9 @@ Master 2 Financial Technology Development thesis project. This study tests wheth
 | [`docs/project_status.md`](docs/project_status.md) | Current phase and task status. |
 | [`docs/data_dictionary.md`](docs/data_dictionary.md) | Variable definitions, units, timing, and transformations. |
 | [`docs/source_inventory.md`](docs/source_inventory.md) | Data source inventory and audit status. |
+| [`docs/data_sharing.md`](docs/data_sharing.md) | **Data sharing architecture** (Google Drive + rclone setup, multi-machine sync). |
+| [`docs/phase3_gdelt_audit.md`](docs/phase3_gdelt_audit.md) | Phase 3 GDELT extraction and source classification audit. |
+| [`docs/phase3_classification_audit.md`](docs/phase3_classification_audit.md) | Phase 3 hybrid classifier methodology and validation. |
 
 ---
 
@@ -81,11 +84,17 @@ cp config/paths.yaml.example config/paths.yaml
 
 Some phases require GPU or high-RAM resources and are delegated to **Google Colab** (Pro subscription). Google Drive serves as the shared storage bridge.
 
-| Phase | Task | Resource | Est. time |
+| Phase | Task | Resource | Notebook |
 |---|---|---|---|
-| 3 | GDELT article extraction + dedup | Colab CPU + GDrive | 2–6 hours |
-| 4 | Transformer inference on 500K–2M articles | Colab T4/A100 GPU | 1–4 hours |
-| 6–7 | GARCH refits / hyperparameter search (optional) | Colab CPU | 1–3 hours |
+| 3 | GDELT post-processing (5.1 GB) | Colab CPU + 12 GB RAM | [`notebooks/colab_03b_phase3_pipeline.ipynb`](notebooks/colab_03b_phase3_pipeline.ipynb) |
+| 4 | Transformer inference on 500K–2M articles | Colab T4/A100 GPU | TBD |
+| 6–7 | GARCH refits / hyperparameter search (optional) | Colab CPU | TBD |
+
+**Data sharing architecture** (code on GitHub, data on Google Drive via rclone):
+- See [`docs/data_sharing.md`](docs/data_sharing.md) for full setup
+- Drive folder: `WarSignalsThesis_Data/` (5.1 GB raw data + pipeline outputs)
+- rclone configured with `tps_limit=10` to respect Drive API limits
+- On Colab: mount Drive, clone repo, run pipeline (no local storage needed)
 
 Phases 1, 2, 5, and 8 run locally. See [`instructions.md`](instructions.md) § "Colab delegation" for full rules.
 
@@ -93,9 +102,20 @@ Phases 1, 2, 5, and 8 run locally. See [`instructions.md`](instructions.md) § "
 
 ## Current phase
 
-**Phase 0 — Project setup** is complete. The next phase is:
+**Phase 0 — Project setup** ✅ Complete
+**Phase 1 — Financial-data audit** ✅ Complete (ITA as primary target)
+**Phase 2 — Physical attack dataset** ✅ Complete (809 days, 21 columns)
+**Phase 3 — GDELT extraction & classification** ⏳ In progress
 
-**Phase 1 — Financial-data audit:** Audit the Bloomberg delivery and determine the available fields, date coverage, series type, index identifiers, and feasible volatility target.
+Phase 3 is processing 5.1 GB of enriched GKG data (12M articles, 46 months) through:
+- URL-based deduplication
+- Hybrid source-group classification (domain + country + TLD)
+- Daily aggregation with tone averages (TONE field from GKG)
+
+The pipeline runs on Colab (12 GB RAM) using chunked classification. See:
+- [`docs/phase3_gdelt_audit.md`](docs/phase3_gdelt_audit.md) — extraction methodology
+- [`docs/phase3_classification_audit.md`](docs/phase3_classification_audit.md) — classifier validation
+- [`docs/data_sharing.md`](docs/data_sharing.md) — data infrastructure
 
 See [`docs/project_status.md`](docs/project_status.md) for detailed status.
 

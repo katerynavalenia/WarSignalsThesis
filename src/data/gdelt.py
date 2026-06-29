@@ -448,6 +448,160 @@ def classify_all_articles(
 
 
 # =========================================================================
+# Enhanced classification (hybrid: domain + country + TLD)
+# =========================================================================
+
+def _load_country_groups(path: str | Path = DEFAULT_CONFIG_DIR / "country_groups.yaml"
+                         ) -> dict[str, str]:
+    """Load country_groups.yaml. Returns a flat {country_code: group_name} index."""
+    with open(path) as f:
+        cfg = yaml.safe_load(f)
+    idx: dict[str, str] = {}
+    for g_name, g_data in cfg["groups"].items():
+        if g_name == "other":
+            continue
+        for c in g_data.get("countries", []):
+            idx[c.upper()] = g_name
+    return idx
+
+
+_TLD_TO_GROUP = {
+    "ua": "ukrainian",
+    "ru": "russian",
+    "uk": "western",
+    "us": "western",
+    "de": "western",
+    "fr": "western",
+    "it": "western",
+    "es": "western",
+    "nl": "western",
+    "be": "western",
+    "at": "western",
+    "ch": "western",
+    "ie": "western",
+    "dk": "western",
+    "fi": "western",
+    "se": "western",
+    "no": "western",
+    "is": "western",
+    "pl": "western",
+    "cz": "western",
+    "hu": "western",
+    "ro": "western",
+    "bg": "western",
+    "gr": "western",
+    "pt": "western",
+    "ca": "western",
+    "au": "western",
+    "nz": "western",
+    "jp": "western",
+    "kr": "western",
+    "tw": "western",
+    "il": "western",
+}
+
+
+def _tld_group(domain: str) -> str:
+    """Return group based on top-level domain, or 'other' if unknown."""
+    if not domain or "." not in domain:
+        return "other"
+    tld = domain.rsplit(".", 1)[-1].lower()
+    return _TLD_TO_GROUP.get(tld, "other")
+
+
+def classify_source_enhanced(
+    domain: str | None,
+    countries: str | None = None,
+    groups: dict[str, dict] | None = None,
+    country_groups: dict[str, str] | None = None,
+) -> tuple[str, str]:
+    """Hybrid classifier: domain → country → TLD → other.
+
+    Returns (group, method) where method is one of:
+      'domain' — matched in source_groups.yaml
+      'country' — matched via COUNTRIES field
+      'tld' — matched via top-level domain
+      'fallback' — no match
+    """
+    if groups is None:
+        groups = _load_source_groups()
+    if country_groups is None:
+        try:
+            country_groups = _load_country_groups()
+        except FileNotFoundError:
+            country_groups = {}
+
+    # Normalize domain
+    if domain is None or (isinstance(domain, float) and np.isnan(domain)):
+        d = ""
+    else:
+        d = str(domain).lower().strip()
+    d_clean = d[4:] if d.startswith("www.") else d
+
+    # Priority 1: domain lookup
+    if d_clean or d:
+        idx = _build_domain_index(groups)
+        grp = idx.get(d_clean) or idx.get(d)
+        if grp:
+            return grp, "domain"
+
+    # Priority 2: country codes from GKG COUNTRIES field
+    if countries and country_groups:
+        for code in str(countries).split(";"):
+            code = code.strip().upper()
+            if not code:
+                continue
+            grp = country_groups.get(code)
+            if grp:
+                return grp, "country"
+
+    # Priority 3: TLD heuristic
+    if d_clean or d:
+        grp = _tld_group(d_clean or d)
+        if grp != "other":
+            return grp, "tld"
+
+    return "other", "fallback"
+
+
+def classify_all_articles_enhanced(
+    df: pd.DataFrame,
+    domain_col: str = "domain",
+    countries_col: str = "countries",
+    groups: dict[str, dict] | None = None,
+    country_groups: dict[str, str] | None = None,
+) -> pd.DataFrame:
+    """Add source_group + classification_method columns using hybrid classifier.
+
+    Falls back to classify_source() if countries column is absent.
+    """
+    if groups is None:
+        groups = _load_source_groups()
+    if country_groups is None:
+        try:
+            country_groups = _load_country_groups()
+        except FileNotFoundError:
+            country_groups = {}
+
+    out = df.copy()
+    has_countries = countries_col in out.columns
+
+    if has_countries:
+        results = out.apply(
+            lambda r: classify_source_enhanced(
+                r.get(domain_col), r.get(countries_col), groups, country_groups
+            ),
+            axis=1,
+        )
+        out["source_group"] = [r[0] for r in results]
+        out["classification_method"] = [r[1] for r in results]
+    else:
+        out = classify_all_articles(out, domain_col=domain_col, groups=groups)
+        out["classification_method"] = "domain"
+    return out
+
+
+# =========================================================================
 # Language detection
 # =========================================================================
 

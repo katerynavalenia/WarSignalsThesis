@@ -92,3 +92,13 @@ thesis/*.toc
 *.key
 credentials.json
 secrets.yaml
+
+# Google OAuth credentials (do not commit)
+client_secret_*.json
+
+# ── Colab-simulated data (stored on Google Drive instead) ──
+# 5.1 GB of enriched GKG parquets are too large for git.
+# Data lives in Google Drive: WarSignalsThesis_Data/data/raw_enriched/
+# See docs/data_sharing.md for setup.
+data/news_colab_sim/**/*.parquet
+data/news_colab_sim/**/*.csv

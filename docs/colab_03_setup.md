@@ -1,28 +1,29 @@
 # Colab Setup for Phase 3 — GDELT Extraction
 
-**Time required:** 4-6 hours (mostly waiting for the API)
-**Cost:** Google Colab Pro recommended (~$10/month) for High-RAM
-**Result:** ~1 GB of article-level data + 1,400 daily aggregate rows
+**Time required:** ~5-10 minutes (extraction already done, just runs the post-processing pipeline)
+**Cost:** Google Colab free tier is sufficient (12.7 GB RAM, chunked to stay under)
+**Result:** ~600 MB processed data + 1,393 daily aggregate rows
+
+> **⚠️ Note (2026-06-29):** The original Colab-based API extraction approach was replaced with a **bulk GKG download** (no rate limit, no quota). The raw data is already extracted (5.1 GB, 184 parquets) and stored both locally and in Google Drive. The new Colab notebook [`notebooks/colab_03b_phase3_pipeline.ipynb`](../notebooks/colab_03b_phase3_pipeline.ipynb) just runs the post-processing pipeline (dedup → classify → aggregate).
 
 ---
 
 ## What This Does
 
-The notebook `notebooks/colab_03_gdelt_extraction.ipynb` runs the full Phase 3 pipeline on Google Colab:
+The new pipeline uses two steps:
 
-1. **Extraction** — Pulls multilingual articles from GDELT DOC 2.0 for 2022-09-29 → 2026-06-21 (~46 monthly windows × 4 queries = ~180 API calls)
-2. **Deduplication** — MinHash + LSH on article titles (removes ~30-50% duplicates)
-3. **Source classification** — Domain → source group lookup (Ukrainian / Russian / Western / Other)
-4. **Daily aggregation** — Group by date + source group
-5. **Manual audit sample** — Output 100 articles for hand-labeling
+1. **Bulk GKG download** (DONE) — `gkg_bulk_download.py` downloads 46 months of GKG daily zips, filters per query, saves 184 enriched parquets (12 columns). ~94 min wall time on local machine.
+2. **Post-processing** (TODO) — `scripts/phase3_post_process_enriched.py` reads the 184 parquets, URL-dedups, classifies sources, aggregates daily counts + tone. ~5 min wall time on Colab or local.
+
+The Colab notebook [`colab_03b_phase3_pipeline.ipynb`](../notebooks/colab_03b_phase3_pipeline.ipynb) does step 2 only. Data is read from Google Drive (mounted in Colab), not re-downloaded.
 
 ---
 
 ## Prerequisites
 
-1. **Google account** with Google Drive (~1 GB free space)
-2. **Colab Pro** (recommended) — Free tier may run out of RAM for 1M+ articles
-3. **GitHub access** — Colab will clone the WarSignalsThesis repo
+1. **Google account** with Google Drive — shared folder `WarSignalsThesis_Data/` (5.1 GB raw data already uploaded)
+2. **Colab free tier or Pro** — free tier sufficient (chunked classification stays under 12.7 GB)
+3. **rclone configured locally** (for initial data upload) — see [`data_sharing.md`](data_sharing.md)
 
 ---
 
@@ -32,12 +33,7 @@ The notebook `notebooks/colab_03_gdelt_extraction.ipynb` runs the full Phase 3 p
 
 1. Go to [colab.research.google.com](https://colab.research.google.com)
 2. Sign in with your Google account
-3. Click **File → Upload notebook** (or **File → Open notebook → GitHub**)
-
-### 2. Upload the Notebook
-
-Option A — Upload directly:
-- File → Upload notebook → select `notebooks/colab_03_gdelt_extraction.ipynb`
+3. Click **File → Open notebook → GitHub**
 
 Option B — Open from GitHub (if you've pushed the repo):
 - File → Open notebook → GitHub tab
