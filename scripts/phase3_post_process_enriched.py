@@ -125,6 +125,15 @@ def stage1_load_and_dedup() -> pd.DataFrame:
     print("=" * 70)
     t0 = time.time()
 
+    # ── Skip-if-exists (resume support) ──
+    if DEDUP_FILE.exists() and DEDUP_FILE.stat().st_size > 1_000_000:
+        existing = pd.read_parquet(DEDUP_FILE)
+        if "url" in existing.columns and "date" in existing.columns and len(existing) > 0:
+            print(f"  ✓ Found existing {DEDUP_FILE.name} ({len(existing):,} rows, "
+                  f"{DEDUP_FILE.stat().st_size / 1024 / 1024:.1f} MB)")
+            print(f"  ↳ Skipping stage 1 (delete the file to force re-run)")
+            return existing
+
     files = sorted(RAW_DIR.glob("raw_*.parquet"))
     print(f"Found {len(files)} enriched parquet files in {RAW_DIR}")
     if not files:
@@ -182,6 +191,13 @@ def stage2_domain_country_mapping(df: pd.DataFrame) -> pd.DataFrame:
     print("STAGE 2: DOMAIN→COUNTRY MAPPING")
     print("=" * 70)
     t0 = time.time()
+
+    # ── Skip-if-exists (resume support) ──
+    if DOMAIN_COUNTRY_FILE.exists() and DOMAIN_COUNTRY_FILE.stat().st_size > 1000:
+        existing = pd.read_csv(DOMAIN_COUNTRY_FILE)
+        print(f"  ✓ Found existing {DOMAIN_COUNTRY_FILE.name} ({len(existing):,} rows)")
+        print(f"  ↳ Skipping stage 2 (delete the file to force re-run)")
+        return df
 
     if "countries" not in df.columns:
         print("  WARNING: 'countries' column not found — skipping")
@@ -259,6 +275,15 @@ def stage3_classify(df: pd.DataFrame, chunk_size: int = 2_000_000) -> pd.DataFra
     print("=" * 70)
     t0 = time.time()
 
+    # ── Skip-if-exists (resume support) ──
+    if CLASS_FILE.exists() and CLASS_FILE.stat().st_size > 1_000_000:
+        existing = pd.read_parquet(CLASS_FILE)
+        if "source_group" in existing.columns and "classification_method" in existing.columns:
+            print(f"  ✓ Found existing {CLASS_FILE.name} ({len(existing):,} rows, "
+                  f"{CLASS_FILE.stat().st_size / 1024 / 1024:.1f} MB)")
+            print(f"  ↳ Skipping stage 3 (delete the file to force re-run)")
+            return existing
+
     n = len(df)
     n_chunks = (n + chunk_size - 1) // chunk_size
     print(f"Loaded {n:,} articles for classification")
@@ -335,6 +360,15 @@ def stage4_daily_aggregate(df: pd.DataFrame) -> pd.DataFrame:
     print("STAGE 4: DAILY AGGREGATION (with tone)")
     print("=" * 70)
     t0 = time.time()
+
+    # ── Skip-if-exists (resume support) ──
+    if DAILY_PARQUET.exists() and DAILY_PARQUET.stat().st_size > 1000:
+        existing = pd.read_parquet(DAILY_PARQUET)
+        if "n_articles_total" in existing.columns and len(existing) > 10:
+            print(f"  ✓ Found existing {DAILY_PARQUET.name} ({len(existing):,} days, "
+                  f"{DAILY_PARQUET.stat().st_size / 1024:.0f} KB)")
+            print(f"  ↳ Skipping stage 4 (delete the file to force re-run)")
+            return existing
 
     print(f"Loaded {len(df):,} classified articles")
 
@@ -475,11 +509,13 @@ def stage5_summary(classified: pd.DataFrame, daily: pd.DataFrame) -> None:
 
 def main():
     t_start = time.time()
-    print(f"Phase 3 Enriched Post-Processing Pipeline (Colab-safe, chunked)")
+    print(f"Phase 3 Enriched Post-Processing Pipeline (Colab-safe, chunked, resumable)")
     print(f"Project root: {PROJECT_ROOT}")
     print(f"Raw data dir: {RAW_DIR}")
     print(f"Output dir:   {OUT_DIR}")
     print(f"Chunk size:   {CHUNK_SIZE:,} rows")
+    print(f"\nResume support: each stage skips if its output file already exists.")
+    print(f"  To force a re-run, delete the relevant file in {OUT_DIR}")
     print()
 
     deduped = stage1_load_and_dedup()
