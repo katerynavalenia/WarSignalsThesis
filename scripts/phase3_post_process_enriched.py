@@ -67,6 +67,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.data.gdelt import (
     classify_source_enhanced,
+    classify_all_articles_enhanced,
     manual_precision_audit,
     _load_source_groups,
     _load_country_groups,
