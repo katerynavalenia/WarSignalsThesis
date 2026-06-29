@@ -54,6 +54,50 @@ def test_build_gdelt_query_url_no_keywords():
     assert ("*") in url or ("%2A") in url
 
 
+def test_quote_gdelt_keyword_simple():
+    """Simple words stay unquoted (quotes can reduce matches in GDELT)."""
+    from src.data.gdelt import _quote_gdelt_keyword
+    assert _quote_gdelt_keyword("Russia") == "Russia"
+    assert _quote_gdelt_keyword("missile") == "missile"
+    assert _quote_gdelt_keyword("Kremlin") == "Kremlin"
+
+
+def test_quote_gdelt_keyword_with_dash():
+    """Keywords with dashes must be quoted (GDELT rejects unquoted dashes)."""
+    from src.data.gdelt import _quote_gdelt_keyword
+    assert _quote_gdelt_keyword("F-16") == '"F-16"'
+    assert _quote_gdelt_keyword("air defense") == '"air defense"'
+    assert _quote_gdelt_keyword("Nord Stream") == '"Nord Stream"'
+
+
+def test_quote_gdelt_keyword_already_quoted():
+    """Keywords already wrapped in quotes are left untouched."""
+    from src.data.gdelt import _quote_gdelt_keyword
+    assert _quote_gdelt_keyword('"F-16"') == '"F-16"'
+    assert _quote_gdelt_keyword('"air defense"') == '"air defense"'
+
+
+def test_build_gdelt_query_url_quotes_dashed_keywords():
+    """Regression test: F-16 and similar dashed keywords must be quoted in the URL.
+
+    GDELT DOC 2.0 returns HTML error "One or more of your keywords contained an
+    illegal character" if dashes are not quoted. This was the root cause of
+    ukraine_defense_energy returning 0 articles.
+    """
+    url = build_gdelt_query_url(
+        keywords_any=["air defense", "Patriot", "F-16", "HIMARS"],
+        languages=["English"],
+        start="2024-01-15",
+        end="2024-01-15",
+    )
+    # %22 is the URL-encoded double-quote
+    assert "%22F-16%22" in url, f"F-16 must be quoted in URL: {url}"
+    assert "%22air%20defense%22" in url, f"air defense must be quoted: {url}"
+    # Simple words should NOT be quoted
+    assert "Patriot" in url
+    assert '"Patriot"' not in url and "%22Patriot%22" not in url
+
+
 # ----- source classification ----------------------------------------------
 
 def test_classify_source_ukrainian():

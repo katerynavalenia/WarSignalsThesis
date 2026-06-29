@@ -103,6 +103,30 @@ def _normalize_gdelt_datetime(s: str) -> str:
     return date_clean + time_clean
 
 
+def _quote_gdelt_keyword(keyword: str) -> str:
+    """Wrap a GDELT keyword in double quotes if it contains special characters.
+
+    GDELT DOC 2.0 treats dashes, slashes, and other punctuation as illegal
+    unless the keyword is wrapped in double quotes (e.g. ``"F-16"``).
+    Single-word keywords without special characters are left unquoted
+    (quotes around simple words can actually *reduce* matches in GDELT).
+
+    Characters that trigger quoting: ``- / . , : ; ( ) [ ] { } ! ? @ # $ % ^ & * + = ~ | \\``
+    Spaces also trigger quoting (multi-word phrases).
+    """
+    if not keyword:
+        return keyword
+    k = str(keyword).strip()
+    # Already quoted
+    if k.startswith('"') and k.endswith('"'):
+        return k
+    # Special characters that require quoting
+    special = set('-/. ,:;()[]{}!@#$%^&*+=~|\\')
+    if any(c in special for c in k) or ' ' in k:
+        return f'"{k}"'
+    return k
+
+
 def build_gdelt_query_url(
     keywords_any: list[str] | None = None,
     keywords_weapon_any: list[str] | None = None,
@@ -138,9 +162,9 @@ def build_gdelt_query_url(
     """
     parts: list[str] = []
     if keywords_any:
-        parts.append("(" + " OR ".join(keywords_any) + ")")
+        parts.append("(" + " OR ".join(_quote_gdelt_keyword(k) for k in keywords_any) + ")")
     if keywords_weapon_any:
-        parts.append("(" + " OR ".join(keywords_weapon_any) + ")")
+        parts.append("(" + " OR ".join(_quote_gdelt_keyword(k) for k in keywords_weapon_any) + ")")
     query = " AND ".join(parts) if parts else "*"
 
     from urllib.parse import quote
