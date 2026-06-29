@@ -16,6 +16,7 @@ Output: data/processed/news/sensitivity_analysis.csv
 
 from __future__ import annotations
 
+import argparse
 import sys
 import time
 from pathlib import Path
@@ -34,7 +35,33 @@ from src.data.gdelt import (
     _tld_group,
 )
 
-OUT_DIR = PROJECT_ROOT / "data" / "processed" / "news"
+
+def parse_args():
+    """Parse command-line arguments for flexible path configuration."""
+    parser = argparse.ArgumentParser(
+        description="Phase 3 sensitivity analysis (Colab-safe, reads from --input-dir)"
+    )
+    parser.add_argument(
+        "--input-dir",
+        type=Path,
+        default=None,
+        help="Directory containing gdelt_articles_classified_enriched.parquet. "
+             "Defaults to <project>/data/processed/news/.",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=None,
+        help="Directory to write sensitivity_analysis.{csv,md}. "
+             "Defaults to the same dir as the classified file.",
+    )
+    return parser.parse_args()
+
+
+# ── Paths ────────────────────────────────────────────────────────────────────
+ARGS = parse_args()
+OUT_DIR = ARGS.output_dir or ARGS.input_dir or (PROJECT_ROOT / "data" / "processed" / "news")
+OUT_DIR.mkdir(parents=True, exist_ok=True)
 CLASS_FILE = OUT_DIR / "gdelt_articles_classified_enriched.parquet"
 OUTPUT_CSV = OUT_DIR / "sensitivity_analysis.csv"
 OUTPUT_REPORT = OUT_DIR / "sensitivity_report.md"
