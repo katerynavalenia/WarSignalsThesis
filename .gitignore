@@ -50,6 +50,12 @@ data/interim/**/*.json
 # Processed data
 data/processed/**/*.csv
 data/processed/**/*.parquet
+# Exception: Phase 3 GDELT news outputs (tracked via LFS)
+!data/processed/news/news_daily.csv
+!data/processed/news/news_daily.parquet
+!data/processed/news/gdelt_articles_dedup.parquet
+!data/processed/news/gdelt_articles_classified.parquet
+!data/processed/news/manual_precision_audit.csv
 
 # External data
 data/external/**/*.csv
