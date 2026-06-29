@@ -37,6 +37,30 @@ from pathlib import Path
 
 import pandas as pd
 
+
+# ── Retry helper for Drive reads ──────────────────────────────────────────────
+# Colab's Drive mount occasionally throws OSError: [Errno 107] Transport endpoint
+# is not connected on the first read of a file (especially when reading through a
+# symlink to a Drive path). DriveFS then re-establishes the connection, so a
+# short retry almost always succeeds.
+def _read_parquet_retry(path: Path, max_attempts: int = 5, base_delay: float = 2.0) -> pd.DataFrame:
+    """Read a parquet file with retry on transient Drive/OS errors."""
+    last_err: Exception | None = None
+    for attempt in range(1, max_attempts + 1):
+        try:
+            return pd.read_parquet(path)
+        except OSError as e:
+            last_err = e
+            errno = e.errno if hasattr(e, "errno") else None
+            # Errno 107 = transport endpoint not connected; Errno 5 = input/output err
+            transient = errno in (5, 107) or "Transport endpoint" in str(e)
+            if not transient or attempt == max_attempts:
+                raise
+            delay = base_delay * (2 ** (attempt - 1))
+            print(f"  ⚠ Read failed for {path.name} (errno={errno}), retry {attempt}/{max_attempts-1} in {delay:.0f}s")
+            time.sleep(delay)
+    raise last_err  # unreachable, but keeps type-checkers happy
+
 # Ensure project root is on sys.path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -107,8 +131,10 @@ def stage1_load_and_dedup() -> pd.DataFrame:
 
     dfs = []
     per_query_raw: dict[str, int] = {}
-    for f in files:
-        df = pd.read_parquet(f)
+    for i, f in enumerate(files, 1):
+        if i % 10 == 0 or i == 1:
+            print(f"  Loading file {i}/{len(files)}: {f.name}")
+        df = _read_parquet_retry(f)
         if df.empty:
             continue
         stem = f.stem
