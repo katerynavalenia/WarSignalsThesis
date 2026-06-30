@@ -167,6 +167,25 @@ def main():
         except Exception:
             check("Git status check", False, "error")
 
+    # ── 5. Phase 5 model matrix ────────────────────────────────────────────
+    print("\n[7/8] Phase 5 model matrix")
+    try:
+        sys.path.insert(0, str(PROJECT_ROOT))
+        from src.features.load_model_matrix import (
+            load_model_matrix, validate_model_matrix_for_phase6,
+        )
+        mm = load_model_matrix()
+        result = validate_model_matrix_for_phase6(mm)
+        all_ok &= check(
+            "model matrix loads",
+            True,
+            f"{result['n_rows']} rows × {result['n_features']} features",
+        )
+        for name, ok, detail in result["checks"]:
+            all_ok &= check(f"  {name}", ok, detail)
+    except Exception as e:
+        all_ok &= check("Phase 5 model matrix", False, str(e)[:60])
+
     # ── Summary ──────────────────────────────────────────────────────────
     print("\n" + "=" * 70)
     if all_ok:
