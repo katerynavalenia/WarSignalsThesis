@@ -1,8 +1,49 @@
 # Data Dictionary
 
-**Status:** Financial and attack variables verified (Phases 1-2, 2026-06-28). News variables verified at article level (Phase 3, 2026-06-29) and at daily level (pending pipeline run). Derived features for Phase 5+ are still **planned**.
+**Status:** Phases 1, 2, and 3 all verified and complete (2026-06-30).
+- Financial: `data/processed/financial/financial_daily.parquet` (1,610 × 15) — verified 2026-06-28
+- Attacks: `data/processed/attacks/attack_daily.parquet` (809 × 21) — verified 2026-06-28
+- News: `data/processed/news/news_daily_enriched.parquet` (1,342 × 17) — verified 2026-06-30
+- News pivot: `data/processed/news/news_query_group_pivot.parquet` (1,342 × 17) — verified 2026-06-30
 
 This dictionary follows the target master dataset schema from Section 6.1 of the [`Master_Thesis_Research_Completion_Plan.md`](../Master_Thesis_Research_Completion_Plan.md).
+
+## ⚠️ Schema convention (2026-06-30)
+
+All Phase 1-3 daily tables currently use **different conventions** for the `date` key:
+
+| Table | `date` is… |
+|---|---|
+| `financial_daily.parquet` | **index** (datetime64[ms]) |
+| `attack_daily.parquet` | **index** (datetime64[ms]) |
+| `news_daily_enriched.parquet` | **column** (datetime64, first position) |
+| `news_query_group_pivot.parquet` | **column** (datetime64, first position) |
+
+**Phase 5 will standardise all tables to `date` as the first regular column** (drop-in for the news schema). Until then, downstream code should use the `fix_date_index()` helper in `src/data/gdelt_postprocess.py` or call `df.reset_index()` explicitly.
+
+## ⚠️ Return-unit convention (2026-06-30)
+
+All `r_*` columns in `financial_daily.parquet` are expressed in **percent (%), not decimal**.  For example:
+
+- `r_ITA` daily std = 1.67 → annualised = 1.67 × √252 ≈ 26.5 %
+- `r_SPX` daily std = 1.28 → annualised ≈ 20.3 %
+
+To convert to decimal, divide by 100 (`r_ITA_dec = r_ITA / 100`).  Any model that takes returns in decimal must apply this conversion explicitly.  The convention is **documented in each row of the financial table below** (Unit column = "%") and is intentional (matches Bloomberg's standard display).
+
+Coverage of `r_*` columns during the modeling window (2022-09-29 → 2026-06-03, 922 trading days):
+
+| Column | Non-NA | Coverage |
+|---|---|---|
+| `r_ITA` | 922 | 100.0 % |
+| `r_BSHIELDT` | 899 | 97.5 % |
+| `r_SPX` | 922 | 100.0 % |
+| `r_SXXP` | 922 | 100.0 % |
+| `r_MSCI_World` | 922 | 100.0 % |
+| `r_Brent` | 922 | 100.0 % |
+| `r_EURUSD` | 922 | 100.0 % |
+| `r_ITA_msadj` | 922 | 100.0 % |
+| `WAERLST_recon` | 720 | 78.1 % — too noisy for primary use |
+| `r_WAERLST_recon` | 720 | 78.1 % — archival only |
 
 ---
 
@@ -82,7 +123,7 @@ See [`phase1_financial_audit.md` §6](phase1_financial_audit.md) for the full de
 
 ## News and narrative variables
 
-**Phase 3 in progress** (GDELT GKG 2.0 extraction complete, pipeline ready). See [`phase3_gdelt_audit.md`](phase3_gdelt_audit.md) for full pipeline details.
+**Phase 3 complete (2026-06-30).** See [`phase3_gdelt_audit.md`](phase3_gdelt_audit.md) for the extraction audit + §8 gap-closure report.
 
 ### Article-level variables (raw, before daily aggregation)
 
@@ -108,11 +149,11 @@ See [`phase1_financial_audit.md` §6](phase1_financial_audit.md) for the full de
 
 ### Daily-level variables (after aggregation)
 
-**Source:** `scripts/phase3_post_process_enriched.py`, output `data/processed/news/news_daily_enriched.parquet`
+**Source:** `scripts/phase3_post_process_enriched.py` + gap closure in `scripts/phase3_close_gaps.py`, output `data/processed/news/news_daily_enriched.parquet`
 
 | Variable | Unit | Frequency | Timing | Source | Status | Notes |
 |---|---|---|---|---|---|---|
-| `date` | date | daily | — | derived | **verified** | Index of daily table |
+| `date` | date | daily | — | derived | **verified** | First regular column (post-gap-closure, was index) |
 | `n_articles_ukrainian` | count | daily | article date | derived | **verified** | Articles in Ukrainian source group |
 | `n_articles_russian` | count | daily | article date | derived | **verified** | Articles in Russian source group |
 | `n_articles_western` | count | daily | article date | derived | **verified** | Articles in Western source group |
@@ -122,6 +163,26 @@ See [`phase1_financial_audit.md` §6](phase1_financial_audit.md) for the full de
 | `tone_russian` | score | daily | article date | derived | **verified** | Mean `tone_avg` of Russian articles that day |
 | `tone_western` | score | daily | article date | derived | **verified** | Mean `tone_avg` of Western articles that day |
 | `tone_other` | score | daily | article date | derived | **verified** | Mean `tone_avg` of "other" articles that day |
+| `narrative_gap_ua_west` | score diff | daily | article date | derived | **verified** | `tone_ukrainian - tone_western` (the "narrative gap" the thesis hypothesises) |
+| `narrative_gap_ru_west` | score diff | daily | article date | derived | **verified** | `tone_russian - tone_western` |
+| `narrative_gap_ua_ru` | score diff | daily | article date | derived | **verified** | `tone_ukrainian - tone_russian` (intra-conflict gap) |
+| `n_tone_ukrainian` | count | daily | article date | derived | **verified** | Sample size used for `tone_ukrainian` (= `n_articles_ukrainian`); filter low-confidence days |
+| `n_tone_russian` | count | daily | article date | derived | **verified** | Sample size for `tone_russian` |
+| `n_tone_western` | count | daily | article date | derived | **verified** | Sample size for `tone_western` |
+| `n_tone_other` | count | daily | article date | derived | **verified** | Sample size for `tone_other` |
+
+### Per-query × group daily pivot (Phase 3 deliverable)
+
+**Source:** `scripts/phase3_close_gaps.py::build_query_group_pivot`, output `data/processed/news/news_query_group_pivot.parquet`
+
+| Variable | Unit | Frequency | Timing | Source | Status | Notes |
+|---|---|---|---|---|---|---|
+| `date` | date | daily | — | derived | **verified** | First regular column |
+| `n_<group>_<query>` | count | daily | article date | derived | **verified** | 16 columns = 4 groups × 4 queries |
+
+`<group>` ∈ `{ukrainian, russian, western, other}`, `<query>` ∈ `{russian_attack_direct, ukraine_defense_energy, defense_industry_western, energy_war}`.
+
+**Use case:** tests the thesis sub-question *"Does weapon composition contain more information than the aggregate number of weapons launched?"* by joining per-query war-related news counts to the financial target.
 
 ### Derived features (for event study, Phase 5+)
 
@@ -130,8 +191,9 @@ See [`phase1_financial_audit.md` §6](phase1_financial_audit.md) for the full de
 | `ua_news_surprise` | residual | daily | article date | derived | **planned** | $ObservedNews - \hat{E}(News \mid Attack)$ |
 | `ru_news_surprise` | residual | daily | article date | derived | **planned** | |
 | `west_news_surprise` | residual | daily | article date | derived | **planned** | |
-| `tone_gap_uk_west` | score diff | daily | article date | derived | **planned** | $tone\_ukrainian - tone\_western$ |
-| `tone_gap_ru_west` | score diff | daily | article date | derived | **planned** | $tone\_russian - tone\_western$ |
+| `narrative_gap_ua_west` | score diff | daily | article date | derived | **verified** | $tone\_ukrainian - tone\_western$ — see daily table above |
+| `narrative_gap_ru_west` | score diff | daily | article date | derived | **verified** | $tone\_russian - tone\_western$ — see daily table above |
+| `narrative_gap_ua_ru` | score diff | daily | article date | derived | **verified** | $tone\_ukrainian - tone\_russian$ — see daily table above |
 
 ---
 

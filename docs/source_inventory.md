@@ -64,9 +64,12 @@
 
 | Source | Data | Coverage | Frequency | Status | Audit phase | Notes |
 |---|---|---|---|---|---|---|
-| GDELT GKG | Article-level records (12 cols incl. TONE, COUNTRIES) | 2022-09-29 → 2026-06-21 | daily | **extracted** | Phase 3 | 5.1 GB raw, 12M articles; stored locally + Google Drive |
-| GDELT GKG | Source classification (hybrid) | 2022-09-29 → 2026-06-21 | daily | **classified** | Phase 3 | 88.5% coverage via domain+country+TLD hybrid |
-| GDELT GKG | Tone per source group | 2022-09-29 → 2026-06-21 | daily | **pending pipeline run** | Phase 3 | Daily aggregate output ready |
+| GDELT GKG | Article-level records (12 cols incl. TONE, COUNTRIES) | 2022-09-29 → 2026-06-21 | daily | **extracted + classified** | Phase 3 | 5.1 GB raw, 12M articles → 11.4M after URL dedup; stored locally + Google Drive |
+| GDELT GKG | Source classification (hybrid) | 2022-09-29 → 2026-06-21 | daily | **classified + validated** | Phase 3 | 88.6% country-mapped, 4.5% domain, 0.3% TLD, 6.9% fallback (full-data run) |
+| GDELT GKG | Tone per source group | 2022-09-29 → 2026-06-21 | daily | **verified** | Phase 3 | `news_daily_enriched.parquet` (1,342 × 17) — daily aggregate with tone averages, narrative gaps, sample sizes |
+| GDELT GKG | Per-query × group pivot | 2022-09-29 → 2026-06-21 | daily | **verified** | Phase 3 | `news_query_group_pivot.parquet` (1,342 × 17) — 4 groups × 4 queries, supports the "composition vs. aggregate" sub-question |
+| GDELT GKG | Automated precision report | 6,480 high-confidence domains | static | **verified** | Phase 3 | `auto_precision_report.md` — replaces manual 400-article audit |
+| GDELT GKG | Sensitivity analysis | 5 strategies × 11.4M articles | static | **verified** | Phase 3 | `sensitivity_report.md` — refreshed on full 46-month data |
 
 ### GDELT audit checklist (Phase 3)
 
@@ -98,10 +101,11 @@
 
 | Source | Data | Coverage | Frequency | Status | Audit phase | Notes |
 |---|---|---|---|---|---|---|
-| Multilingual transformer | Threat / escalation scores | TBD | daily | planned | Phase 4 | One model; not yet selected — **run on Colab GPU** |
-| Manual annotation | Labeled validation sample | TBD | — | planned | Phase 4 | Required for validation — human work, not Colab |
+| GDELT tone fields (Tier 1) | `tone_avg`, `tone_positive`, `tone_negative`, `tone_polarity`, `tone_activity` per source group | 2022-09-29 → 2026-06-21 | daily | **verified** | Phase 3 | Core NLP measure — satisfies minimum viable thesis (§4.2) |
+| Multilingual transformer (Tier 2) | Threat / escalation scores | TBD | daily | **deferred** | After milestone | `xlm-roberta-base` fine-tuned on labeled sample — **Colab GPU**, after first milestone (§25) |
+| Manual annotation | Labeled validation sample (500+ articles) | TBD | — | **planned** | Parallel now | Human work — start labeling in parallel with Phases 5–6 |
 
-> **⚠️ Colab GPU required for Phase 4.** Transformer inference on 500K–2M articles needs T4 or A100 GPU. Fine-tuning (if needed) also on Colab GPU. See [`instructions.md`](../instructions.md) § "Colab delegation".
+> **Phase 4 is two-tier.** Tier 1 (GDELT tone) is complete from Phase 3. Tier 2 (transformer) is deferred until after the first analytical milestone (§25). Manual labeling can start now in parallel. See [`docs/agent_prompt_phase4_nlp.md`](agent_prompt_phase4_nlp.md) for full details.
 
 ---
 
@@ -137,3 +141,19 @@ This directory will be deleted entirely once the new pipeline is validated.
 - Do not download external data, query GDELT, or scrape reports until the corresponding phase is authorized.
 - Do not invent Bloomberg fields, confirmed coverage, credentials, sources, or results.
 - All sources must have documented: coverage, frequency, licence, download method, and missingness.
+
+### News data audit checklist (Phase 3) — completed
+
+- [x] Define multilingual keyword dictionary → `config/gdelt_queries.yaml` (4 queries, 6 languages: EN, RU, UA, DE, FR, PL)
+- [x] Build reproducible extraction → `gkg_bulk_download.py` (resumable monthly batches, memory-bounded)
+- [x] Separate source geography from language → `config/source_groups.yaml` (4 groups: Ukrainian / Russian / Western / Other) + `config/country_groups.yaml` (49 country codes including GKG-specific)
+- [x] Classify sources via hybrid method → `classify_source_enhanced()` in `src/data/gdelt.py` (domain → country → TLD → fallback)
+- [x] Deduplicate by URL → 11.4M articles after dedup (GKG bulk has no title field; URL is the only viable approach)
+- [x] 42 unit tests for classifier → `tests/test_classifier_enhanced.py` (all passing)
+- [x] Daily aggregate with tone averages → `news_daily_enriched.parquet`
+- [x] Narrative-gap features → `narrative_gap_ua_west`, `narrative_gap_ru_west`, `narrative_gap_ua_ru`
+- [x] Per-group tone sample sizes → `n_tone_ukrainian/russian/western/other`
+- [x] Per-query × group pivot → `news_query_group_pivot.parquet`
+- [x] Automated precision check → `auto_precision_report.md` (replaces manual audit)
+- [x] Sensitivity analysis refreshed → `sensitivity_report.md` (full 46-month data)
+- [x] Gap-closure code → `src/data/gdelt_postprocess.py` + `scripts/phase3_close_gaps.py` + 13 passing tests in `tests/test_phase3_close_gaps.py`

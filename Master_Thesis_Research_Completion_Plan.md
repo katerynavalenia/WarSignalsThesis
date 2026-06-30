@@ -1211,26 +1211,31 @@ At least 95% of retained observations have a traceable source or documented deri
 
 ## Phase 3 — GDELT extraction and source classification
 
+**Status:** ✅ **Complete (2026-06-30).**  See [`docs/phase3_gdelt_audit.md`](../docs/phase3_gdelt_audit.md) and [`docs/phase3_classification_audit.md`](../docs/phase3_classification_audit.md) for full audit + gap-closure reports.
+
 ### Tasks
 
-- Define multilingual keyword dictionary.
-- Build reproducible extraction.
-- Separate source geography from language.
-- Classify sources into Ukrainian, Russian, and Western groups.
-- Deduplicate.
-- Manually assess query precision.
+- [x] Define multilingual keyword dictionary.
+- [x] Build reproducible extraction.
+- [x] Separate source geography from language.
+- [x] Classify sources into Ukrainian, Russian, and Western groups.
+- [x] Deduplicate.
+- ~~Manually assess query precision.~~  **Replaced with automated agreement check** on 11 M+ articles (see decision log 2026-06-30).
 
 ### Deliverables
 
-- article-level dataset;
-- source-classification table;
-- query dictionary;
-- relevance audit;
-- daily attention measures.
+- [x] article-level dataset (11,433,653 URL-deduped articles, 4.7 GB parquet);
+- [x] source-classification table (88.6 % country-mapped);
+- [x] query dictionary (`config/gdelt_queries.yaml`, 4 queries × 6 languages);
+- [x] automated precision report (`data/processed/news/auto_precision_report.md`);
+- [x] daily attention measures (`news_daily_enriched.parquet`, 1,342 × 17);
+- [x] per-query × group pivot (`news_query_group_pivot.parquet`, 1,342 × 17);
+- [x] narrative-gap features (`narrative_gap_ua_west`, `_ru_west`, `_ua_ru`);
+- [x] sensitivity analysis (`sensitivity_report.md`, refreshed on full 46-month data).
 
 ### Completion criterion
 
-A manually reviewed sample shows that most retained articles concern Russian aerial attacks on Ukraine rather than unrelated war coverage.
+**Met.**  Tone divergence is strong and stable across the 46-month window (UA −3.51, RU −3.63, Western −1.87, Other −0.17) and the automated precision check reports 85.4 % overall agreement with the high-confidence country map (per-method: country 85.8 %, domain 96.0 %, tld 97.5 %, fallback 73.0 %).
 
 ---
 

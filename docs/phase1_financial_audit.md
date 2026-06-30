@@ -267,6 +267,35 @@ The single-price-per-day format makes all range-based estimators infeasible. We 
 
 ---
 
+## 9.5 Return-unit convention (2026-06-30)
+
+All `r_*` columns in `data/processed/financial/financial_daily.parquet` are stored in **percent (%)**, not decimal.  Examples:
+
+- `r_ITA` daily std = 1.67 → annualised = 1.67 × √252 ≈ 26.5 %
+- `r_SPX` daily std = 1.28 → annualised ≈ 20.3 %
+
+The `r_*` columns are computed as `100 × ln(P_t / P_{t-1})` (i.e. percent log-returns, not decimal log-returns and not percent arithmetic returns).  This matches Bloomberg's terminal display convention.
+
+**Downstream code must be aware of this unit choice.**  When using a library that expects decimal returns (`empyrical`, `quantstats`, `arch` GARCH fit, etc.), divide by 100 first.
+
+**Coverage of `r_*` columns during the modeling window (2022-09-29 → 2026-06-03, 922 trading days):**
+
+| Column | Non-NA | Coverage | Notes |
+|---|---|---|---|
+| `r_ITA` | 922 | 100.0 % | Primary target |
+| `r_SPX` | 922 | 100.0 % | |
+| `r_SXXP` | 922 | 100.0 % | |
+| `r_MSCI_World` | 922 | 100.0 % | |
+| `r_Brent` | 922 | 100.0 % | |
+| `r_EURUSD` | 922 | 100.0 % | |
+| `r_ITA_msadj` | 922 | 100.0 % | |
+| `r_BSHIELDT` | 899 | 97.5 % | Bloomberg gap during data-delivery window |
+| `WAERLST_recon` | 720 | 78.1 % | Archival only (ρ = 0.15 vs ITA, too noisy for forecasting) |
+
+**Schema note:** `date` is the **index** of `financial_daily.parquet` (not a regular column).  Phase 5 (`src/data/merge.py`) will standardise this to a regular column to match the news schema — see [decision 2026-06-30](../../decision_log.md) and the [data dictionary](data_dictionary.md) for the convention.
+
+---
+
 ## 10. Next Steps
 
 - **Phase 2 (Physical attack dataset):** UAF data is already in `data/raw/attacks/`. Use the weapon classification dictionary in `data/raw/attacks/missiles_and_uavs-reference.csv` and the original `thesis_old_try/scripts/03_uaf_variables.py` as reference for category mapping.

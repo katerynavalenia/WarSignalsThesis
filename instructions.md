@@ -69,6 +69,25 @@
 - Do not create artificial Saturday/Sunday financial observations.
 - Maintain `attack_start_date`, `official_report_timestamp`, and `market_information_date` separately. Use `market_information_date` for predictive models.
 
+### Phase 3 gap-closure workflow (2026-06-30)
+
+Phase 3 produces a daily news aggregate and a per-query × group pivot via a single automated orchestrator:
+
+```bash
+source .venv/bin/activate
+python scripts/phase3_close_gaps.py            # full run (~15 s, < 1 GB RAM)
+python scripts/phase3_close_gaps.py --dry-run  # plan only, no writes
+python -m pytest tests/test_phase3_close_gaps.py -v   # 13 unit + 1 e2e test
+```
+
+Steps:
+1. **Date-index fix + narrative gap** — `date` becomes a regular column; adds 3 gap cols + 4 `n_tone_*` cols.
+2. **Per-query × group pivot** — `news_query_group_pivot.parquet` (1,342 × 17).
+3. **Automated precision check** — replaces the 400-article manual audit. Outputs `auto_precision_report.md`.
+4. **Sensitivity refresh** — re-runs the 5-strategy comparison on the full 11.4M-article frame. Outputs `sensitivity_report.md`.
+
+Library: `src/data/gdelt_postprocess.py` (7 functions). The user memory file `/memories/repo/pandas_categorical_dtypes.md` documents a known pitfall with `load_articles_columns()` and `.str.split` on categorical data — **always cast to `str` before splitting** a categorical column.
+
 ---
 
 ## Colab delegation
@@ -79,7 +98,7 @@ Some phases require computational resources (GPU, high RAM, stable network) that
 |---|---|---|---|
 | 3 | GDELT article-level extraction | Hundreds of API calls; stable network needed; article storage on Google Drive | Colab CPU + GDrive |
 | 3 | Near-duplicate deduplication (MinHash/LSH) on 500K–2M articles | High RAM for similarity matrices | Colab Pro RAM (32 GB) |
-| 4 | Multilingual transformer inference on 500K–2M articles | GPU required for batch scoring | Colab T4 or A100 GPU |
+| 4 | Multilingual transformer inference (Tier 2, **after milestone**) | GPU required for batch scoring | Colab T4 or A100 GPU |
 | 4 | Transformer fine-tuning (if needed) | GPU training | Colab T4 or A100 GPU |
 | 6 | GARCH expanding-window refitting (optional) | ~2,400 model fits; CPU-bound | Colab CPU (optional) |
 | 7 | LightGBM hyperparameter search (optional) | Parallel search across folds | Colab CPU (optional) |
@@ -100,7 +119,7 @@ Some phases require computational resources (GPU, high RAM, stable network) that
 | 1 — Financial audit | LOW | Local | Minutes |
 | 2 — Attack data | LOW | Local | Minutes |
 | **3 — GDELT extraction** | **HIGH** | **Colab** | 2–6 hours (API-limited) |
-| **4 — NLP features** | **HIGH** | **Colab (GPU)** | 1–4 hours (GPU) |
+| **4 — NLP features (Tier 2)** | **HIGH** | **Colab (GPU)** — **deferred until after first milestone** | 1–4 hours (GPU) |
 | 5 — Merge & features | MEDIUM | Local | Minutes |
 | 6 — Baselines | MEDIUM | Local (Colab optional) | 1–3 hours |
 | 7 — ML models | MEDIUM | Local (Colab optional) | 30–60 min |

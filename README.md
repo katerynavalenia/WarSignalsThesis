@@ -17,8 +17,37 @@ Master 2 Financial Technology Development thesis project. This study tests wheth
 | [`docs/data_dictionary.md`](docs/data_dictionary.md) | Variable definitions, units, timing, and transformations. |
 | [`docs/source_inventory.md`](docs/source_inventory.md) | Data source inventory and audit status. |
 | [`docs/data_sharing.md`](docs/data_sharing.md) | **Data sharing architecture** (Google Drive + rclone setup, multi-machine sync). |
-| [`docs/phase3_gdelt_audit.md`](docs/phase3_gdelt_audit.md) | Phase 3 GDELT extraction and source classification audit. |
+| [`docs/phase1_financial_audit.md`](docs/phase1_financial_audit.md) | Phase 1 financial data audit. |
+| [`docs/phase2_attack_audit.md`](docs/phase2_attack_audit.md) | Phase 2 attack data audit. |
+| [`docs/phase3_gdelt_audit.md`](docs/phase3_gdelt_audit.md) | Phase 3 GDELT extraction audit. |
 | [`docs/phase3_classification_audit.md`](docs/phase3_classification_audit.md) | Phase 3 hybrid classifier methodology and validation. |
+
+## Data outputs (Phases 1-3)
+
+| File | Shape | Description |
+|---|---|---|
+| `data/processed/financial/financial_daily.parquet` | 1,610 × 15 | Daily financial panel (ITA primary, BSHIELDT robustness, market controls). `date` is the index. |
+| `data/processed/attacks/attack_daily.parquet` | 809 × 21 | Daily UAF physical-attack table (7 weapon categories, IR, diversity, intensity). `date` is the index. |
+| `data/processed/news/news_daily_enriched.parquet` | 1,342 × 17 | Daily news aggregate (counts, tone, narrative gaps, sample sizes). `date` is the first column. |
+| `data/processed/news/news_query_group_pivot.parquet` | 1,342 × 17 | Daily article counts by `query × source_group` (16 combos). `date` is the first column. |
+| `data/processed/news/auto_precision_report.md` | markdown | Automated classifier validation (replaces manual audit). |
+| `data/processed/news/sensitivity_report.md` | markdown | 5-strategy comparison on the full 11.4M articles. |
+
+> ⚠️ **Schema convention (2026-06-30):** `date` is the index in the financial and attack tables, but a column in the news tables. Phase 5 will standardize on `date` as the first regular column. See the [data dictionary](docs/data_dictionary.md) and [decision log](decision_log.md) for the convention.
+
+## Gap-closure workflow (Phase 3)
+
+Re-run the Phase 3 gap-closure steps at any time:
+
+```bash
+source .venv/bin/activate
+python scripts/phase3_close_gaps.py            # full run
+python scripts/phase3_close_gaps.py --dry-run  # plan only
+python scripts/phase3_close_gaps.py --skip-sensitivity
+python -m pytest tests/test_phase3_close_gaps.py -v   # tests
+```
+
+Total wall time: ~15 s.  Peak RAM: < 1 GB.
 
 ---
 
@@ -95,6 +124,7 @@ Some phases require GPU or high-RAM resources and are delegated to **Google Cola
 - Drive folder: `WarSignalsThesis_Data/` (5.1 GB raw data + pipeline outputs)
 - rclone configured with `tps_limit=10` to respect Drive API limits
 - On Colab: mount Drive, clone repo, run pipeline (no local storage needed)
+- **For rclone re-auth or sync operations**, use the [`rclone-drive-sync`](.github/skills/rclone-drive-sync/SKILL.md) skill (just say "sync to drive" in chat, or run `bash .github/skills/rclone-drive-sync/scripts/reauth.sh` when the OAuth token expires)
 
 Phases 1, 2, 5, and 8 run locally. See [`instructions.md`](instructions.md) § "Colab delegation" for full rules.
 

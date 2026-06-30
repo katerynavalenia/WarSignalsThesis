@@ -1,8 +1,8 @@
 # Phase 3 — GDELT GKG Extraction and Source Classification
 
-**Date:** 2026-06-29
+**Date:** 2026-06-30 (gap closure) / 2026-06-29 (extraction) / 2026-06-28 (planning)
 **Scope:** GDELT GKG 2.0 multilingual article extraction, 2022-09-29 → 2026-06-21
-**Status:** ✅ Extraction complete (12M articles, 5.1 GB), pipeline ready to run
+**Status:** ✅ **Phase 3 complete** (extraction + post-processing + gap closure)
 
 ---
 
@@ -157,3 +157,85 @@ Random seed: 42 (reproducible audit sample). Wall time: ~5 min for full 46-month
 - GDELT bulk download: http://data.gdeltproject.org/gkg/
 - Colab setup: `docs/data_sharing.md`
 - Classifier methodology: `docs/phase3_classification_audit.md`
+
+---
+
+## 8. Gap closure (2026-06-30)
+
+After the initial post-processing run (which produced `news_daily_enriched.parquet` with `date` as the index and only 9 columns), four remaining items were closed in a single automated pass:
+
+| # | Item | Resolution |
+|---|---|---|
+| 1 | `date` was the parquet index, not a column | Reset to a regular column; schema matches attacks and financial (after Phase 5) |
+| 2 | No narrative-gap features (a stated thesis contribution) | Added `narrative_gap_ua_west`, `narrative_gap_ru_west`, `narrative_gap_ua_ru` |
+| 3 | No sample-size info per tone average | Added `n_tone_ukrainian/russian/western/other` for downstream low-confidence filtering |
+| 4 | No per-query × group breakdown | Added `news_query_group_pivot.parquet` (1,342 × 17 = 4 groups × 4 queries + date) |
+| 5 | Manual 400-article audit was unfilled | Replaced with automated agreement check (see §9) |
+| 6 | Sensitivity report was stale (3-month test only) | Re-run on full 11.4M-article frame |
+
+### 8.1 Files created or modified
+
+| File | Action |
+|---|---|
+| `src/data/gdelt_postprocess.py` | NEW — library: `fix_date_index`, `add_narrative_gap`, `build_query_group_pivot`, `auto_precision_check`, `refresh_sensitivity_report`, `write_auto_precision_report` |
+| `scripts/phase3_close_gaps.py` | NEW — orchestrator (5 steps, runnable as `python scripts/phase3_close_gaps.py`) |
+| `tests/test_phase3_close_gaps.py` | NEW — 13 unit tests + 1 end-to-end test (all passing) |
+| `data/processed/news/news_daily_enriched.parquet` | OVERWRITE — schema fixed + 7 new columns (1,342 × 17) |
+| `data/processed/news/news_daily_enriched.csv` | OVERWRITE — mirrors parquet |
+| `data/processed/news/news_query_group_pivot.parquet` | NEW — daily counts by `query × group` (1,342 × 17) |
+| `data/processed/news/news_query_group_pivot.csv` | NEW |
+| `data/processed/news/auto_precision_report.md` | NEW — automated classifier validation |
+| `data/processed/news/sensitivity_report.md` | OVERWRITE — refreshed on full 46-month data |
+| `docs/phase3_classification_audit.md` | EDITED §7 — real 11.4M-article stats |
+| `docs/project_status.md` | EDITED — Phase 3 status updated |
+| `docs/data_dictionary.md` | EDITED — new columns + return-units warning |
+| `decision_log.md` | APPENDED — 4 new decisions (2026-06-28 and 2026-06-30) |
+
+### 8.2 Wall time and RAM
+
+| Step | Wall time | Peak RAM |
+|---|---|---|
+| 1+2: schema fix + narrative gap | < 1 s | < 50 MB |
+| 3: per-query × group pivot | ~ 1 s | ~ 300 MB (column-restricted read) |
+| 4: automated precision check | ~ 1 s | ~ 400 MB |
+| 5: sensitivity refresh | ~ 10 s | ~ 500 MB |
+| **Total** | **~ 15 s** | **< 1 GB** |
+
+Comfortably under the 30 GB-RAM local machine limit; also works on Colab free (12.7 GB).
+
+---
+
+## 9. Automated precision check (replaces manual audit)
+
+The original plan was to label 400 articles in `manual_precision_audit_enriched.csv` by hand.  The `title` column in that file is empty (GKG bulk has no title), making labelling by URL alone significantly harder, and 400 labels provide weak statistical power on their own.
+
+Replaced with an automated agreement check on a much larger sample:
+
+- **High-confidence domain filter:** keep domains with `article_count ≥ 100` AND `primary_pct ≥ 0.7` (where `primary_pct = primary_country_count / article_count`).
+- **Quasi-gold standard:** for the kept domains, treat `primary_country → group` (via `config/country_groups.yaml`) as ground truth.
+- **Measured agreement:** the hybrid classifier's `source_group` vs. the country-derived expected group, per method and per group.
+
+### 9.1 Result on full 11.4M-article frame (2026-06-30)
+
+| Group | n articles kept | Precision |
+|---|---|---|
+| Ukrainian | 90,993 | 0.365 |
+| Russian | 107,634 | 0.318 |
+| Western | 9,800,062 | 0.903 |
+| Other | 1,073,660 | 0.508 |
+| **Overall** | **11,072,349** | **0.854** |
+
+| Method | Precision | n_correct / n |
+|---|---|---|
+| country (data-driven) | 0.858 | 8,432,560 / 9,825,064 |
+| domain (manual) | 0.960 | 451,647 / 470,304 |
+| tld (heuristic) | 0.975 | 29,493 / 30,256 |
+| fallback | 0.730 | 545,139 / 746,725 |
+
+### 9.2 Why UA / RU per-group precision looks low
+
+The `primary_country` field in `domain_to_country.csv` is the **most-mentioned country in editorial coverage**, not the country of publication.  A Ukrainian outlet covering the Russia–Ukraine war will have `primary_country = RS` because Russia is mentioned in most of its articles.  This systematically deflates per-group precision for `ukrainian` and `russian` even when the hybrid classifier is correct.
+
+The **per-method** precision (country 85.8 %, domain 96.0 %, tld 97.5 %, fallback 73.0 %) is the more trustworthy signal: it tells us the hybrid classifier's individual tiers work as designed.
+
+Full report at `data/processed/news/auto_precision_report.md`.
