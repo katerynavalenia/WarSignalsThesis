@@ -28,11 +28,15 @@ datasketch>=1.10      # MinHash/LSH dedup (high RAM)
 langdetect>=1.0.9     # Language detection
 tqdm>=4.65            # Progress bars
 
-# ── Phase 4+ dependencies (add when needed) ──
-# transformers         # multilingual NLP (Phase 4) — Colab GPU
-# torch                # transformer backend (Phase 4) — Colab GPU
-# statsmodels          # econometric baselines (Phase 6)
-# arch                 # GARCH models (Phase 6)
+# ── Phase 5+ dependencies (added for Phase 5 merge & feature engineering) ──
+statsmodels>=0.14     # econometric baselines + AR(1) attack-surprise hook
+scikit-learn>=1.3     # preprocessing, evaluation metrics, lag features
+arch>=6.2             # GARCH-family volatility baselines (Phase 6)
+
+# ── Phase 7+ dependencies (add when needed) ──
 # lightgbm             # gradient boosting (Phase 7)
 # shap                 # feature attribution (Phase 7)
-# scikit-learn         # preprocessing, evaluation (Phase 5+)
+
+# ── Phase 4 Tier 2 NLP (deferred until after first milestone) ──
+# transformers         # multilingual NLP — Colab GPU
+# torch                # transformer backend — Colab GPU

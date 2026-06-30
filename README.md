@@ -33,7 +33,50 @@ Master 2 Financial Technology Development thesis project. This study tests wheth
 | `data/processed/news/auto_precision_report.md` | markdown | Automated classifier validation (replaces manual audit). |
 | `data/processed/news/sensitivity_report.md` | markdown | 5-strategy comparison on the full 11.4M articles. |
 
-> ⚠️ **Schema convention (2026-06-30):** `date` is the index in the financial and attack tables, but a column in the news tables. Phase 5 will standardize on `date` as the first regular column. See the [data dictionary](docs/data_dictionary.md) and [decision log](decision_log.md) for the convention.
+> ⚠️ **Schema convention (2026-06-30):** `date` is the first regular column in all Phase 5+ outputs (per decision log 2026-06-30). The financial and attack tables originally used `date` as the index; `build_daily_master` resets them. See the [data dictionary](docs/data_dictionary.md) and [decision log](decision_log.md) for the convention.
+
+## Phase 5 outputs (model-ready)
+
+| File | Shape | Description |
+|---|---|---|
+| `data/processed/daily_master.parquet` | 2,358 × 72 | Calendar-day outer-join of financial, attack, news, and news-pivot (2020-01-07 → 2026-06-21). |
+| `data/processed/feature_matrix.parquet` | 2,358 × 141 | daily_master + 69 engineered features (Phase 5C: vol, attack surprise, news normalizations, calendar, regime dummies). |
+| `data/processed/model_matrix.parquet` | 1,342 × 138 | **Phase 5D — final input to Phase 6/7.** Lagged features (`_lag1` suffix), weekend-rule targets (`target_r_ITA_t1`, `target_r_WAERLST_recon_t1`), and information-set column masks in `.attrs["info_sets"]`. |
+| `data/processed/data_dictionary.csv` | 138 rows | Per-column metadata (group, dtype, unit, available_at, non-null, description). |
+| `outputs/tables/info_set_cardinality.csv` | 5 rows | n_features per information set (F=23, P=58, N=21, PN=74, PNG=77). |
+| `outputs/tables/leakage_audit.csv` | 98 rows | Per-feature leakage flags (currently 0 critical, 0 warn). |
+| `outputs/tables/descriptive_stats.csv` | 137 rows | Per-column n, mean, std, quantiles, skew, kurtosis. |
+| `outputs/figures/fig10_master_coverage.png` | image | Phase 5B missingness heatmap. |
+| `outputs/figures/fig11_target_distribution.png` | image | Phase 5E target histogram + log scale. |
+| `outputs/figures/fig12_correlation_heatmap.png` | image | Phase 5E top-25 feature correlation heatmap. |
+| `outputs/figures/fig13_feature_distributions.png` | image | Phase 5E key feature histograms. |
+
+### Phase 5 information sets (horse race)
+
+| Set | n_features | Description |
+|---|---|---|
+| F | 23 | Financial baseline (lagged returns, vol, VIX, calendar). |
+| P | 58 | F + physical attacks (counts, surprise, composition). |
+| N | 21 | F + news attention (counts, shares, log, z30, tones). |
+| PN | 74 | F + P + N (per-query × per-group counts). |
+| PNG | 77 | F + PN + narrative-gap features. |
+
+### Build the model matrix
+
+```bash
+source .venv/bin/activate
+python scripts/phase5_build_master.py           # build daily_master + feature_matrix
+python scripts/phase5_build_model_matrix.py      # build model_matrix
+python scripts/phase5_data_dictionary.py        # generate data_dictionary.csv + .md
+python scripts/phase5_leakage_audit.py          # run leakage audit
+python scripts/phase5_descriptive_stats.py      # run descriptive stats + figures
+python scripts/verify_setup.py                  # full smoke check (incl. Phase 5)
+```
+
+### Targets
+
+- **Primary:** `target_r_ITA_t1` (ITA ETF next-trading-day return; Phase 1 audit recommendation: clean yfinance proxy, ρ=0.86 with SPX)
+- **Secondary:** `target_r_WAERLST_recon_t1` (Bloomberg WAERLST reconstruction; decision_log 2026-06-28; used for robustness)
 
 ## Gap-closure workflow (Phase 3)
 

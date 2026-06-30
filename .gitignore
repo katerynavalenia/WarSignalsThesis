@@ -62,19 +62,19 @@ data/external/**/*.csv
 data/external/**/*.parquet
 data/external/**/*.xlsx
 
-# ── Outputs (preserve structure, ignore content) ──
-outputs/figures/*.png
-outputs/figures/*.pdf
-outputs/figures/*.svg
-outputs/figures/*.jpg
-outputs/tables/*.csv
-outputs/tables/*.tex
-outputs/tables/*.xlsx
-outputs/model_objects/*.pkl
-outputs/model_objects/*.joblib
-outputs/model_objects/*.h5
-outputs/logs/*.log
-outputs/logs/*.txt
+# ── Outputs (TRACK in git — these are reproducible from scripts/) ──
+#   - ``outputs/figures/`` : PNG figures (figs 1–13)
+#   - ``outputs/tables/``   : CSV tables (data dictionary, leakage audit,
+#                             info-set cardinality, descriptive stats)
+#   - ``outputs/model_objects/`` : fitted sklearn / statsmodels pickles
+#   - ``outputs/logs/``     : training/eval logs
+#
+# All of these are regenerable from the scripts in ``scripts/`` but are
+# tracked so that PRs and reviewers can inspect them without re-running
+# the pipeline. Raw/interim/processed data remain on Google Drive
+# (synced via rclone — see docs/data_sharing.md) and stay gitignored.
+
+# ── Thesis build artifacts ──────────────
 
 # ── Thesis build artifacts ──────────────
 thesis/*.aux
