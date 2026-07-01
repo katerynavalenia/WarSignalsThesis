@@ -98,37 +98,118 @@ def _shift_to_next_trading_day(
     return out
 
 
+def _collect_n_next_trading_indices(
+    dates: pd.DatetimeIndex,
+    start: int,
+    n: int,
+) -> list:
+    """Return the list of the next ``n`` trading-day indices after ``dates[start]``.
+
+    Stops early (returns a shorter list) if the index runs out before ``n``
+    future trading days are available.
+    """
+    out = []
+    cursor = start
+    for _ in range(n):
+        cursor = _next_trading_day_index(dates, cursor)
+        if cursor == -1:
+            break
+        out.append(cursor)
+    return out
+
+
+def _shift_to_n_trading_day_sum(
+    series: pd.Series,
+    dates: pd.DatetimeIndex,
+    n: int,
+) -> pd.Series:
+    """Sum of the next ``n`` trading-day values of ``series`` (§9 weekend rule).
+
+    For each calendar day ``t``, the value is ``Σ series[t+1..t+n]`` where
+    ``t+1, ..., t+n`` are the next ``n`` trading days. Rows with fewer than
+    ``n`` future trading days or with any NaN in the window are left NaN.
+    """
+    out = pd.Series(np.nan, index=series.index, name=series.name)
+    n_rows = len(dates)
+    for i in range(n_rows):
+        idxs = _collect_n_next_trading_indices(dates, i, n)
+        if len(idxs) < n:
+            continue
+        vals = series.iloc[idxs]
+        if vals.isna().any():
+            continue
+        out.iloc[i] = float(vals.sum())
+    return out
+
+
+def _shift_to_n_trading_day_sumsq(
+    series: pd.Series,
+    dates: pd.DatetimeIndex,
+    n: int,
+) -> pd.Series:
+    """Sum of squares of the next ``n`` trading-day values (realized variance).
+
+    For ``n == 1`` this is the per-day squared return (RV proxy for the next
+    trading day). For ``n > 1`` it is the sum of squared daily returns over
+    the next ``n`` trading days, used as the QLIKE-compatible realized
+    variance target for multi-day GARCH forecasts.
+    """
+    out = pd.Series(np.nan, index=series.index, name=series.name)
+    n_rows = len(dates)
+    for i in range(n_rows):
+        idxs = _collect_n_next_trading_indices(dates, i, n)
+        if len(idxs) < n:
+            continue
+        vals = series.iloc[idxs]
+        if vals.isna().any():
+            continue
+        out.iloc[i] = float((vals ** 2).sum())
+    return out
+
+
 def build_targets(
     feature_matrix: pd.DataFrame,
     primary_target: str = PRIMARY_TARGET,
     secondary_target: Optional[str] = SECONDARY_TARGET,
+    horizons: Iterable[int] = (1, 5),
+    add_variance: bool = True,
 ) -> pd.DataFrame:
-    """Construct the next-trading-day return target(s).
+    """Construct next-trading-day return target(s) and (optionally) variance targets.
 
     Per the §9 weekend rule, a calendar day ``t`` has a target equal to the
     return of the **next trading day** (so Sat/Sun/Mon all point to Monday's
     return). The target at the last calendar day in the index is NaN.
+
+    For each horizon ``h`` in ``horizons``, adds the column
+    ``target_{name}_t{h}`` (cumulative log return over the next ``h`` trading
+    days for ``h > 1``). If ``add_variance=True`` (default) also adds
+    ``target_var_{name}_t{h}`` (sum of squared daily returns over the same
+    window — the QLIKE-compatible realized-variance target for GARCH).
     """
     out = pd.DataFrame({"date": feature_matrix["date"]})
     dates = pd.DatetimeIndex(feature_matrix["date"])
+    horizons = sorted(set(int(h) for h in horizons))
+    if not horizons or any(h < 1 for h in horizons):
+        raise ValueError(f"horizons must be a non-empty iterable of positive ints, got {horizons}")
 
-    if primary_target not in feature_matrix.columns:
-        raise KeyError(
-            f"primary_target='{primary_target}' not in feature_matrix. "
-            f"Available: {[c for c in feature_matrix.columns if c.startswith('r_')]}"
-        )
-    out[f"target_{primary_target}_t1"] = _shift_to_next_trading_day(
-        feature_matrix[primary_target], dates
-    )
-
-    if secondary_target is not None:
-        if secondary_target not in feature_matrix.columns:
+    def _add_target(name: str, source_col: str) -> None:
+        if source_col not in feature_matrix.columns:
             raise KeyError(
-                f"secondary_target='{secondary_target}' not in feature_matrix"
+                f"target='{name}' (column '{source_col}') not in feature_matrix. "
+                f"Available: {[c for c in feature_matrix.columns if c.startswith('r_')]}"
             )
-        out[f"target_{secondary_target}_t1"] = _shift_to_next_trading_day(
-            feature_matrix[secondary_target], dates
-        )
+        src = feature_matrix[source_col]
+        for h in horizons:
+            if h == 1:
+                out[f"target_{name}_t1"] = _shift_to_next_trading_day(src, dates)
+            else:
+                out[f"target_{name}_t{h}"] = _shift_to_n_trading_day_sum(src, dates, h)
+            if add_variance:
+                out[f"target_var_{name}_t{h}"] = _shift_to_n_trading_day_sumsq(src, dates, h)
+
+    _add_target(primary_target, primary_target)
+    if secondary_target is not None:
+        _add_target(secondary_target, secondary_target)
 
     return out
 
@@ -145,11 +226,52 @@ def _is_passthrough(col: str) -> bool:
     return False
 
 
+def _is_pre_lagged(col: str) -> bool:
+    """Return True if the column name encodes an explicit lag.
+
+    A column like ``r_ITA_lag1``, ``r_ITA_lag2``, ``r_ITA_lag5`` is a
+    *pre-lagged* return from the feature matrix. Re-shifting it inside
+    :func:`lag_features` would double the lag (r_ITA at t-1 in the
+    feature matrix → r_ITA at t-2 in the model matrix). This method
+    detects such columns by their ``_lagN`` suffix.
+    """
+    import re
+    return bool(re.search(r"_lag\d+$", col))
+
+
 def lag_features(
     feature_matrix: pd.DataFrame,
     exclude: Optional[Iterable[str]] = None,
+    keep_target_sources: bool = True,
+    skip_pre_lagged: bool = True,
 ) -> pd.DataFrame:
-    """Lag all non-calendar features by 1 calendar day."""
+    """Lag all non-calendar features by 1 calendar day.
+
+    Parameters
+    ----------
+    feature_matrix : pd.DataFrame
+        The feature matrix from Phase 5E.
+    exclude : iterable of str, optional
+        Column names to drop entirely (raw index levels like ``ITA``,
+        ``BSHIELDT``, ``WAERLST_recon``).
+    keep_target_sources : bool, default True
+        If True, the **primary** and **secondary** target source columns
+        (``r_ITA``, ``r_WAERLST_recon``) are kept in the model matrix as
+        lagged columns (``r_ITA_lag1``, ``r_WAERLST_recon_lag1``). These
+        are used by GARCH-family models as the source time series; they
+        are excluded from the F/P/N/PN/PNG information sets by
+        :func:`build_info_sets` (see ``_BASE_EXCLUDE_PREFIXES``).
+    skip_pre_lagged : bool, default True
+        If True, columns whose name encodes an explicit lag
+        (``r_ITA_lag1``, ``r_ITA_lag2``, …) are **not re-shifted**.
+        This prevents the double-lag bug where ``r_ITA_lag1`` (= r_ITA at
+        t-1 in the feature matrix) becomes ``r_ITA_lag1_lag1`` (= r_ITA
+        at t-2 in the model matrix) — losing 1 day of the most recent
+        return information.
+
+        The resulting column name preserves the original name
+        (``r_ITA_lag1`` stays as ``r_ITA_lag1`` in the model matrix).
+    """
     out = feature_matrix.copy()
     if exclude is None:
         exclude = (
@@ -157,15 +279,87 @@ def lag_features(
             "ITA",
             "BSHIELDT",
             "WAERLST_recon",
-            PRIMARY_TARGET,
-            SECONDARY_TARGET,
         )
     drop = (set(exclude) - {"date"}) & set(out.columns)
     if drop:
         out = out.drop(columns=list(drop))
 
-    lag_cols = [c for c in out.columns if c != "date" and not _is_passthrough(c)]
+    # If keep_target_sources is False, drop the target source columns so
+    # they are not even available in the model matrix.
+    if not keep_target_sources:
+        for c in (PRIMARY_TARGET, SECONDARY_TARGET):
+            if c in out.columns:
+                out = out.drop(columns=[c])
+
+    # Detect and resolve the pre-lagged / re-lagged naming conflict.
+    # The feature matrix has BOTH a raw column (e.g. ``r_ITA``) and a
+    # pre-lagged version of the same column (``r_ITA_lag1``,
+    # representing r_ITA at t-1 in the feature matrix's coordinate
+    # system). After ``lag_features`` runs, the raw column gets
+    # re-lagged to ``r_ITA_lag1`` (= r_ITA at t-1 in the model matrix's
+    # coordinate system). If we also keep the pre-lagged column with
+    # its original name, we have a duplicate column.
+    #
+    # Resolution: when ``skip_pre_lagged=True`` we DROP the raw
+    # column (e.g. ``r_ITA``) — the pre-lagged ``r_ITA_lag1`` is
+    # preserved as-is and represents the same information (r_ITA at
+    # t-1 in the model matrix). For the secondary target, the feature
+    # matrix has ``r_WAERLST_recon`` (raw) but no pre-lagged version
+    # — we re-introduce it as ``r_WAERLST_recon_lag1`` for GARCH/AR1
+    # use.
+    if skip_pre_lagged:
+        # Drop raw columns whose pre-lagged form is also in the matrix
+        # (avoids the duplicate ``r_ITA_lag1`` from re-lagging ``r_ITA``).
+        pre_lagged_bases = set()
+        for c in list(out.columns):
+            if _is_pre_lagged(c) and c.endswith("_lag1"):
+                base = c[: -len("_lag1")]
+                pre_lagged_bases.add(base)
+        if pre_lagged_bases:
+            cols_to_drop = [
+                c for c in pre_lagged_bases
+                if c in out.columns and not _is_pre_lagged(c)
+            ]
+            if cols_to_drop:
+                out = out.drop(columns=cols_to_drop)
+
+        # For the secondary target source (which has no pre-lagged
+        # version in the feature matrix), re-introduce it as
+        # ``r_WAERLST_recon_lag1`` so GARCH/AR1 has a source column.
+        if keep_target_sources and SECONDARY_TARGET in out.columns \
+                and not _is_pre_lagged(SECONDARY_TARGET):
+            # Already dropped above
+            pass
+        elif keep_target_sources and SECONDARY_TARGET not in out.columns:
+            # Not in the feature matrix at all — nothing to do.
+            pass
+
+        # Now ensure the GARCH/AR1 source columns exist as ``_lag1`` in
+        # the model matrix. The primary source ``r_ITA_lag1`` is already
+        # there (from the pre-lagged carryover). The secondary source
+        # ``r_WAERLST_recon_lag1`` is the lag-1 of the raw secondary
+        # target column — we re-introduce it from the original feature
+        # matrix below (before the re-lag block was applied).
+        if keep_target_sources and SECONDARY_TARGET in feature_matrix.columns \
+                and SECONDARY_TARGET not in out.columns:
+            # The raw column was dropped above; re-introduce its lag-1
+            # version. Use the original feature_matrix (not ``out``)
+            # because ``out`` has already been modified.
+            secondary_lag1 = feature_matrix[SECONDARY_TARGET].shift(1)
+            secondary_lag1.name = SECONDARY_TARGET + "_lag1"
+            out[SECONDARY_TARGET + "_lag1"] = secondary_lag1
+
+    lag_cols = [
+        c for c in out.columns
+        if c != "date"
+        and not _is_passthrough(c)
+        and not (skip_pre_lagged and _is_pre_lagged(c))
+    ]
     passthrough_cols = [c for c in out.columns if c != "date" and _is_passthrough(c)]
+    pre_lagged_cols = [
+        c for c in out.columns
+        if c != "date" and skip_pre_lagged and _is_pre_lagged(c)
+    ]
 
     lagged_dict: Dict[str, pd.Series] = {}
     for c in lag_cols:
@@ -175,20 +369,34 @@ def lag_features(
 
     passthrough = out[passthrough_cols].copy()
     date_col = out[["date"]].copy()
+    pre_lagged = out[pre_lagged_cols].copy() if pre_lagged_cols else None
 
+    # Build the new column list in original order with dedup.
+    seen: set = set()
     new_cols: list = ["date"]
     for c in out.columns:
         if c == "date":
             continue
         if c in passthrough_cols:
-            new_cols.append(c)
+            if c not in seen:
+                new_cols.append(c)
+                seen.add(c)
         elif c in lag_cols:
-            new_cols.append(c + "_lag1")
+            new_name = c + "_lag1"
+            if new_name not in seen:
+                new_cols.append(new_name)
+                seen.add(new_name)
+        elif c in pre_lagged_cols:
+            if c not in seen:
+                new_cols.append(c)
+                seen.add(c)
 
-    out = pd.concat(
-        [date_col, passthrough, pd.DataFrame(lagged_dict, index=out.index)],
-        axis=1,
-    )
+    pieces = [date_col, passthrough]
+    if pre_lagged is not None:
+        pieces.append(pre_lagged)
+    pieces.append(pd.DataFrame(lagged_dict, index=out.index))
+
+    out = pd.concat(pieces, axis=1)
     return out[new_cols]
 
 
@@ -212,18 +420,22 @@ def _matches_any(name: str, patterns: Iterable[str]) -> bool:
 
 INFO_SET_PATTERNS: Dict[str, Dict[str, Iterable[str]]] = {
     "F": {
-        # Financial baseline. All non-calendar columns are listed with
-        # their ``_lag1`` suffix.
+        # Financial baseline. As of the C5 fix, the model matrix preserves
+        # the feature matrix's pre-lagged column names (``r_ITA_lag1``,
+        # not ``r_ITA_lag1_lag1``) because :func:`lag_features` no longer
+        # re-shifts pre-lagged columns. This means the F set now contains
+        # r_ITA at t-1, t-2, t-5 (the most informative lags for next-day
+        # return prediction).
         "include": (
-            # Returns (one-trading-day-lagged, market-adjusted, etc.)
+            # Returns (r_ITA at t-1, t-2, t-5 from the feature matrix
+            # carry-over).
             "r_ITA_lag1", "r_ITA_msadj_lag1",
+            "r_ITA_lag2", "r_ITA_lag5",
             "r_BSHIELDT_lag1", "r_BSHIELDT_msadj_lag1",
             # Volatility and market controls
             "VIX_lag1", "d_VIX_lag1",
             "vol_5d_lag1", "vol_20d_lag1",
             "abs_r_ITA_lag1",
-            # Already-lagged returns from the feature matrix
-            "r_ITA_lag2", "r_ITA_lag5",
         ),
         "exclude": (),
     },
@@ -342,14 +554,22 @@ def build_info_sets(
         info_set_patterns = INFO_SET_PATTERNS
 
     cols = list(columns)
+    # Always exclude raw index levels + the date column. Exclude any
+    # ``target_*`` column (returns and variance) so they can never be
+    # picked as features. The ``r_ITA_lag1`` and ``r_WAERLST_recon_lag1``
+    # columns are kept in the model matrix (post the C5 fix) and are
+    # valid F-set features; we only exclude the raw (un-lagged) return
+    # source ``r_WAERLST_recon_lag1`` because for the secondary target it
+    # is the **target source** and including it as a feature would be
+    # near-leakage (r_WAERLST_recon at t-1 strongly predicts r_WAERLST_recon
+    # at t+1).
     base_excludes = {
         "date",
         "ITA",
         "BSHIELDT",
         "WAERLST_recon",
-        f"target_{PRIMARY_TARGET}_t1",
-        f"target_{SECONDARY_TARGET}_t1",
-    }
+        "r_WAERLST_recon_lag1",  # target source for secondary
+    } | {c for c in cols if c.startswith("target_")}
 
     out: Dict[str, list] = {}
     for name in ("F", "P", "N", "PN", "PNG"):
@@ -382,6 +602,49 @@ def build_info_sets(
 DEFAULT_MODELING_START = "2022-09-29"
 
 
+def make_train_test_split(
+    mm: pd.DataFrame,
+    test_fraction: float = 0.25,
+    min_train_obs: int = 500,
+) -> tuple:
+    """Chronological train/test split for the model matrix.
+
+    Parameters
+    ----------
+    mm : pd.DataFrame
+        The model matrix, in chronological order by ``date``.
+    test_fraction : float, default 0.25
+        Fraction of rows to reserve for the test set (the last
+        ``ceil(n * test_fraction)`` rows after chronological ordering).
+    min_train_obs : int, default 500
+        Minimum number of training observations required; raises
+        :class:`ValueError` otherwise.
+
+    Returns
+    -------
+    train_mask, test_mask, split_date : (np.ndarray, np.ndarray, pd.Timestamp)
+        Boolean masks of the same length as ``mm`` and the date of the first
+        test row.
+    """
+    n = len(mm)
+    if not 0.0 < test_fraction < 1.0:
+        raise ValueError(f"test_fraction must be in (0, 1), got {test_fraction}")
+    n_test = int(np.ceil(n * test_fraction))
+    n_train = n - n_test
+    if n_train < min_train_obs:
+        raise ValueError(
+            f"Train set would have {n_train} obs < min_train_obs={min_train_obs}. "
+            f"Either reduce test_fraction, lower min_train_obs, or extend the "
+            f"modeling window. (n={n}, test_fraction={test_fraction})"
+        )
+    train_mask = np.zeros(n, dtype=bool)
+    test_mask = np.zeros(n, dtype=bool)
+    train_mask[:n_train] = True
+    test_mask[n_train:] = True
+    split_date = mm["date"].iloc[n_train]
+    return train_mask, test_mask, pd.Timestamp(split_date)
+
+
 def build_model_matrix(
     feature_matrix: pd.DataFrame,
     modeling_start: Union[str, pd.Timestamp] = DEFAULT_MODELING_START,
@@ -389,13 +652,24 @@ def build_model_matrix(
     primary_target: str = PRIMARY_TARGET,
     secondary_target: Optional[str] = SECONDARY_TARGET,
     info_set_patterns: Optional[Dict[str, Dict[str, Iterable[str]]]] = None,
+    horizons: Iterable[int] = (1, 5),
+    add_variance_targets: bool = True,
 ) -> pd.DataFrame:
-    """Assemble the final model matrix from the feature matrix."""
-    # 1. Build targets.
+    """Assemble the final model matrix from the feature matrix.
+
+    For each (target, horizon) pair this adds ``target_{name}_t{h}`` columns
+    (cumulative log returns over the next ``h`` trading days, weekend-rule
+    aligned). When ``add_variance_targets`` is True (default) it also adds
+    ``target_var_{name}_t{h}`` (sum of squared daily returns — the realized
+    variance target for GARCH).
+    """
+    # 1. Build targets (t1 + t5 + var).
     targets = build_targets(
         feature_matrix,
         primary_target=primary_target,
         secondary_target=secondary_target,
+        horizons=horizons,
+        add_variance=add_variance_targets,
     )
 
     # 2. Lag features (past-only).
@@ -411,7 +685,7 @@ def build_model_matrix(
     # 4. Merge targets with lagged features.
     mm = lagged.merge(targets, on="date", how="left")
 
-    # 5. Drop rows where the primary target is NaN.
+    # 5. Drop rows where the primary target is NaN (last rows in window).
     primary_col = f"target_{primary_target}_t1"
     mm = mm.dropna(subset=[primary_col]).reset_index(drop=True)
 
@@ -423,5 +697,7 @@ def build_model_matrix(
         mm.attrs["secondary_target"] = f"target_{secondary_target}_t1"
     mm.attrs["modeling_start"] = str(mm["date"].min())
     mm.attrs["modeling_end"] = str(mm["date"].max())
+    mm.attrs["horizons"] = sorted(set(int(h) for h in horizons))
+    mm.attrs["add_variance_targets"] = bool(add_variance_targets)
 
     return mm

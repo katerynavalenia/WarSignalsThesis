@@ -1,6 +1,6 @@
 # Project Status
 
-**Last updated:** 2026-06-30
+**Last updated:** 2026-07-01
 
 > See the [`Master_Thesis_Research_Completion_Plan.md`](../Master_Thesis_Research_Completion_Plan.md) for the full research plan and phase definitions.
 
@@ -17,6 +17,20 @@
 **Phase 2 — Physical attack dataset** ✅ Complete (see [`docs/phase2_attack_audit.md`](phase2_attack_audit.md))
 
 **Phase 3 — GDELT extraction and source classification** ✅ Complete (2026-06-30)
+
+**Phase 5 — Merge and feature engineering** ✅ Complete
+
+**Phase 6 — Econometric baselines** ✅ Complete (see [`docs/phase6_audit.md`](phase6_audit.md))
+
+**Phase 7 — Machine-learning models** 🟡 **Code complete; awaiting Colab Pro run** (2026-07-01)
+- Code: ✅ Complete. 4 new modules (`src/models/ml.py`, `ml_tuning.py`, `ml_explain.py`, GARCH-X in `garch.py`), 2 CLI scripts, 1 Colab notebook, 26 unit + 3 real-matrix integration tests (all green, 439/439 total).
+- Engine integration: ✅ Complete. `ExpandingWindowEngine` extended with `set_post_run_hook` callback and `X_exog_train` plumbing for vol specs (non-breaking for Phase 6).
+- Config: ✅ `xgboost>=2.0` and `shap>=0.44` added to `requirements.txt`; `ml.algorithm: "xgboost"` and the 216-config tuning grid in `model_config.yaml`.
+- Decision log: ✅ 4 new entries (XGBoost principal algorithm, TS-CV grid search, GARCH-X inclusion, Colab Pro + Drive execution).
+- Audit: ✅ Skeleton at [`docs/phase7_audit.md`](phase7_audit.md) — §2-6 are templates to be populated with real numbers.
+- Data sharing: ✅ Phase 7 path mappings added to [`docs/data_sharing.md`](data_sharing.md); `outputs/model_objects/` created on Drive.
+- **Pending**: Colab Pro run via [`notebooks/07_ml_models.ipynb`](../notebooks/07_ml_models.ipynb) (~2-3 hours), then rclone pull + audit doc population.
+- See [`docs/phase7_audit.md`](phase7_audit.md) for the full audit skeleton and hypothesis verdict tables.
 - Extraction: ✅ Complete (5.1 GB raw, 12M articles, 46 months, 12 enriched columns)
 - Post-processing: ✅ Complete (URL dedup → 11.4M articles, hybrid classification, daily aggregation)
 - Gap-closure: ✅ Complete (date-index fix, narrative-gap columns, query × group pivot, automated precision check, refreshed sensitivity report)
@@ -171,8 +185,8 @@ User runs `notebooks/colab_03_gdelt_extraction.ipynb` in Google Colab (Pro High-
 | 2 | Physical attack dataset | ✅ Complete | LOW | Local |
 | 3 | GDELT extraction and source classification | ✅ Complete | HIGH | Colab |
 | 4 | NLP features (Tier 1 = GDELT tone ✅, Tier 2 = transformer deferred) | Tier 1 ✅ / Tier 2 after milestone | HIGH | Colab (GPU) |
-| 5 | Merge and feature engineering | ⏳ **Next — critical path** | MEDIUM | Local |
-| 6 | Econometric baselines | 🔲 After Phase 5 | MEDIUM | Local (Colab optional) |
+| 5 | Merge and feature engineering | ✅ Complete (2026-06-30) | MEDIUM | Local |
+| 6 | Econometric baselines | ⏳ **Next — critical path** | MEDIUM | Local (Colab optional) |
 | 7 | Machine-learning models | 🔲 After Phase 6 | MEDIUM | Local (Colab optional) |
 | 8 | Statistical comparison and robustness | 🔲 After Phase 7 | LOW | Local |
 | 9 | Writing | 🔲 After Phase 8 | LOW | Local |

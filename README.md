@@ -96,8 +96,11 @@ Total wall time: ~15 s.  Peak RAM: < 1 GB.
 
 ## Research summary
 
-- **Primary outcome:** `WAERLST` — Bloomberg global aerospace & defense index.
-- **Robustness outcomes:** one European aerospace & defense index (to be selected after data audit); `BSHIELDT`.
+- **Primary outcome:** `ITA` (iShares U.S. Aerospace & Defense ETF) — yfinance proxy, 1,610 days, 6.5-year history, ρ=0.86 with SPX (per Phase 1 audit).
+- **Secondary outcome:** `r_WAERLST_recon` — Bloomberg World Aerospace & Defense reconstruction (per decision_log 2026-06-28); used for robustness.
+- **Robustness outcomes:** `BSHIELDT` (European defense, reconstructed); `WAERLST` (Bloomberg global) when available.
+- **Physical attack signal:** UAF daily reports (809 days, 7 weapon categories).
+- **News narrative signal:** GDELT GKG (11.4M articles, 4 queries × 4 source groups, 1,342 days).
 - **Frequency:** daily.
 - **Design:** strict out-of-sample forecasting (expanding window).
 - **Timing:** information available through day `t` predicts market outcome on trading day `t+1`.
@@ -178,17 +181,10 @@ Phases 1, 2, 5, and 8 run locally. See [`instructions.md`](instructions.md) § "
 **Phase 0 — Project setup** ✅ Complete
 **Phase 1 — Financial-data audit** ✅ Complete (ITA as primary target)
 **Phase 2 — Physical attack dataset** ✅ Complete (809 days, 21 columns)
-**Phase 3 — GDELT extraction & classification** ⏳ In progress
-
-Phase 3 is processing 5.1 GB of enriched GKG data (12M articles, 46 months) through:
-- URL-based deduplication
-- Hybrid source-group classification (domain + country + TLD)
-- Daily aggregation with tone averages (TONE field from GKG)
-
-The pipeline runs on Colab (12 GB RAM) using chunked classification. See:
-- [`docs/phase3_gdelt_audit.md`](docs/phase3_gdelt_audit.md) — extraction methodology
-- [`docs/phase3_classification_audit.md`](docs/phase3_classification_audit.md) — classifier validation
-- [`docs/data_sharing.md`](docs/data_sharing.md) — data infrastructure
+**Phase 3 — GDELT extraction & classification** ✅ Complete (11.4M articles, 1,342 days, 4 queries × 4 source groups)
+**Phase 4 Tier 1 — GDELT tone** ✅ Complete (Tier 2 transformer deferred until after first milestone per §25)
+**Phase 5 — Merge & feature engineering** ✅ Complete (model matrix 1,342 × 138, F/P/N/PN/PNG info sets, leakage audit 0 flags)
+**Phase 6 — Econometric baselines** ⏳ **Next — critical path** (first milestone: OOS forecast table)
 
 See [`docs/project_status.md`](docs/project_status.md) for detailed status.
 

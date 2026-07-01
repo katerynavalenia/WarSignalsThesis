@@ -50,9 +50,43 @@ This document describes the data sharing architecture for the WarSignalsThesis p
 ### Google Drive (`WarSignalsThesis_Data/`, folder ID: `1i1kkelDYszQ5Bi5Hv94NGT6wjCHkbIWU`)
 - `data/raw_enriched/` — 5.1 GB, 184 parquet files (GDELT GKG with TONE, COUNTRIES, PERSONS, ORGS, THEMES)
 - `data/processed/news/` — Pipeline outputs (deduped, classified, daily aggregates)
+- `data/processed/` — Phase 5+ model matrix + financial + attack tables
+  - `model_matrix.parquet` (~1.5 MB) — Phase 5/6/7 input; pushed once before first Colab run
+  - `financial/`, `attacks/`, `news/` — processed sub-tables
 - `data/interim/` — Working files (chunked classifications during pipeline runs)
+- `outputs/` — Phase 6+ tables, figures, and model objects
+  - `tables/phase6_*.csv`, `phase7_*.csv`, `phase7_*.parquet` — benchmark outputs
+  - `figures/fig14-16_*.png`, `fig17_shap_summary_*.png` — diagnostic plots
+  - `model_objects/xgb_best_params.csv`, `shap_phase7.npz` — Phase 7 artifacts
 - `models/` — Trained ML models (future)
-- `outputs/` — Figures, tables, reports (future)
+
+**Size limit:** 15 GB free (Google account). If we exceed, upgrade to 100 GB (~$2/month) or 2 TB (~$10/month).
+
+### Phase 7 specific path mappings (2026-07-01)
+
+| Purpose | Local | Drive |
+|---|---|---|
+| Model matrix (Phase 5+ input) | `data/processed/model_matrix.parquet` | `gdrive:WarSignalsThesis_Data/data/processed/model_matrix.parquet` |
+| Phase 7 benchmark tables | `outputs/tables/phase7_*` | `gdrive:WarSignalsThesis_Data/outputs/tables/phase7_*` |
+| Tuned XGBoost hyperparams | `outputs/model_objects/xgb_best_params.csv` | `gdrive:WarSignalsThesis_Data/outputs/model_objects/xgb_best_params.csv` |
+| SHAP per-fold arrays | `outputs/model_objects/shap_phase7.npz` | `gdrive:WarSignalsThesis_Data/outputs/model_objects/shap_phase7.npz` |
+| SHAP summary figures | `outputs/figures/fig17_shap_summary_*.png` | `gdrive:WarSignalsThesis_Data/outputs/figures/fig17_shap_summary_*.png` |
+
+**Push command (one-time, before first Colab run):**
+```bash
+rclone copy --update --progress data/processed/model_matrix.parquet \
+  gdrive:WarSignalsThesis_Data/data/processed/model_matrix.parquet
+```
+
+**Pull command (after Colab run, before git commit):**
+```bash
+rclone copy --update --progress gdrive:WarSignalsThesis_Data/outputs/tables/phase7_* \
+  outputs/tables/
+rclone copy --update --progress gdrive:WarSignalsThesis_Data/outputs/model_objects/ \
+  outputs/model_objects/
+rclone copy --update --progress gdrive:WarSignalsThesis_Data/outputs/figures/fig17* \
+  outputs/figures/
+```
 
 **Size limit:** 15 GB free (Google account). If we exceed, upgrade to 100 GB (~$2/month) or 2 TB (~$10/month).
 
