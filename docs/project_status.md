@@ -171,8 +171,8 @@ User runs `notebooks/colab_03_gdelt_extraction.ipynb` in Google Colab (Pro High-
 | 2 | Physical attack dataset | ✅ Complete | LOW | Local |
 | 3 | GDELT extraction and source classification | ✅ Complete | HIGH | Colab |
 | 4 | NLP features (Tier 1 = GDELT tone ✅, Tier 2 = transformer deferred) | Tier 1 ✅ / Tier 2 after milestone | HIGH | Colab (GPU) |
-| 5 | Merge and feature engineering | ⏳ **Next — critical path** | MEDIUM | Local |
-| 6 | Econometric baselines | 🔲 After Phase 5 | MEDIUM | Local (Colab optional) |
+| 5 | Merge and feature engineering | ✅ Complete (2026-06-30) | MEDIUM | Local |
+| 6 | Econometric baselines | ⏳ **Next — critical path** | MEDIUM | Local (Colab optional) |
 | 7 | Machine-learning models | 🔲 After Phase 6 | MEDIUM | Local (Colab optional) |
 | 8 | Statistical comparison and robustness | 🔲 After Phase 7 | LOW | Local |
 | 9 | Writing | 🔲 After Phase 8 | LOW | Local |

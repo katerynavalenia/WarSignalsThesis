@@ -1,6 +1,5 @@
-# Model configuration template
-# Status: PLANNED — do not use until Phase 6+.
-# Heavy ML dependencies are not yet installed.
+# Model configuration
+# Phase 6 — ACTIVE. Drives scripts/phase6_run_baselines.py.
 
 # Forecast horizons (in trading days)
 horizons:
@@ -15,6 +14,8 @@ validation:
   test_fraction: 0.25                  # reserve final 25-30% for test
   min_train_observations: 500
   refit_frequency: 20                  # refit every 20 trading days
+  quick_refit_frequency: 5             # smoke-test cadence
+  quick_n_days: 60                     # smoke-test window
 
 # Information sets (horse race)
 information_sets:
@@ -27,18 +28,45 @@ information_sets:
 # Econometric benchmarks
 baselines:
   returns:
-    - "historical_mean"
-    - "autoregressive"
-    - "linear_regression_controls"
-    - "regularized_linear"
+    - name: "historical_mean"
+      module: "src.models.baselines.HistoricalMeanForecaster"
+    - name: "ar1"
+      module: "src.models.baselines.AR1Forecaster"
+      lags: 1
+    - name: "ols"
+      module: "src.models.baselines.LinearRegressionForecaster"
+      fit_intercept: true
+    - name: "ridge"
+      module: "src.models.baselines.RidgeForecaster"
+      alpha: 1.0
+      fit_intercept: true
   volatility:
-    - "garch_1_1"
-    - "gjr_garch"
-    - "egarch"
-    - "ar_range_based"     # if OHLC available
-    - "har_rv"             # optional, only if intraday available
+    - name: "garch"
+      module: "src.models.garch.GARCHForecaster"
+      variant: "GARCH"
+      p: 1
+      q: 1
+      dist: "t"          # Student-t for fatter tails
+      rescale: true
+      mean: "Zero"
+    - name: "gjr_garch"
+      module: "src.models.garch.GARCHForecaster"
+      variant: "GJR_GARCH"
+      p: 1
+      q: 1
+      dist: "t"
+      rescale: true
+      mean: "Zero"
+    - name: "egarch"
+      module: "src.models.garch.GARCHForecaster"
+      variant: "EGARCH"
+      p: 1
+      q: 1
+      dist: "t"
+      rescale: true
+      mean: "Zero"
 
-# Machine learning
+# Machine learning (Phase 7)
 ml:
   algorithm: null           # "lightgbm" or "xgboost" — select after benchmarking
   max_depth: 5              # shallow trees
@@ -60,11 +88,16 @@ metrics:
     - "MSE"
     - "bias"
 
-# Statistical comparison
+# Statistical comparison (Phase 8)
 comparison:
   - "diebold_mariano"
   - "clark_west"
   - "model_confidence_set"
+
+# Targets
+targets:
+  primary: "r_ITA"
+  secondary: "r_WAERLST_recon"
 
 # Seeds
 seeds:

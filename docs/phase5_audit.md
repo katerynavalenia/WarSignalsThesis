@@ -1,7 +1,8 @@
-# Phase 5 — Merge and Feature Engineering (COMPLETE through 5C)
+# Phase 5 — Merge and Feature Engineering (COMPLETE: 5A–5F)
 
 **Date completed:** 2026-06-30
-**Tests:** 255 passed, 1 skipped, 0 failures (up from 182 at start of Phase 5)
+**Tests:** 292 passed, 1 skipped, 0 failures (up from 182 at start of Phase 5)
+**Sub-phases completed:** 5A (scaffolding), 5B (master merge), 5C (feature engineering), 5D (model matrix + info sets), 5E (data dictionary + leakage audit + descriptive stats + figures 11-13), 5F (loader + validator + handoff).
 
 ## Deliverables
 
