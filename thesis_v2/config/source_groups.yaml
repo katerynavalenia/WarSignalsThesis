@@ -1,0 +1,306 @@
+# Phase 3 — Source group classification
+# =====================================
+#
+# Domain → source group mapping. Curated from public news source lists.
+# Add new domains as encountered.
+#
+# Groups:
+#   - ukrainian: Ukrainian government, state media, and major Ukrainian outlets
+#   - russian:   Russian state media and major Russian outlets
+#   - western:   Western (US, UK, EU) major news outlets
+#   - other:     catch-all for unclassified domains (transparency)
+
+groups:
+  ukrainian:
+    description: "Ukrainian government, state media, and major Ukrainian outlets"
+    domains:
+      # State / government / official
+      - ukrinform.ua
+      - ukrinform.net
+      - ukrinform.com
+      - ukrinform.de
+      - ukraine.ua
+      - president.gov.ua
+      - kmu.gov.ua
+      - mfa.gov.ua
+      - mil.gov.ua
+      - dpsu.gov.ua
+      - dsns.gov.ua
+      # Major outlets
+      - kyivindependent.com
+      - kyivpost.com
+      - suspilne.media
+      - suspilne.com.ua
+      - suspilne.com
+      - suspilne.news
+      - pravda.com.ua
+      - ukrainska-pravda.com
+      - eurointegration.com.ua
+      - unian.ua
+      - unian.info
+      - unian.net
+      - censor.net
+      - zn.ua
+      - dt.ua
+      - lb.ua
+      - ukrlit.org
+      - hromadske.ua
+      - hromadske.radio
+      - hromadske.tv
+      - espreso.tv
+      - 24tv.ua
+      - 5.ua
+      - channel24.com.ua
+      - tsn.ua
+      - ukraine-nachrichten.de
+
+  russian:
+    description: "Russian state media and major Russian outlets"
+    domains:
+      # State-controlled
+      - rt.com
+      - russian.rt.com
+      - sputniknews.com
+      - sputniknews.ru
+      - sputnik.by
+      - tass.com
+      - tass.ru
+      - ria.ru
+      - ria.com
+      - rbc.ru
+      - rbc.com
+      - interfax.ru
+      - itar-tass.com
+      - rosiyskiyagazeta.ru
+      - rg.ru
+      # Major outlets
+      - rbth.com
+      - rbth.ru
+      - pravda.ru
+      - kommersant.ru
+      - kommersant.com
+      - vedomosti.ru
+      - vedomosti.com
+      - izvestia.ru
+      - izvestia.com
+      - life.ru
+      - vesti.ru
+      - vestifinance.ru
+      - 1tv.ru
+      - tvrain.ru
+      - russia-insider.com
+      - themoscowtimes.com
+      - themoscowtimes.ru
+      - meduza.io
+      - novayagazeta.eu
+      - novayagazeta.ru
+      - tvzvezda.ru
+      - zvezdaweekly.ru
+      - argumenti.ru
+      - aif.ru
+      - mk.ru
+      - kp.ru
+      - fontanka.ru
+      - gazeta.ru
+      - lenta.ru
+      - echo.msk.ru
+      - business-gazeta.ru
+
+  western:
+    description: "Western (US, UK, EU) major news outlets"
+    domains:
+      # USA — wire services
+      - reuters.com
+      - reuters.org
+      - ap.org
+      - apnews.com
+      - bloomberg.com
+      - bloomberg.net
+      - cnbc.com
+      - cnn.com
+      - nytimes.com
+      - washingtonpost.com
+      - wsj.com
+      - latimes.com
+      - usatoday.com
+      - time.com
+      - newsweek.com
+      - forbes.com
+      - fortune.com
+      - businessinsider.com
+      - marketwatch.com
+      - politico.com
+      - axios.com
+      - thehill.com
+      - huffpost.com
+      - vox.com
+      - nbcnews.com
+      - abcnews.go.com
+      - cbsnews.com
+      - foxnews.com
+      - usnews.com
+      - chicagotribune.com
+      - bostonglobe.com
+      - nypost.com
+      # USA — defense / specialist
+      - defense.gov
+      - army.mil
+      - navy.mil
+      - airforcetimes.com
+      - defensenews.com
+      - stripes.com
+      - militarytimes.com
+      - foreignpolicy.com
+      - foreignaffairs.com
+      - thecipherbrief.com
+      - thedrive.com
+      - taskandpurpose.com
+      # UK
+      - bbc.co.uk
+      - bbc.com
+      - theguardian.com
+      - ft.com
+      - thetimes.co.uk
+      - thetimes.com
+      - telegraph.co.uk
+      - independent.co.uk
+      - mirror.co.uk
+      - express.co.uk
+      - sky.com
+      - skynews.com
+      - economist.com
+      - news.sky.com
+      - irishtimes.com
+      - belfasttelegraph.co.uk
+      - scotsman.com
+      - thescotsman.com
+      - cityam.com
+      - spectator.co.uk
+      - newstatesman.com
+      # France
+      - lemonde.fr
+      - lefigaro.fr
+      - liberation.fr
+      - lesechos.fr
+      - latribune.fr
+      - leparisien.fr
+      - lexpress.fr
+      - lepoint.fr
+      - nouvelobs.com
+      - ouest-france.fr
+      - afp.com
+      # Germany
+      - spiegel.de
+      - faz.net
+      - welt.de
+      - sueddeutsche.de
+      - zeit.de
+      - handelsblatt.com
+      - tagesspiegel.de
+      - taz.de
+      - nzz.ch
+      - n-tv.de
+      - dw.com
+      - deutschlandfunk.de
+      - deutschlandfunkkultur.de
+      - wiwo.de
+      - manager-magazin.de
+      - stern.de
+      - focus.de
+      - bild.de
+      - rp-online.de
+      # Italy
+      - repubblica.it
+      - ilsole24ore.com
+      - corriere.it
+      - lastampa.it
+      - ilfattoquotidiano.it
+      - ansa.it
+      - rainews.it
+      - tg24.sky.it
+      # Spain
+      - elmundo.es
+      - elpais.com
+      - abc.es
+      - larazon.es
+      - lavanguardia.com
+      - elconfidencial.com
+      - europapress.es
+      - efe.com
+      - eleconomista.es
+      # Switzerland / Austria
+      - nzz.ch
+      - tagesanzeiger.ch
+      - blick.ch
+      - weltwoche.ch
+      - derstandard.at
+      - diepresse.com
+      - kurier.at
+      - sn.at
+      # Poland
+      - tvn24.pl
+      - tvp.info
+      - gazetaprawna.pl
+      - rp.pl
+      - wyborcza.pl
+      - gazeta.pl
+      # EU institutions
+      - politico.eu
+      - euractiv.com
+      - euobserver.com
+      - brusselstimes.com
+      # International organizations
+      - europa.eu
+      - consilium.europa.eu
+      - ec.europa.eu
+      - nato.int
+      - osce.org
+      - un.org
+      - news.un.org
+      - ohchr.org
+      - amnesty.org
+      - hrw.org
+      - icrc.org
+      - unhcr.org
+      # Defense industry news
+      - janes.com
+      - janesdefence.com
+      - shephardmedia.com
+      - flightglobal.com
+      # Think tanks
+      - rand.org
+      - brookings.edu
+      - cfr.org
+      - chathamhouse.org
+      - carnegieendowment.org
+      - iiss.org
+      - csis.org
+      - ecfr.eu
+      - atlanticcouncil.org
+      - wilsoncenter.org
+      - sipri.org
+
+  other:
+    description: >
+      Unclassified — anything not matched above. Kept separate for
+      transparency. Will be re-classified or dropped after manual review.
+    domains: []  # catch-all
+
+# Internal/social platforms (excluded from extraction; not "news")
+internal_domains:
+  - facebook.com
+  - twitter.com
+  - x.com
+  - youtube.com
+  - tiktok.com
+  - instagram.com
+  - linkedin.com
+  - reddit.com
+  - medium.com
+  - wordpress.com
+  - blogspot.com
+  - tumblr.com
+  - vk.com
+  - ok.ru
+  - telegram.me
+  - t.me

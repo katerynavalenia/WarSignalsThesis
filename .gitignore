@@ -26,41 +26,43 @@ build/
 .DS_Store
 
 # ── Configuration (local copies) ────────
-config/paths.yaml
-config/*.local.yaml
+# Patterns are prefixed with **/ so they match under both thesis_v1/ and
+# thesis_v2/ (this .gitignore lives at the shared project root).
+**/config/paths.yaml
+**/config/*.local.yaml
 
 # ── Data (preserve structure, ignore content) ──
 # Raw data: ignore file contents but keep directory structure
-data/raw/**/*.csv
-data/raw/**/*.xlsx
-data/raw/**/*.xls
-data/raw/**/*.parquet
-data/raw/**/*.json
-data/raw/**/*.jsonl
-data/raw/**/*.txt
-data/raw/**/*.zip
-data/raw/**/*.gz
-data/raw/**/*.tar
+**/data/raw/**/*.csv
+**/data/raw/**/*.xlsx
+**/data/raw/**/*.xls
+**/data/raw/**/*.parquet
+**/data/raw/**/*.json
+**/data/raw/**/*.jsonl
+**/data/raw/**/*.txt
+**/data/raw/**/*.zip
+**/data/raw/**/*.gz
+**/data/raw/**/*.tar
 
 # Interim data
-data/interim/**/*.csv
-data/interim/**/*.parquet
-data/interim/**/*.json
+**/data/interim/**/*.csv
+**/data/interim/**/*.parquet
+**/data/interim/**/*.json
 
 # Processed data
-data/processed/**/*.csv
-data/processed/**/*.parquet
-# Exception: Phase 3 GDELT news outputs (tracked via LFS)
-!data/processed/news/news_daily.csv
-!data/processed/news/news_daily.parquet
-!data/processed/news/gdelt_articles_dedup.parquet
-!data/processed/news/gdelt_articles_classified.parquet
-!data/processed/news/manual_precision_audit.csv
+**/data/processed/**/*.csv
+**/data/processed/**/*.parquet
+# Exception: Phase 3 GDELT news outputs (tracked via LFS) — v1 only
+!thesis_v1/data/processed/news/news_daily.csv
+!thesis_v1/data/processed/news/news_daily.parquet
+!thesis_v1/data/processed/news/gdelt_articles_dedup.parquet
+!thesis_v1/data/processed/news/gdelt_articles_classified.parquet
+!thesis_v1/data/processed/news/manual_precision_audit.csv
 
 # External data
-data/external/**/*.csv
-data/external/**/*.parquet
-data/external/**/*.xlsx
+**/data/external/**/*.csv
+**/data/external/**/*.parquet
+**/data/external/**/*.xlsx
 
 # ── Outputs (TRACK in git — these are reproducible from scripts/) ──
 #   - ``outputs/figures/`` : PNG figures (figs 1–13)
@@ -75,17 +77,15 @@ data/external/**/*.xlsx
 # (synced via rclone — see docs/data_sharing.md) and stay gitignored.
 
 # ── Thesis build artifacts ──────────────
-
-# ── Thesis build artifacts ──────────────
-thesis/*.aux
-thesis/*.bbl
-thesis/*.blg
-thesis/*.fdb_latexmk
-thesis/*.fls
-thesis/*.log
-thesis/*.out
-thesis/*.synctex.gz
-thesis/*.toc
+**/thesis/*.aux
+**/thesis/*.bbl
+**/thesis/*.blg
+**/thesis/*.fdb_latexmk
+**/thesis/*.fls
+**/thesis/*.log
+**/thesis/*.out
+**/thesis/*.synctex.gz
+**/thesis/*.toc
 
 # ── Secrets ─────────────────────────────
 *.pem
@@ -99,6 +99,6 @@ client_secret_*.json
 # ── Colab-simulated data (stored on Google Drive instead) ──
 # 5.1 GB of enriched GKG parquets are too large for git.
 # Data lives in Google Drive: WarSignalsThesis_Data/data/raw_enriched/
-# See docs/data_sharing.md for setup.
-data/news_colab_sim/**/*.parquet
-data/news_colab_sim/**/*.csv
+# See docs/v1/data_sharing.md for setup (v1 only).
+**/data/news_colab_sim/**/*.parquet
+**/data/news_colab_sim/**/*.csv
