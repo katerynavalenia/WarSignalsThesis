@@ -63,7 +63,7 @@ class ModelSpec:
         univariate and predict a variance target (``target_var_<X>_t<h>``).
     """
 
-    __slots__ = ("name", "factory", "info_set", "model_type")
+    __slots__ = ("name", "factory", "info_set", "model_type", "extra")
 
     def __init__(
         self,
@@ -71,6 +71,7 @@ class ModelSpec:
         factory: Callable[[], Any],
         info_set: Optional[str] = "F",
         model_type: str = "returns",
+        **extra: Any,
     ) -> None:
         if model_type not in ("returns", "vol"):
             raise ValueError(
@@ -82,11 +83,17 @@ class ModelSpec:
         self.factory = factory
         self.info_set = info_set
         self.model_type = model_type
+        # Phase 7.5: extra kwargs forwarded to the spec (e.g.
+        # ``garch_x_info_set="F"`` for GARCH-X variants).
+        self.extra = dict(extra)
 
     def __repr__(self) -> str:
+        extra_str = (
+            f", extra={self.extra!r}" if self.extra else ""
+        )
         return (
             f"ModelSpec(name={self.name!r}, info_set={self.info_set!r}, "
-            f"model_type={self.model_type!r})"
+            f"model_type={self.model_type!r}{extra_str})"
         )
 
 
@@ -177,6 +184,11 @@ class ExpandingWindowEngine:
         self.quick_n_days = int(quick_n_days)
         self.random_seed = int(random_seed)
         self._models: List[ModelSpec] = []
+        # Phase 7.6: optional post-fit hook. Called once per
+        # (spec, target, horizon, refit_pos) with signature
+        # (model, X_test, spec, target, horizon, fold) → None.
+        # Used by the SHAP recorder.
+        self._post_run_hook: Optional[Callable[..., None]] = None
 
     # ── Registration ──────────────────────────────────────────────────────
 
@@ -196,6 +208,20 @@ class ExpandingWindowEngine:
 
     def add_spec(self, spec: ModelSpec) -> "ExpandingWindowEngine":
         self._models.append(spec)
+        return self
+
+    def set_post_run_hook(
+        self, hook: Optional[Callable[..., None]],
+    ) -> "ExpandingWindowEngine":
+        """Register a callback to be invoked after each fit/predict fold.
+
+        The hook signature is
+        ``hook(model, X_test, spec, target, horizon, fold, **kwargs)``.
+        Pass ``None`` to clear the hook.
+
+        Used by the SHAP recorder (Phase 7.6).
+        """
+        self._post_run_hook = hook
         return self
 
     @property
@@ -289,6 +315,7 @@ class ExpandingWindowEngine:
         horizon: int,
         refit_pos: int,
         fold_end: int,
+        fold: int = -1,
     ) -> List[Dict[str, Any]]:
         """Fit the model on rows ``[:refit_pos]`` and predict on
         ``[refit_pos:fold_end]``. Return a list of result rows."""
@@ -306,6 +333,14 @@ class ExpandingWindowEngine:
             source_col = target  # not actually used in the returns path
 
         feat_cols = self._features_for(spec.info_set) if spec.model_type == "returns" else []
+        # Phase 7.5: GARCH-X uses an extra info set for exogenous regressors
+        garch_x_info_set = spec.extra.get("garch_x_info_set") if spec.extra else None
+        garch_x_cols: List[str] = []
+        if spec.model_type == "vol" and garch_x_info_set:
+            garch_x_cols = [
+                c for c in self.info_sets.get(garch_x_info_set, [])
+                if c in self.mm.columns
+            ]
         # NaN-safe feature selection
         train_block = self.mm.iloc[:refit_pos]
         test_block = self.mm.iloc[refit_pos:fold_end]
@@ -318,6 +353,14 @@ class ExpandingWindowEngine:
             X_train = None
             y_train = train_block[source_col]
             X_test = None
+            # GARCH-X: exog block for train (rows 0..refit_pos) and
+            # horizon (rows refit_pos..fold_end).
+            if garch_x_cols:
+                X_exog_train = train_block[garch_x_cols]
+                X_exog_horizon = test_block[garch_x_cols]
+            else:
+                X_exog_train = None
+                X_exog_horizon = None
 
         # ── Defensive no-leakage guard ────────────────────────────────────
         assert_no_future_data(
@@ -333,8 +376,20 @@ class ExpandingWindowEngine:
                 preds = np.asarray(model.predict(X_test), dtype=float)
             else:
                 # Vol models (GARCH) only see the past target series.
-                model.fit(y_train)
-                var = np.asarray(model.predict(horizon=horizon), dtype=float)
+                # GARCH-X variants also see the exogenous regressors.
+                if garch_x_cols and hasattr(model, "fit") and "X_exog" in model.fit.__code__.co_varnames:
+                    model.fit(y_train, X_exog=X_exog_train)
+                    var = np.asarray(
+                        model.predict(
+                            horizon=horizon, X_exog_horizon=X_exog_horizon,
+                        ),
+                        dtype=float,
+                    )
+                else:
+                    model.fit(y_train)
+                    var = np.asarray(
+                        model.predict(horizon=horizon), dtype=float,
+                    )
                 if var.size == 0:
                     preds = np.full(len(test_block), np.nan)
                 elif horizon == 1:
@@ -344,6 +399,22 @@ class ExpandingWindowEngine:
         except Exception as exc:  # pragma: no cover — defensive
             logger.warning("model %s failed: %s", spec.name, exc)
             preds = np.full(len(test_block), np.nan)
+
+        # ── Post-run hook (Phase 7.6 SHAP) ───────────────────────────────
+        # Called only on the first day of each fold (i.e. when the model
+        # was just refit) so we get one SHAP per refit, not per test row.
+        if self._post_run_hook is not None and spec.model_type == "returns":
+            try:
+                self._post_run_hook(
+                    model=model,
+                    X_test=X_test if spec.model_type == "returns" else None,
+                    spec=spec,
+                    target=target,
+                    horizon=horizon,
+                    fold=fold,
+                )
+            except Exception as exc:  # pragma: no cover
+                logger.debug("post_run_hook for %s failed: %s", spec.name, exc)
 
         # ── Realized values ──────────────────────────────────────────────
         realized = test_block[target_col].to_numpy(dtype=float)
@@ -419,7 +490,7 @@ class ExpandingWindowEngine:
                         if fold == len(refit_positions) - 1:
                             fold_end = int(test_idx[-1]) + 1
                         rows = self._fit_predict_one_fold(
-                            spec, target, horizon, refit_pos, fold_end,
+                            spec, target, horizon, refit_pos, fold_end, fold=fold,
                         )
                         for r in rows:
                             r["fold"] = fold

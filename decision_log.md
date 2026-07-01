@@ -363,3 +363,64 @@ Replace the planned 400-article manual labelling audit (`data/processed/news/man
 
 **Revisit condition:**  
 If a true labelled dataset (e.g., 50 articles per group hand-classified) becomes available, replace the proxy with the true estimate and report both for transparency.
+
+## 2026-07-01 — XGBoost as principal ML algorithm
+
+**Decision:** Use XGBoost (not LightGBM) as the principal gradient-boosting algorithm for Phase 7 return forecasts.
+
+**Reason:** XGBoost has a deterministic early-stopping API, first-class SHAP TreeExplainer support, and a mature codebase for tabular financial data. Decision log 2026-06-28 requires one principal algorithm; LightGBM is a documented robustness alternative but is not implemented.
+
+**Alternatives considered:**
+- **LightGBM** — slightly faster training, comparable accuracy on small financial datasets. Rejected as the principal algorithm because SHAP integration is less mature.
+- **Both as co-equal** — explicitly forbidden by the 2026-06-28 decision.
+
+**Consequences:** `src/models/ml.py` implements `XGBoostForecaster`; `requirements.txt` adds `xgboost>=2.0`. The thesis Methodology chapter must justify the choice and acknowledge LightGBM as the robustness alternative.
+
+**Revisit condition:** If XGBoost MAE on F-set is > 1.3× Ridge MAE in the first run, swap to LightGBM and re-run. Document the swap in the audit doc.
+
+## 2026-07-01 — Time-series CV grid search for hyperparameter tuning
+
+**Decision:** Use a pure-Python grid search (216 combinations × 3 expanding-window folds with 5-day embargo) for XGBoost hyperparameter tuning, run once before the OOS engine and saved to `outputs/model_objects/xgb_best_params.csv`.
+
+**Reason:** Reproducible (no random sampling, no Optuna study to log), defensible in thesis text ("exhaustive grid over 6 hyperparameters"), and the total cost is bounded (~6,480 XGBoost fits × ~1s = ~110 min on Colab Pro CPU). Decision log 2026-06-28 permits TS-CV tuning as a Phase 7 extension; this is that extension.
+
+**Alternatives considered:**
+- **Fixed defaults from YAML** — fastest, but wastes the Master's plan §11.2 call for CV tuning.
+- **Optuna Bayesian search** — better for high-dim grids, but adds dependency, reproducibility concerns (study must be logged), and is not strictly necessary for a 6-dim grid.
+
+**Consequences:** `src/models/ml_tuning.py` implements `time_series_cv_splits`, `grid_search_xgb`, and `tune_per_info_set`. The CLI is `python scripts/phase7_tune.py`. The OOS run uses the cached best params via `--tuned-params`.
+
+**Revisit condition:** If the first run shows XGBoost MAE is systematically worse than Ridge on F (e.g., > 1.2× across all info sets), the grid may be missing the optimum — switch to Optuna. Document the swap.
+
+## 2026-07-01 — GARCH-X included in Phase 7 (deferred from Phase 6)
+
+**Decision:** Include GARCH-X variants (3 GARCH-family + exogenous regressors in the ARX mean equation) as a Phase 7 deliverable. The Phase 6 audit §7 listed this as "Phase 7+ extension".
+
+**Reason:** GARCH-X directly tests whether attack/news features add value to the *volatility* forecast — a separate research question from the ML returns story. The `arch` package supports ARX + GARCH-family models via the `x=` parameter; h=1 uses standard forecast, h>1 uses the same analytic-h path (mean exog doesn't affect the variance equation under joint MLE, so the h-step path is unchanged).
+
+**Alternatives considered:**
+- **Defer to Phase 8** — delays the vol-feature story by one phase.
+- **ML for vol** — explicitly out of scope per decision log 2026-06-28 (one principal boosting algorithm).
+
+**Consequences:** `src/models/garch.py` adds `GARCHXForecaster`. The expanding-window engine's vol-model code path is extended (non-breaking) to pass `X_exog_train` and `X_exog_horizon` if the spec has a `garch_x_info_set` attribute. The CLI flag `--garch-x-info-set` (default "F") controls which info set's columns feed the ARX mean.
+
+**Revisit condition:** If `arch` v6.2 raises on ARX + the chosen vol model, fall back to the two-step approach (fit ARX with GARCH vol, take residuals, fit univariate GARCH on residuals). Document the failure mode in the audit doc.
+
+## 2026-07-01 — Phase 7 runs on Colab Pro with data from Google Drive
+
+**Decision:** Phase 7 compute (tuning, OOS, SHAP) runs on **Colab Pro CPU**. The model matrix is read from and outputs are written directly to Google Drive folder `WarSignalsThesis_Data/`. Local laptop is used only for code editing, git, and `rclone` sync. The `rclone` tool is local-only (not available in Colab).
+
+**Reason:** The TS-CV grid search (6,480 XGBoost fits) is the compute bottleneck; Colab Pro CPU is 3-4× faster than the local laptop, with 35 GB RAM and 24-h sessions (the full Phase 7 run is ~2-2.5 hours). All data already lives in Drive per the Phase 0-6 data-sharing architecture; Colab can read directly from Drive.
+
+**Alternatives considered:**
+- **Local execution** — 3-4× slower; would push the tuning step to ~5-6 hours.
+- **Colab free tier** — 12.7 GB RAM, may OOM on the full grid with all 6 hyperparameters.
+
+**Consequences:**
+- New local pre-Colab step (Phase 7.0): `rclone copy` the model matrix to Drive (one-time, ~2 s).
+- New local post-Colab step (Phase 7.7): `rclone copy` the outputs back from Drive, commit, push.
+- New Colab notebook: `notebooks/07_ml_models.ipynb` with the strict Colab pattern (mount Drive → clone+pull → sanity check → install → run → verify).
+- New memory note: `/memories/repo/phase7_colab_first.md` documents the workflow.
+- `docs/data_sharing.md` extends the path-mappings table to include `data/processed/` and `outputs/model_objects/`.
+
+**Revisit condition:** If Colab Pro is unavailable, run locally with the `--quick` flag (4 configs × 2 folds) for the headline run, then expand the grid for the audit-quality run.

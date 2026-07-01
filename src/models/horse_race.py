@@ -22,12 +22,19 @@ schema promised in the Phase 6 plan:
 - ``dir_acc``     — directional accuracy
 - ``corr``        — Pearson correlation
 - ``QLIKE``       — QLIKE loss (NaN for return models)
+
+Phase 7 extensions (decision_log 2026-07-01):
+
+- :func:`default_ml_specs` — XGBoost specs across the 5 info sets.
+- :func:`default_garch_x_specs` — GARCH-X variants with exogenous
+  regressors in the mean equation.
+- :func:`run_phase7` — unified runner for the Phase 7 benchmark.
 """
 from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -47,7 +54,9 @@ from src.models.expanding_window import (
     ModelSpec,
     run_horse_race_engine,
 )
-from src.models.garch import GARCHForecaster
+from src.models.garch import GARCHForecaster, GARCHXForecaster
+from src.models.ml import XGBoostForecaster
+from src.models.ml_explain import SHAPRecorder
 
 
 logger = logging.getLogger(__name__)
@@ -56,8 +65,11 @@ logger = logging.getLogger(__name__)
 __all__ = [
     "default_return_specs",
     "default_vol_specs",
+    "default_ml_specs",
+    "default_garch_x_specs",
     "build_benchmark_tables",
     "run_horse_race",
+    "run_phase7",
     "save_benchmark_csvs",
 ]
 
@@ -148,6 +160,111 @@ def default_vol_specs() -> List[ModelSpec]:
             model_type="vol",
         ),
     ]
+
+
+# ── Phase 7 — ML specs ─────────────────────────────────────────────────────
+
+
+def default_ml_specs(
+    info_sets: Tuple[str, ...] = ("F", "P", "N", "PN", "PNG"),
+    tuned_params: Optional[Dict[Tuple[str, int, str], Dict[str, Any]]] = None,
+    default_xgb_params: Optional[Dict[str, Any]] = None,
+) -> List[ModelSpec]:
+    """Return the canonical list of XGBoost ModelSpecs for Phase 7.
+
+    Parameters
+    ----------
+    info_sets : tuple of str
+        Information set names.
+    tuned_params : dict, optional
+        ``{(info_set, horizon, target): {param: value}}`` from a Phase
+        7.3 grid search. If provided, the XGBoost factory uses these
+        per-(info_set, horizon, target) hyperparameters. If missing for
+        a particular triple, falls back to ``default_xgb_params``.
+    default_xgb_params : dict, optional
+        Fallback hyperparameters for triples not in ``tuned_params``.
+
+    Returns
+    -------
+    list of ModelSpec
+        One XGBoost spec per info set. The factory looks up the right
+        per-(horizon, target) params at fit time via the spec's
+        ``info_set`` and the train context.
+
+    Notes
+    -----
+    The :class:`XGBoostForecaster` does not know about the horizon or
+    target — those are encoded in the target column name passed to
+    ``fit``. To use per-horizon / per-target tuned params, the engine's
+    OOS loop is responsible for selecting the right dict and creating
+    a fresh XGBoost instance with those params. The simplest way to
+    achieve this is to pass the ``tuned_params`` dict to the spec's
+    factory via a closure that uses the spec's name and the
+    horizon/target.
+
+    For Phase 7's headline run we use a SIMPLER approach: one spec per
+    info set, using the **horizon-1, target=r_ITA** tuned params as the
+    default. The OOS loop then uses these params for ALL horizons and
+    targets. Per-horizon / per-target tuning can be enabled by the
+    user via the ``--per-horizon-params`` CLI flag (which the
+    phase7_run_ml.py script implements via a per-fit lookup).
+    """
+    fallback = default_xgb_params or {
+        "max_depth": 5,
+        "learning_rate": 0.05,
+        "n_estimators": 500,
+        "min_child_weight": 5,
+        "reg_alpha": 0.0,
+        "reg_lambda": 1.0,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+    }
+    specs: List[ModelSpec] = []
+    for set_name in info_sets:
+        # Pick the (h=1, r_ITA) tuned params as the default for this set.
+        params_for_set: Dict[str, Any] = dict(fallback)
+        if tuned_params:
+            key = (set_name, 1, "r_ITA")
+            if key in tuned_params:
+                params_for_set.update(tuned_params[key])
+        params_for_set.setdefault("random_state", 42)
+        params_for_set.setdefault("val_fraction", 0.15)
+        params_for_set.setdefault("early_stopping_rounds", 50)
+        specs.append(ModelSpec(
+            name="xgboost",
+            factory=lambda p=dict(params_for_set): XGBoostForecaster(**p),
+            info_set=set_name,
+            model_type="returns",
+            # Phase 7.6: marker so the post-run hook only fires on XGBoost
+            # (and any future ML spec) — we use ``collect_shap`` to make
+            # the SHAP recorder self-identify.
+            collect_shap=True,
+        ))
+    return specs
+
+
+def default_garch_x_specs(
+    garch_x_info_set: str = "F",
+    variants: Tuple[str, ...] = ("GARCH", "GJR_GARCH", "EGARCH"),
+) -> List[ModelSpec]:
+    """Return the canonical list of GARCH-X ModelSpecs for Phase 7.5.
+
+    Each variant is fit with exogenous regressors from the specified
+    info set (default: F = financial baseline). The exog enters the
+    mean equation (``mean="ARX"``).
+    """
+    specs: List[ModelSpec] = []
+    for variant in variants:
+        specs.append(ModelSpec(
+            name=f"garch_x_{variant.lower()}",
+            factory=lambda v=variant: GARCHXForecaster(
+                variant=v, p=1, q=1, dist="t", rescale=True, fallback=True,
+            ),
+            info_set=None,
+            model_type="vol",
+            garch_x_info_set=garch_x_info_set,
+        ))
+    return specs
 
 
 # ── Benchmark aggregation ──────────────────────────────────────────────────
@@ -301,27 +418,148 @@ def save_benchmark_csvs(
     vol_benchmark: pd.DataFrame,
     info_set_card: Optional[pd.DataFrame] = None,
     suffix: str = "",
+    prefix: str = "phase6",
 ) -> Dict[str, Path]:
     """Save benchmark CSVs to ``out_dir`` and return the file paths.
 
     File names:
-    - ``phase6_benchmark{suffix}.csv``          — return-models table
-    - ``phase6_volatility_benchmark{suffix}.csv`` — GARCH table
-    - ``phase6_info_set_cardinality{suffix}.csv``  — info-set counts (if provided)
+    - ``{prefix}_benchmark{suffix}.csv``          — return-models table
+    - ``{prefix}_volatility_benchmark{suffix}.csv`` — GARCH table
+    - ``{prefix}_info_set_cardinality{suffix}.csv``  — info-set counts (if provided)
     """
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     written: Dict[str, Path] = {}
     paths = {
-        "benchmark": out_dir / f"phase6_benchmark{suffix}.csv",
-        "vol_benchmark": out_dir / f"phase6_volatility_benchmark{suffix}.csv",
+        "benchmark": out_dir / f"{prefix}_benchmark{suffix}.csv",
+        "vol_benchmark": out_dir / f"{prefix}_volatility_benchmark{suffix}.csv",
     }
     benchmark.to_csv(paths["benchmark"], index=False)
     written["benchmark"] = paths["benchmark"]
     vol_benchmark.to_csv(paths["vol_benchmark"], index=False)
     written["vol_benchmark"] = paths["vol_benchmark"]
     if info_set_card is not None:
-        card_path = out_dir / f"phase6_info_set_cardinality{suffix}.csv"
+        card_path = out_dir / f"{prefix}_info_set_cardinality{suffix}.csv"
         info_set_card.to_csv(card_path, index=False)
         written["info_set_cardinality"] = card_path
     return written
+
+
+# ── Phase 7 runner ──────────────────────────────────────────────────────────
+
+
+def run_phase7(
+    model_matrix: pd.DataFrame,
+    horizons: Tuple[int, ...] = (1, 5),
+    targets: Tuple[str, ...] = ("r_ITA", "r_WAERLST_recon"),
+    info_sets: Tuple[str, ...] = ("F", "P", "N", "PN", "PNG"),
+    tuned_params: Optional[Dict[Tuple[str, int, str], Dict[str, Any]]] = None,
+    include_garch_x: bool = True,
+    garch_x_info_set: str = "F",
+    include_econometric_baselines: bool = True,
+    test_fraction: float = 0.25,
+    min_train_obs: int = 500,
+    refit_every: int = 20,
+    quick: bool = False,
+    random_seed: int = 42,
+    collect_shap: bool = True,
+) -> Dict[str, Any]:
+    """Run the Phase 7 horse race: XGBoost returns + (optional) GARCH-X.
+
+    Parameters
+    ----------
+    model_matrix : pd.DataFrame
+        Output of :func:`build_model_matrix` (must have
+        ``mm.attrs['info_sets']``).
+    tuned_params : dict, optional
+        ``{(info_set, horizon, target): {param: value}}`` from
+        :func:`src.models.ml_tuning.tune_per_info_set`. If ``None``,
+        the XGBoost specs use the default hyperparameters from
+        :func:`default_ml_specs`.
+    include_garch_x : bool, default True
+        Whether to add the 3 GARCH-X variants.
+    garch_x_info_set : str, default "F"
+        Which info set to use as exogenous regressors for GARCH-X.
+    include_econometric_baselines : bool, default True
+        Whether to also run the 4 Phase 6 return baselines (HM, AR1,
+        OLS, Ridge) on the 5 info sets. Set to ``False`` for a
+        standalone XGBoost-only run.
+    collect_shap : bool, default True
+        If True, install a SHAP recorder as the post-run hook so that
+        per-fold SHAP values are saved to ``outputs/model_objects/``.
+
+    Returns
+    -------
+    dict with keys
+        - ``predictions`` (long-form DataFrame)
+        - ``benchmark`` (return-models benchmark, including XGBoost)
+        - ``vol_benchmark`` (GARCH + GARCH-X rows)
+        - ``shap_recorder`` (the SHAPRecorder, or None)
+    """
+    # Build specs
+    specs: List[ModelSpec] = []
+    if include_econometric_baselines:
+        specs.extend(default_return_specs(info_sets=info_sets))
+    specs.extend(
+        default_ml_specs(info_sets=info_sets, tuned_params=tuned_params)
+    )
+    specs.extend(default_vol_specs())
+    if include_garch_x:
+        specs.extend(
+            default_garch_x_specs(garch_x_info_set=garch_x_info_set)
+        )
+
+    # Set up the SHAP recorder
+    shap_recorder: Optional[SHAPRecorder] = None
+    if collect_shap:
+        shap_recorder = SHAPRecorder()
+
+        def _shap_hook(
+            model, X_test, spec, target, horizon, fold,
+        ) -> None:
+            if X_test is None or len(X_test) == 0:
+                return
+            if not spec.extra.get("collect_shap", False):
+                return
+            shap_recorder.record_fold(
+                info_set=spec.info_set or "-",
+                horizon=horizon,
+                target=target,
+                fold=fold,
+                model=model,
+                X_test=X_test,
+            )
+
+        # The hook will be set per-engine-instance below
+        hook = _shap_hook
+    else:
+        hook = None
+
+    logger.info("Phase 7 horse race: %d specs, horizons=%s, targets=%s",
+                len(specs), horizons, targets)
+    eng = ExpandingWindowEngine(
+        model_matrix=model_matrix,
+        info_sets=model_matrix.attrs.get("info_sets", {}),
+        targets=list(targets),
+        horizons=list(horizons),
+        test_fraction=test_fraction,
+        min_train_obs=min_train_obs,
+        refit_every=refit_every,
+        quick=quick,
+        random_seed=random_seed,
+    )
+    if hook is not None:
+        eng.set_post_run_hook(hook)
+    for s in specs:
+        eng.add_spec(s)
+    predictions = eng.run()
+
+    benchmark, vol_benchmark = build_benchmark_tables(predictions)
+    info_set_card = _cardinality_from_mm(model_matrix)
+    return {
+        "predictions": predictions,
+        "benchmark": benchmark,
+        "vol_benchmark": vol_benchmark,
+        "info_set_cardinality": info_set_card,
+        "shap_recorder": shap_recorder,
+    }

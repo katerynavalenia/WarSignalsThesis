@@ -66,14 +66,60 @@ baselines:
       rescale: true
       mean: "Zero"
 
-# Machine learning (Phase 7)
+# Machine learning (Phase 7) — XGBoost principal algorithm (decision_log 2026-07-01)
 ml:
-  algorithm: null           # "lightgbm" or "xgboost" — select after benchmarking
-  max_depth: 5              # shallow trees
-  learning_rate: 0.05       # conservative
-  n_estimators: 500         # with early stopping
-  early_stopping_rounds: 50
+  algorithm: "xgboost"      # XGBoost over LightGBM (decision_log 2026-07-01)
+  objective: "reg:squarederror"  # point forecast of return (continuous)
+  eval_metric: "mae"        # early stopping on MAE (matches Phase 6 metric)
   random_seed: 42
+
+  # Hyperparameters used when TS-CV tuning is skipped (--no-tune).
+  # These are the Master Plan §10.4 conservative defaults.
+  defaults:
+    max_depth: 5            # shallow trees (Master Plan §10.4)
+    learning_rate: 0.05     # conservative
+    n_estimators: 500       # with early stopping
+    min_child_weight: 5     # regularization
+    reg_alpha: 0.0          # L1 regularization (default off)
+    reg_lambda: 1.0         # L2 regularization
+    subsample: 0.8          # row subsampling
+    colsample_bytree: 0.8   # column subsampling
+    early_stopping_rounds: 50
+    val_fraction: 0.15      # tail of train used as validation for early stopping
+
+  # Time-series CV grid search tuning (Phase 7.3)
+  tuning:
+    param_grid:
+      max_depth: [3, 5]
+      learning_rate: [0.03, 0.05, 0.1]
+      n_estimators: [200, 500, 1000]
+      min_child_weight: [5, 20]
+      reg_alpha: [0.0, 0.1]
+      reg_lambda: [1.0, 5.0]
+    n_splits: 3             # expanding-window CV folds inside training data
+    embargo: 5              # trading-day gap between train and val (no look-ahead)
+    min_train_size: 200
+    # NOTE: 3*3*3*2*2*2 = 216 configs × 3 folds = 648 fits per
+    # (info_set, horizon); 5 info sets × 2 horizons = 6,480 fits total.
+    # On Colab Pro CPU: ~110 min. On local CPU: ~4-6 hours.
+
+  # SHAP (Phase 7.6) — feature attribution
+  shap:
+    max_evals: 500           # cap SHAP evaluations per fold (safety)
+    background_size: 50      # background dataset size for TreeExplainer
+    top_k: 10                # top-K features for the stability report
+
+# GARCH-X (Phase 7.5) — exogenous regressors in GARCH mean equation
+garch_x:
+  enabled: true              # decision_log 2026-07-01: GARCH-X included in Phase 7
+  mean: "ARX"               # exogenous regressors in the mean equation
+  exog_info_set: "F"        # which info set to use as exog (F = financial baseline;
+                            #   could be "P" for attacks, "PN" for combined, etc.)
+                            #   One GARCH-X spec per variant × target × horizon.
+  # The arch package does not natively support h-step exog forecasts, so for
+  # h > 1 we use recursive 1-step forecasts (mirrors the C4 EGARCH fix from
+  # Phase 6). Falls back to a two-step ARX-residual + univariate GARCH if
+  # the arch package refuses the ARX + chosen vol model combination.
 
 # Evaluation metrics
 metrics:
