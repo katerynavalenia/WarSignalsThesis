@@ -145,7 +145,34 @@ global A&D index); robustness `target_r_BSHIELDT_t1` (European, war-exposed)
 and `target_r_ITA_t1` (US ETF proxy). `r_WAERLST_recon` is retired as a target
 and survives only as a lagged feature.
 
-## Data availability in this checkout
+## Data hosting and compute
+
+**Code lives on GitHub; data lives on Google Drive.** The Drive folder
+`WarSignalsThesis_Data/` (~5.1 GB raw GKG parquets plus pipeline outputs) is
+the canonical store, synced to local machines with `rclone` (remote `gdrive:`,
+configured with `tps_limit=10` to respect Drive API limits). This is why
+`data/**` is gitignored with only directory structure committed — a working
+tree is expected to be partially empty until it is synced. Auth and the
+`rclone copy --update` invocations are documented in `docs/v1/data_sharing.md`.
+
+**Heavy compute is delegated to Google Colab Pro**, with Drive as the shared
+storage bridge: mount Drive in Colab, clone the repo, run the job, write
+results back to Drive — no local storage or long local runs needed. Established
+delegations (see `docs/v1/colab_03_setup.md` and `thesis_v1/notebooks/`):
+
+| Job | Resource | Notebook |
+|---|---|---|
+| Phase 3 GDELT post-processing (5.1 GB corpus: dedup → classify → aggregate) | Colab CPU, ~12 GB RAM | `colab_03b_phase3_pipeline.ipynb` |
+| Phase 4 Tier 2 transformer inference over 0.5–2M articles | Colab T4/A100 GPU | deferred |
+| Phase 6–7 GARCH refits / hyperparameter search | Colab CPU | optional |
+
+Everything else (Phases 1, 2, 5, 8; all of v2's core panel and index
+regressions on ~100k rows) runs locally in seconds — do **not** architect new
+v2 code around Colab. Reach for it only when a job is genuinely GPU-bound or
+exceeds local RAM, i.e. if the thesis re-derives GDELT features from the raw
+article corpus or adds transformer-based multilingual sentiment.
+
+### Availability in this checkout
 
 The docs describe the data as present; on this machine most of it is **not**.
 Verify before planning any pipeline run:
@@ -159,10 +186,8 @@ Verify before planning any pipeline run:
   `thesis_v1/thesis_old_try/data/raw/{gpr,sipri}/` — the GPR and SIPRI sources
   v2's Phase 1 depends on — is not in the tree at all.
 - Consequence: the Phase 5 rebuild chain and v2's Phase 1 cannot run here until
-  data is pulled. It lives on Google Drive via `rclone` (remote `gdrive:`,
-  folder `WarSignalsThesis_Data/`); setup and sync commands are in
-  `docs/v1/data_sharing.md`. Say this out loud rather than silently
-  regenerating or re-downloading from the original sources.
+  the missing files are pulled from Drive. Say this out loud and sync rather
+  than silently regenerating them or re-downloading from the original sources.
 
 ## v2 conventions
 
@@ -184,15 +209,14 @@ index-level time series, standardize channels so coefficients are comparable,
 and apply multiple-testing correction across the horse-race grid (Phase 6).
 
 Do not re-download or re-extract GDELT, financial, or attack data — v2 reuses
-v1's processed tables unchanged. GPR and SIPRI are the only new sources; both
-raw files already exist under `thesis_v1/thesis_old_try/data/raw/{gpr,sipri}/`.
-Compute is light (panel regressions on ~100k rows, seconds locally) — the v1
-Colab/Drive delegation architecture is **not** needed for v2's core analysis.
+v1's processed tables unchanged, pulled from Drive. GPR and SIPRI are the only
+new sources, and both raw files already exist in the Drive store (documented
+path `thesis_v1/thesis_old_try/data/raw/{gpr,sipri}/`).
 
 ## Data and git
 
-- `data/**` contents are gitignored while directory structure is preserved;
-  a few v1 GDELT news outputs are exceptions tracked via **Git LFS** (see
+- `data/**` contents are gitignored (they live on Drive — see above), with a
+  few v1 GDELT news outputs as exceptions tracked via **Git LFS** (see
   `.gitignore` / `.gitattributes`).
 - `outputs/` (figures, tables) **is** tracked — it is reproducible from
   `scripts/`, and diffs there are the visible evidence of a pipeline change.
