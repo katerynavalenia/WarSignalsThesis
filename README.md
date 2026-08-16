@@ -10,11 +10,7 @@ Master 2 Financial Technology Development thesis project. This study tests wheth
 
 | Document | Purpose |
 |---|---|
-| [`Master_Thesis_Research_Completion_Plan.md`](Master_Thesis_Research_Completion_Plan.md) | **Authoritative research plan and source of truth.** Read this first. |
-| [`instructions.md`](instructions.md) | Operational coding and repository rules for AI agents. |
-| [`decision_log.md`](decision_log.md) | Record of all methodological decisions. |
-| [`docs/project_status.md`](docs/project_status.md) | Current phase and task status. |
-| [`docs/data_dictionary.md`](docs/data_dictionary.md) | Variable definitions, units, timing, and transformations. |
+| [`docs/phase7_audit.md`](docs/phase7_audit.md) | **Latest results and hypothesis verdicts.** Read this first. |
 | [`docs/source_inventory.md`](docs/source_inventory.md) | Data source inventory and audit status. |
 | [`docs/data_sharing.md`](docs/data_sharing.md) | **Data sharing architecture** (Google Drive + rclone setup, multi-machine sync). |
 | [`docs/phase1_financial_audit.md`](docs/phase1_financial_audit.md) | Phase 1 financial data audit. |
@@ -33,7 +29,7 @@ Master 2 Financial Technology Development thesis project. This study tests wheth
 | `data/processed/news/auto_precision_report.md` | markdown | Automated classifier validation (replaces manual audit). |
 | `data/processed/news/sensitivity_report.md` | markdown | 5-strategy comparison on the full 11.4M articles. |
 
-> ⚠️ **Schema convention (2026-06-30):** `date` is the first regular column in all Phase 5+ outputs (per decision log 2026-06-30). The financial and attack tables originally used `date` as the index; `build_daily_master` resets them. See the [data dictionary](docs/data_dictionary.md) and [decision log](decision_log.md) for the convention.
+> ⚠️ **Schema convention (2026-06-30):** `date` is the first regular column in all Phase 5+ outputs (per decision log 2026-06-30). The financial and attack tables originally used `date` as the index; `build_daily_master` resets them. Regenerate the data dictionary with `python scripts/phase5_data_dictionary.py` to see the convention applied per column.
 
 ## Phase 5 outputs (model-ready)
 
@@ -172,9 +168,9 @@ Some phases require GPU or high-RAM resources and are delegated to **Google Cola
 - Drive folder: `WarSignalsThesis_Data/` (5.1 GB raw data + pipeline outputs)
 - rclone configured with `tps_limit=10` to respect Drive API limits
 - On Colab: mount Drive, clone repo, run pipeline (no local storage needed)
-- **For rclone re-auth or sync operations**, use the [`rclone-drive-sync`](.github/skills/rclone-drive-sync/SKILL.md) skill (just say "sync to drive" in chat, or run `bash .github/skills/rclone-drive-sync/scripts/reauth.sh` when the OAuth token expires)
+- **For rclone re-auth and sync commands** (remote is `gdrive:`), see [`docs/data_sharing.md`](docs/data_sharing.md) — it covers `rclone authorize drive` and the `rclone copy --update` invocations
 
-Phases 1, 2, 5, and 8 run locally. See [`instructions.md`](instructions.md) § "Colab delegation" for full rules.
+Phases 1, 2, 5, and 8 run locally.
 
 ---
 
@@ -189,7 +185,30 @@ Phases 1, 2, 5, and 8 run locally. See [`instructions.md`](instructions.md) § "
 **Phase 6 — Econometric baselines** ✅ Complete, re-run 2026-07-02 on real WAERLST/BSHIELDT/ITA targets (see [`docs/phase6_audit.md`](docs/phase6_audit.md))
 **Phase 7 — Machine-learning models** ✅ Complete (see [`docs/phase7_audit.md`](docs/phase7_audit.md)) — returns null result (XGBoost, all info sets); GARCH-X-in-mean found numerically non-viable (documented null); SHAP shows attack features dominate BSHIELDT's importance profile but not WAERLST's (H1/H6 partial support)
 
-See [`docs/project_status.md`](docs/project_status.md) for detailed status.
+---
+
+## Regenerating removed context files
+
+The repository was stripped of AI-agent context files and machine-generated
+docs on 2026-08-16 so they can be regenerated fresh against current models and
+current data. Nothing is lost — the pre-cleanup tree is tagged
+`pre-context-cleanup` (`git show pre-context-cleanup:<path>` to read any file,
+`git checkout pre-context-cleanup -- <path>` to restore it).
+
+| Removed | How to regenerate |
+|---|---|
+| `docs/data_dictionary.md` | `python scripts/phase5_data_dictionary.py` |
+| `docs/phase5_descriptive_stats.md` | `python scripts/phase5_descriptive_stats.py` |
+| `docs/phase5_leakage_audit.md` | `python scripts/phase5_leakage_audit.py` |
+| `instructions.md` (agent coding rules) | Regenerate as `CLAUDE.md` / `AGENTS.md` from the current codebase |
+| `docs/project_status.md` | Superseded by the **Current phase** section above |
+| `Master_Thesis_Research_Completion_Plan.md`, `decision_log.md` | **Not machine-regenerable** — restore from the tag, or use `docs/v2/research_plan.md` and `docs/v2/decision_log.md` on `main` |
+| `docs/real_index_integration_plan.md` | Implemented; see `scripts/phase5_overlay_real_indices.py` and `docs/phase7_audit.md` |
+| `.github/skills/rclone-drive-sync/` | Procedure documented in [`docs/data_sharing.md`](docs/data_sharing.md) |
+
+The retained phase audits (`docs/phase1_*` … `docs/phase7_audit.md`) still cite
+`decision_log.md` by date; those citations now point at the tagged history
+rather than a live file.
 
 ---
 
