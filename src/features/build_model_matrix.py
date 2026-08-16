@@ -16,11 +16,14 @@ models. It contains:
 - **Information-set masks** (F/P/N/PN/PNG) defining which columns belong
   to which horse-race baseline.
 
-Per Master Plan §6.1 we keep the target on the **primary ITA ETF** (Phase 1
-audit recommendation: clean yfinance proxy, ρ = 0.86 with SPX) and the
-secondary on the **Bloomberg WAERLST reconstruction** (decision_log
-2026-06-28). This preserves both signals so Phase 6 can compare them as
-robustness.
+Per decision_log 2026-07-02 (target hierarchy restructure), the primary
+target is the **real Bloomberg WAERLST index** (`r_WAERLST`; the literal
+thesis-title outcome). Two robustness targets are carried alongside it:
+the **real Bloomberg BSHIELDT index** (`r_BSHIELDT`, European/war-exposed)
+and the **ITA ETF proxy** (`r_ITA`, US robustness, yfinance). The old
+mcap-weighted reconstruction (`r_WAERLST_recon`) is demoted from target to
+lagged **feature** only (`r_WAERLST_recon_lag1`), since the real WAERLST
+series now exists and is far cleaner.
 """
 from __future__ import annotations
 
@@ -53,10 +56,16 @@ CALENDAR_PASSTHROUGH_COLS = (
     "waerlst_missing",
 )
 
-# Primary financial target (yfinance proxy, recommended by Phase 1 audit).
-PRIMARY_TARGET = "r_ITA"
-# Secondary target (Bloomberg reconstruction, per decision_log 2026-06-28).
-SECONDARY_TARGET = "r_WAERLST_recon"
+# Primary financial target: real Bloomberg WAERLST index (decision_log 2026-07-02).
+PRIMARY_TARGET = "r_WAERLST"
+# Robustness targets: real Bloomberg BSHIELDT (European, war-exposed) and the
+# ITA ETF proxy (US robustness, yfinance). Order matters only for defaults.
+ROBUSTNESS_TARGETS = ("r_BSHIELDT", "r_ITA")
+# Full target tuple used as the default everywhere a 3-target set is needed.
+TARGET_COLS = (PRIMARY_TARGET,) + ROBUSTNESS_TARGETS
+# NOTE: r_WAERLST_recon is intentionally NOT a target anymore (demoted,
+# decision_log 2026-07-02). It is retained as a lagged *feature*
+# (``r_WAERLST_recon_lag1``) in the F info set.
 
 
 # ── Target construction ─────────────────────────────────────────────────────
@@ -170,7 +179,7 @@ def _shift_to_n_trading_day_sumsq(
 def build_targets(
     feature_matrix: pd.DataFrame,
     primary_target: str = PRIMARY_TARGET,
-    secondary_target: Optional[str] = SECONDARY_TARGET,
+    robustness_targets: Iterable[str] = ROBUSTNESS_TARGETS,
     horizons: Iterable[int] = (1, 5),
     add_variance: bool = True,
 ) -> pd.DataFrame:
@@ -179,6 +188,11 @@ def build_targets(
     Per the §9 weekend rule, a calendar day ``t`` has a target equal to the
     return of the **next trading day** (so Sat/Sun/Mon all point to Monday's
     return). The target at the last calendar day in the index is NaN.
+
+    ``primary_target`` (default ``r_WAERLST``) plus any names in
+    ``robustness_targets`` (default ``("r_BSHIELDT", "r_ITA")``) each get a
+    target column. Pass ``robustness_targets=()`` (or ``None``) to build only
+    the primary target.
 
     For each horizon ``h`` in ``horizons``, adds the column
     ``target_{name}_t{h}`` (cumulative log return over the next ``h`` trading
@@ -208,8 +222,8 @@ def build_targets(
                 out[f"target_var_{name}_t{h}"] = _shift_to_n_trading_day_sumsq(src, dates, h)
 
     _add_target(primary_target, primary_target)
-    if secondary_target is not None:
-        _add_target(secondary_target, secondary_target)
+    for name in (robustness_targets or ()):
+        _add_target(name, name)
 
     return out
 
@@ -255,12 +269,14 @@ def lag_features(
         Column names to drop entirely (raw index levels like ``ITA``,
         ``BSHIELDT``, ``WAERLST_recon``).
     keep_target_sources : bool, default True
-        If True, the **primary** and **secondary** target source columns
-        (``r_ITA``, ``r_WAERLST_recon``) are kept in the model matrix as
-        lagged columns (``r_ITA_lag1``, ``r_WAERLST_recon_lag1``). These
-        are used by GARCH-family models as the source time series; they
-        are excluded from the F/P/N/PN/PNG information sets by
-        :func:`build_info_sets` (see ``_BASE_EXCLUDE_PREFIXES``).
+        If True, the target source columns (``r_WAERLST``, ``r_BSHIELDT``,
+        ``r_ITA``) plus the demoted ``r_WAERLST_recon`` feature source are
+        kept in the model matrix as lagged columns (``r_WAERLST_lag1``,
+        ``r_WAERLST_recon_lag1``, …). These are used by GARCH-family models
+        as the source time series; the actual target sources are excluded
+        from the F/P/N/PN/PNG information sets by :func:`build_info_sets`
+        (see ``_BASE_EXCLUDE_PREFIXES``); ``r_WAERLST_recon_lag1`` is a
+        legitimate F-set feature (no longer a target source).
     skip_pre_lagged : bool, default True
         If True, columns whose name encodes an explicit lag
         (``r_ITA_lag1``, ``r_ITA_lag2``, …) are **not re-shifted**.
@@ -287,7 +303,7 @@ def lag_features(
     # If keep_target_sources is False, drop the target source columns so
     # they are not even available in the model matrix.
     if not keep_target_sources:
-        for c in (PRIMARY_TARGET, SECONDARY_TARGET):
+        for c in TARGET_COLS:
             if c in out.columns:
                 out = out.drop(columns=[c])
 
@@ -323,31 +339,35 @@ def lag_features(
             if cols_to_drop:
                 out = out.drop(columns=cols_to_drop)
 
-        # For the secondary target source (which has no pre-lagged
-        # version in the feature matrix), re-introduce it as
-        # ``r_WAERLST_recon_lag1`` so GARCH/AR1 has a source column.
-        if keep_target_sources and SECONDARY_TARGET in out.columns \
-                and not _is_pre_lagged(SECONDARY_TARGET):
+        # ``r_WAERLST_recon`` (demoted from target to feature, decision_log
+        # 2026-07-02) has no pre-lagged version in the feature matrix — its
+        # raw column would otherwise just be dropped, losing the signal.
+        # Re-introduce it as ``r_WAERLST_recon_lag1`` so it stays available
+        # as a legitimate F-set feature (and for any GARCH/AR1 use).
+        _RECON_FEATURE = "r_WAERLST_recon"
+        if keep_target_sources and _RECON_FEATURE in out.columns \
+                and not _is_pre_lagged(_RECON_FEATURE):
             # Already dropped above
             pass
-        elif keep_target_sources and SECONDARY_TARGET not in out.columns:
+        elif keep_target_sources and _RECON_FEATURE not in out.columns:
             # Not in the feature matrix at all — nothing to do.
             pass
 
-        # Now ensure the GARCH/AR1 source columns exist as ``_lag1`` in
-        # the model matrix. The primary source ``r_ITA_lag1`` is already
-        # there (from the pre-lagged carryover). The secondary source
-        # ``r_WAERLST_recon_lag1`` is the lag-1 of the raw secondary
-        # target column — we re-introduce it from the original feature
-        # matrix below (before the re-lag block was applied).
-        if keep_target_sources and SECONDARY_TARGET in feature_matrix.columns \
-                and SECONDARY_TARGET not in out.columns:
+        # Now ensure the recon source column exists as ``_lag1`` in the
+        # model matrix. The primary/robustness target sources
+        # (``r_WAERLST_lag1``, ``r_BSHIELDT_lag1``, ``r_ITA_lag1``) are
+        # already there via the normal re-lag path (or pre-lagged
+        # carryover for r_ITA). ``r_WAERLST_recon_lag1`` is the lag-1 of
+        # the raw recon column — re-introduce it from the original
+        # feature matrix below (before the re-lag block was applied).
+        if keep_target_sources and _RECON_FEATURE in feature_matrix.columns \
+                and _RECON_FEATURE not in out.columns:
             # The raw column was dropped above; re-introduce its lag-1
             # version. Use the original feature_matrix (not ``out``)
             # because ``out`` has already been modified.
-            secondary_lag1 = feature_matrix[SECONDARY_TARGET].shift(1)
-            secondary_lag1.name = SECONDARY_TARGET + "_lag1"
-            out[SECONDARY_TARGET + "_lag1"] = secondary_lag1
+            recon_lag1 = feature_matrix[_RECON_FEATURE].shift(1)
+            recon_lag1.name = _RECON_FEATURE + "_lag1"
+            out[_RECON_FEATURE + "_lag1"] = recon_lag1
 
     lag_cols = [
         c for c in out.columns
@@ -425,17 +445,32 @@ INFO_SET_PATTERNS: Dict[str, Dict[str, Iterable[str]]] = {
         # not ``r_ITA_lag1_lag1``) because :func:`lag_features` no longer
         # re-shifts pre-lagged columns. This means the F set now contains
         # r_ITA at t-1, t-2, t-5 (the most informative lags for next-day
-        # return prediction).
+        # return prediction). Per decision_log 2026-07-02, the real
+        # WAERLST/BSHIELDT series (and their volume-derived liquidity
+        # features) are added alongside the existing r_ITA/r_BSHIELDT
+        # (reconstruction-era) robustness features.
         "include": (
             # Returns (r_ITA at t-1, t-2, t-5 from the feature matrix
             # carry-over).
             "r_ITA_lag1", "r_ITA_msadj_lag1",
             "r_ITA_lag2", "r_ITA_lag5",
             "r_BSHIELDT_lag1", "r_BSHIELDT_msadj_lag1",
+            # Real Bloomberg WAERLST (primary target source, lagged) and
+            # BSHIELDT lags/abs — added per decision_log 2026-07-02.
+            "r_WAERLST_lag1", "r_WAERLST_lag2", "r_WAERLST_lag5",
+            "abs_r_WAERLST_lag1",
+            # Demoted reconstruction, kept as a lagged feature only
+            # (decision_log 2026-07-02) — no longer a target source, so no
+            # leakage concern.
+            "r_WAERLST_recon_lag1",
             # Volatility and market controls
             "VIX_lag1", "d_VIX_lag1",
             "vol_5d_lag1", "vol_20d_lag1",
             "abs_r_ITA_lag1",
+            # Volume-derived liquidity features (WAERLST/BSHIELDT), from
+            # ``compute_index_returns_and_volume`` in src/data/financial.py.
+            "logvol_WAERLST_lag1", "vol_z30_WAERLST_lag1", "dvol_WAERLST_lag1",
+            "logvol_BSHIELDT_lag1", "vol_z30_BSHIELDT_lag1", "dvol_BSHIELDT_lag1",
         ),
         "exclude": (),
     },
@@ -554,21 +589,27 @@ def build_info_sets(
         info_set_patterns = INFO_SET_PATTERNS
 
     cols = list(columns)
-    # Always exclude raw index levels + the date column. Exclude any
-    # ``target_*`` column (returns and variance) so they can never be
-    # picked as features. The ``r_ITA_lag1`` and ``r_WAERLST_recon_lag1``
-    # columns are kept in the model matrix (post the C5 fix) and are
-    # valid F-set features; we only exclude the raw (un-lagged) return
-    # source ``r_WAERLST_recon_lag1`` because for the secondary target it
-    # is the **target source** and including it as a feature would be
-    # near-leakage (r_WAERLST_recon at t-1 strongly predicts r_WAERLST_recon
-    # at t+1).
+    # Always exclude raw (same-day, un-lagged) index levels + the date
+    # column. Exclude any ``target_*`` column (returns and variance) so
+    # they can never be picked as features — that would be leakage (the
+    # lagged version of the *same* target series is fine as a feature;
+    # only the contemporaneous/undelayed level is excluded here).
+    #
+    # Per decision_log 2026-07-02, ``r_WAERLST_recon`` is demoted from a
+    # modeling target to a plain lagged feature (``r_WAERLST_recon_lag1``).
+    # It is therefore NOT a target source anymore and must NOT be excluded
+    # on leakage grounds — the previous version of this function excluded
+    # it because it used to be the secondary target's source column. The
+    # actual (current) target sources are the primary/robustness targets
+    # themselves (``r_WAERLST``, ``r_BSHIELDT``, ``r_ITA``); their lag1
+    # versions (``r_WAERLST_lag1``, etc.) are legitimate predictive
+    # features (they encode t-1 information, not t or t+1), so they need
+    # no exclusion either.
     base_excludes = {
         "date",
         "ITA",
         "BSHIELDT",
         "WAERLST_recon",
-        "r_WAERLST_recon_lag1",  # target source for secondary
     } | {c for c in cols if c.startswith("target_")}
 
     out: Dict[str, list] = {}
@@ -585,9 +626,17 @@ def build_info_sets(
                     included.append(c)
         out[name] = sorted(set(included))
 
-    # Force nesting: F ⊂ P, P ⊂ PN, PN ⊂ PNG.
+    # Force nesting: F ⊂ P, F ⊂ N, F ⊂ P ⊂ PN, N ⊂ PN, PN ⊂ PNG.
+    # N was previously left as "news-only" (F was never unioned in), which
+    # made N != "F + news" as documented, and coincidentally made N and F
+    # near-identical in cardinality by construction (docs/phase7_audit.md
+    # §1.5). Fixed here (decision_log 2026-07-02 / real_index_integration
+    # plan §5): N must be F + news, matching the P/PN/PNG pattern. PN is
+    # F + P + N (attacks + news together), so it must also absorb N's
+    # news-only columns, not just its own per-query×group additions.
     out["P"] = sorted(set(out["F"]) | set(out["P"]))
-    out["PN"] = sorted(set(out["P"]) | set(out["PN"]))
+    out["N"] = sorted(set(out["F"]) | set(out["N"]))
+    out["PN"] = sorted(set(out["P"]) | set(out["N"]) | set(out["PN"]))
     out["PNG"] = sorted(set(out["PN"]) | set(out["PNG"]))
 
     for name in out:
@@ -650,7 +699,7 @@ def build_model_matrix(
     modeling_start: Union[str, pd.Timestamp] = DEFAULT_MODELING_START,
     modeling_end: Optional[Union[str, pd.Timestamp]] = None,
     primary_target: str = PRIMARY_TARGET,
-    secondary_target: Optional[str] = SECONDARY_TARGET,
+    robustness_targets: Iterable[str] = ROBUSTNESS_TARGETS,
     info_set_patterns: Optional[Dict[str, Dict[str, Iterable[str]]]] = None,
     horizons: Iterable[int] = (1, 5),
     add_variance_targets: bool = True,
@@ -661,13 +710,15 @@ def build_model_matrix(
     (cumulative log returns over the next ``h`` trading days, weekend-rule
     aligned). When ``add_variance_targets`` is True (default) it also adds
     ``target_var_{name}_t{h}`` (sum of squared daily returns — the realized
-    variance target for GARCH).
+    variance target for GARCH). ``primary_target`` defaults to ``r_WAERLST``
+    (real Bloomberg index) and ``robustness_targets`` to
+    ``("r_BSHIELDT", "r_ITA")`` per decision_log 2026-07-02.
     """
     # 1. Build targets (t1 + t5 + var).
     targets = build_targets(
         feature_matrix,
         primary_target=primary_target,
-        secondary_target=secondary_target,
+        robustness_targets=robustness_targets,
         horizons=horizons,
         add_variance=add_variance_targets,
     )
@@ -693,8 +744,9 @@ def build_model_matrix(
     info_sets = build_info_sets(mm.columns, info_set_patterns=info_set_patterns)
     mm.attrs["info_sets"] = info_sets
     mm.attrs["primary_target"] = primary_col
-    if secondary_target is not None:
-        mm.attrs["secondary_target"] = f"target_{secondary_target}_t1"
+    mm.attrs["robustness_targets"] = [
+        f"target_{name}_t1" for name in (robustness_targets or ())
+    ]
     mm.attrs["modeling_start"] = str(mm["date"].min())
     mm.attrs["modeling_end"] = str(mm["date"].max())
     mm.attrs["horizons"] = sorted(set(int(h) for h in horizons))

@@ -603,14 +603,14 @@ class TestModelMatrixHasRitaLag1:
         f_cols = mm.attrs["info_sets"]["F"]
         assert "r_ITA_lag1" in f_cols
 
-    def test_r_WAERLST_recon_lag1_still_excluded_from_F(self):
-        # C3 fix: r_WAERLST_recon_lag1 is the GARCH source for the
-        # secondary target and must not be an F feature.
+    def test_r_WAERLST_recon_lag1_included_in_F(self):
+        # Updated for decision_log 2026-07-02: r_WAERLST_recon is demoted
+        # from target to plain feature, so r_WAERLST_recon_lag1 is no
+        # longer a target source and IS now a legitimate F feature.
         from src.features.build_model_matrix import build_info_sets
         cols = {"r_ITA_lag1", "r_WAERLST_recon_lag1", "VIX_lag1", "day_of_week"}
         out = build_info_sets(cols)
-        for s in ("F", "P", "N", "PN", "PNG"):
-            assert "r_WAERLST_recon_lag1" not in out[s]
+        assert "r_WAERLST_recon_lag1" in out["F"]
 
 
 class TestStandardizeFixesDistributionShift:
@@ -1342,7 +1342,7 @@ class TestCLIRunner:
                 "--paths-yaml", str(paths_yaml),
                 "--quick",
                 "--info-sets", "F,P",  # small
-                "--targets", "r_ITA",
+                "--targets", "r_WAERLST",
                 "--horizons", "1",
                 "--out-suffix", "_smoke",
                 "--min-train-obs", "50",  # small matrix → small min

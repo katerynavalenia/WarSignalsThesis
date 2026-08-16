@@ -20,17 +20,15 @@
 
 **Phase 5 — Merge and feature engineering** ✅ Complete
 
-**Phase 6 — Econometric baselines** ✅ Complete (see [`docs/phase6_audit.md`](phase6_audit.md))
+**Phase 6 — Econometric baselines** ✅ Complete; re-run 2026-07-02 on the real WAERLST/BSHIELDT/ITA target hierarchy (see [`docs/phase6_audit.md`](phase6_audit.md))
 
-**Phase 7 — Machine-learning models** 🟡 **Code complete; awaiting Colab Pro run** (2026-07-01)
-- Code: ✅ Complete. 4 new modules (`src/models/ml.py`, `ml_tuning.py`, `ml_explain.py`, GARCH-X in `garch.py`), 2 CLI scripts, 1 Colab notebook, 26 unit + 3 real-matrix integration tests (all green, 439/439 total).
-- Engine integration: ✅ Complete. `ExpandingWindowEngine` extended with `set_post_run_hook` callback and `X_exog_train` plumbing for vol specs (non-breaking for Phase 6).
-- Config: ✅ `xgboost>=2.0` and `shap>=0.44` added to `requirements.txt`; `ml.algorithm: "xgboost"` and the 216-config tuning grid in `model_config.yaml`.
-- Decision log: ✅ 4 new entries (XGBoost principal algorithm, TS-CV grid search, GARCH-X inclusion, Colab Pro + Drive execution).
-- Audit: ✅ Skeleton at [`docs/phase7_audit.md`](phase7_audit.md) — §2-6 are templates to be populated with real numbers.
-- Data sharing: ✅ Phase 7 path mappings added to [`docs/data_sharing.md`](data_sharing.md); `outputs/model_objects/` created on Drive.
-- **Pending**: Colab Pro run via [`notebooks/07_ml_models.ipynb`](../notebooks/07_ml_models.ipynb) (~2-3 hours), then rclone pull + audit doc population.
-- See [`docs/phase7_audit.md`](phase7_audit.md) for the full audit skeleton and hypothesis verdict tables.
+**Phase 7 — Machine-learning models** ✅ **Complete** (2026-07-02)
+- Real-index rebuild: `data/processed/{daily_master,feature_matrix,model_matrix}.parquet` rebuilt via `scripts/phase5_overlay_real_indices.py` to overlay real Bloomberg WAERLST/BSHIELDT (decision_log 2026-07-02); N-info-set union bug fixed (N=63, was erroneously ==F).
+- Full local run (default XGBoost hyperparameters, no tuning grid): 3.1 min for all 5 info sets × 2 horizons × 3 targets. Returns: **null result** — dir_acc 51-56%, MAE flat across F/P/N/PN/PNG for all targets/horizons.
+- GARCH-X (exogenous regressors in ARX mean): two real bugs found and fixed in `expanding_window.py` (self-referential regressor; unscaled exog); found to be **numerically non-viable** post-fix (18-100% of folds degenerate depending on target/variant) — a documented null finding, not a remaining bug. Plain GARCH/GJR/EGARCH are numerically sound.
+- SHAP: attack features dominate `r_BSHIELDT`'s (war-exposed) top-10 importance; volatility/liquidity features dominate `r_WAERLST`'s — partial H1/H6 support via feature importance, not point-forecast accuracy. No `narrative_gap_*` in any top-10 (H3 not supported).
+- See [`docs/phase7_audit.md`](phase7_audit.md) for the full populated audit with real numbers and hypothesis verdicts.
+- **Next**: Phase 8 (statistical comparison / robustness). Optional: `scripts/phase7_tune.py` (216-config grid, Colab-viable) for tuned hyperparameters before finalizing thesis numbers.
 - Extraction: ✅ Complete (5.1 GB raw, 12M articles, 46 months, 12 enriched columns)
 - Post-processing: ✅ Complete (URL dedup → 11.4M articles, hybrid classification, daily aggregation)
 - Gap-closure: ✅ Complete (date-index fix, narrative-gap columns, query × group pivot, automated precision check, refreshed sensitivity report)
@@ -186,8 +184,8 @@ User runs `notebooks/colab_03_gdelt_extraction.ipynb` in Google Colab (Pro High-
 | 3 | GDELT extraction and source classification | ✅ Complete | HIGH | Colab |
 | 4 | NLP features (Tier 1 = GDELT tone ✅, Tier 2 = transformer deferred) | Tier 1 ✅ / Tier 2 after milestone | HIGH | Colab (GPU) |
 | 5 | Merge and feature engineering | ✅ Complete (2026-06-30) | MEDIUM | Local |
-| 6 | Econometric baselines | ⏳ **Next — critical path** | MEDIUM | Local (Colab optional) |
-| 7 | Machine-learning models | 🔲 After Phase 6 | MEDIUM | Local (Colab optional) |
+| 6 | Econometric baselines | ✅ Complete | MEDIUM | Local (Colab optional) |
+| 7 | Machine-learning models | ✅ Complete | MEDIUM | Local (Colab optional) |
 | 8 | Statistical comparison and robustness | 🔲 After Phase 7 | LOW | Local |
 | 9 | Writing | 🔲 After Phase 8 | LOW | Local |
 | 10 | Final validation | 🔲 After Phase 9 | LOW | Local |

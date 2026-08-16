@@ -7,7 +7,13 @@ from src.features.financial_features import add_financial_features
 
 
 def _master_with_returns(returns: list[float], start: str = "2024-01-01") -> pd.DataFrame:
-    """Build a minimal master DataFrame with a daily `r_ITA` series."""
+    """Build a minimal master DataFrame with daily `r_ITA`/`r_WAERLST` series.
+
+    Both series share the same values by default (mirroring each other),
+    so pre-existing ``vol_5d``/``vol_20d`` assertions -- now computed from
+    ``r_WAERLST`` (the primary target per decision_log 2026-07-02), not
+    ``r_ITA`` -- continue to hold using the same input pattern.
+    """
     n = len(returns)
     dates = pd.date_range(start, periods=n, freq="D")
     return pd.DataFrame(
@@ -15,6 +21,8 @@ def _master_with_returns(returns: list[float], start: str = "2024-01-01") -> pd.
             "date": dates,
             "ITA": np.arange(100.0, 100.0 + n),
             "r_ITA": returns,
+            "WAERLST": np.arange(100.0, 100.0 + n),
+            "r_WAERLST": returns,
             "VIX": [20.0] * n,
         }
     )
@@ -106,7 +114,64 @@ class TestAddFinancialFeatures:
         assert pd.isna(out["r_ITA_lag1"].iloc[2])  # lag of NaN
 
     def test_missing_r_ita_raises(self):
-        # No r_ITA column
-        df = pd.DataFrame({"date": pd.date_range("2024-01-01", periods=5), "ITA": [1.0] * 5})
+        # No r_ITA column (r_WAERLST present)
+        df = pd.DataFrame({
+            "date": pd.date_range("2024-01-01", periods=5),
+            "ITA": [1.0] * 5,
+            "WAERLST": [1.0] * 5,
+            "r_WAERLST": [1.0] * 5,
+        })
         with pytest.raises(KeyError):
             add_financial_features(df)
+
+    def test_missing_r_waerlst_raises(self):
+        # No r_WAERLST column (r_ITA present) -- vol_5d/vol_20d now depend
+        # on r_WAERLST per decision_log 2026-07-02.
+        df = pd.DataFrame({
+            "date": pd.date_range("2024-01-01", periods=5),
+            "ITA": [1.0] * 5,
+            "r_ITA": [1.0] * 5,
+        })
+        with pytest.raises(KeyError):
+            add_financial_features(df)
+
+    def test_abs_r_waerlst(self):
+        master = _master_with_returns([1.0, -2.0, 3.0, -4.0, 0.0])
+        out = add_financial_features(master)
+        assert list(out["abs_r_WAERLST"]) == [1.0, 2.0, 3.0, 4.0, 0.0]
+
+    def test_r_waerlst_lag1(self):
+        master = _master_with_returns([1.0, 2.0, 3.0, 4.0, 5.0])
+        out = add_financial_features(master)
+        assert pd.isna(out["r_WAERLST_lag1"].iloc[0])
+        assert out["r_WAERLST_lag1"].iloc[1] == 1.0
+        assert out["r_WAERLST_lag1"].iloc[4] == 4.0
+
+    def test_r_waerlst_lag2(self):
+        master = _master_with_returns([1.0, 2.0, 3.0, 4.0, 5.0])
+        out = add_financial_features(master)
+        assert pd.isna(out["r_WAERLST_lag2"].iloc[0])
+        assert pd.isna(out["r_WAERLST_lag2"].iloc[1])
+        assert out["r_WAERLST_lag2"].iloc[2] == 1.0
+        assert out["r_WAERLST_lag2"].iloc[4] == 3.0
+
+    def test_r_waerlst_lag5(self):
+        master = _master_with_returns([1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
+        out = add_financial_features(master)
+        for i in range(5):
+            assert pd.isna(out["r_WAERLST_lag5"].iloc[i])
+        assert out["r_WAERLST_lag5"].iloc[5] == 1.0
+
+    def test_bshieldt_msadj_computed_when_present(self):
+        master = _master_with_returns([1.0, 2.0, 3.0])
+        master["r_BSHIELDT"] = [2.0, 1.0, 0.0]
+        master["r_SXXP"] = [0.5, 0.5, 0.5]
+        out = add_financial_features(master)
+        assert list(out["r_BSHIELDT_msadj"]) == pytest.approx([1.5, 0.5, -0.5])
+
+    def test_bshieldt_msadj_absent_without_inputs(self):
+        # No r_BSHIELDT/r_SXXP columns -- msadj should simply not be added,
+        # not raise.
+        master = _master_with_returns([1.0, 2.0, 3.0])
+        out = add_financial_features(master)
+        assert "r_BSHIELDT_msadj" not in out.columns

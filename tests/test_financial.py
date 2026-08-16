@@ -14,10 +14,13 @@ import pytest
 
 from src.data.financial import (
     build_financial_table,
+    compute_index_returns_and_volume,
     cross_validate_ita_vs_recon,
     load_benchmarks,
+    load_bloomberg_index_xlsx,
     load_bloomberg_xlsx,
     load_ita_proxy,
+    overlay_real_indices,
     reconstruct_index,
 )
 
@@ -25,6 +28,10 @@ BBG_DIR = Path("data/raw/bloomberg")
 WAER_FILE = BBG_DIR / "WAERLST as of Jun 04 2026.xlsx"
 BSH_FILE = BBG_DIR / "BSHIELDT as of Jun 05 2026.xlsx"
 BENCH_FILE = BBG_DIR / "indexes.xlsx"
+
+# Real single-index Bloomberg series (new, distinct layout)
+WAER_INDEX_FILE = BBG_DIR / "WAERLST Index.xlsx"
+BSH_INDEX_FILE = BBG_DIR / "BSHIELDT Index.xlsx"
 
 
 @pytest.mark.skipif(not WAER_FILE.exists(), reason="Bloomberg data not available")
@@ -117,4 +124,167 @@ def test_cross_validation_runs():
     # function runs and produces output.
     full_row = cv[cv["metric"] == "full_sample"].iloc[0]
     assert 0.0 < full_row["correlation"] < 1.0
+
+
+# ---------------------------------------------------------------------------
+# Real Bloomberg single-index series: load_bloomberg_index_xlsx
+# ---------------------------------------------------------------------------
+
+REAL_INDEX_STD = {
+    "WAERLST": 1.51,
+    "BSHIELDT": 1.77,
+}
+
+
+@pytest.mark.skipif(not WAER_INDEX_FILE.exists(), reason="Real WAERLST index file not available")
+def test_load_waerlst_index_xlsx():
+    df = load_bloomberg_index_xlsx(WAER_INDEX_FILE)
+    assert list(df.columns) == ["px", "volume"]
+    assert 1650 <= len(df) <= 1750, f"Expected ~1,694 rows, got {len(df)}"
+    assert df.index.min() == pd.Timestamp("2020-01-01")
+    assert df.index.max() >= pd.Timestamp("2026-06-29")
+    assert df.index.is_monotonic_increasing, "Index must be sorted ascending"
+    assert df.index.is_unique
+    assert df["px"].notna().all(), "PX_LAST should have zero NaNs"
+    assert (df["volume"] >= 0).all()
+    assert df.attrs.get("currency") == "USD"
+    assert df.attrs.get("security") == "WAERLST Index"
+
+
+@pytest.mark.skipif(not BSH_INDEX_FILE.exists(), reason="Real BSHIELDT index file not available")
+def test_load_bshieldt_index_xlsx():
+    df = load_bloomberg_index_xlsx(BSH_INDEX_FILE)
+    assert list(df.columns) == ["px", "volume"]
+    assert 1650 <= len(df) <= 1750, f"Expected ~1,694 rows, got {len(df)}"
+    assert df.index.min() == pd.Timestamp("2020-01-01")
+    assert df.index.max() >= pd.Timestamp("2026-06-29")
+    assert df.index.is_monotonic_increasing, "Index must be sorted ascending"
+    assert df.index.is_unique
+    assert df["px"].notna().all(), "PX_LAST should have zero NaNs"
+    assert (df["volume"] >= 0).all()
+    # BSHIELDT has verified zero-volume days (e.g. holidays) -- allowed.
+    assert df.attrs.get("currency") == "EUR"
+    assert df.attrs.get("security") == "BSHIELDT Index"
+
+
+@pytest.mark.skipif(
+    not (WAER_INDEX_FILE.exists() and BSH_INDEX_FILE.exists()),
+    reason="Real index files not available",
+)
+@pytest.mark.parametrize("ticker,std_target", list(REAL_INDEX_STD.items()))
+def test_real_index_return_convention(ticker, std_target):
+    """Return convention is log return * 100, matching r_ITA / r_WAERLST_recon.
+
+    Note: the target std values (1.51 / 1.77) were originally verified via
+    simple pct_change; log returns land within ~0.005 of the simple-return
+    std at this magnitude (confirmed empirically), so the same tolerance
+    band applies regardless of which convention is used. We use LOG
+    returns here (np.log(px/px.shift(1))*100) for consistency with the
+    rest of this module (r_ITA, r_WAERLST_recon, r_BSHIELDT all use log
+    returns, not simple pct_change).
+    """
+    path = WAER_INDEX_FILE if ticker == "WAERLST" else BSH_INDEX_FILE
+    raw = load_bloomberg_index_xlsx(path)
+    feat = compute_index_returns_and_volume(raw, ticker)
+
+    log_std = feat[f"r_{ticker}"].dropna().std()
+    simple_std = (raw["px"].pct_change() * 100).dropna().std()
+
+    assert log_std == pytest.approx(std_target, abs=0.05), (
+        f"{ticker} log-return std {log_std:.4f} not within 0.05 of {std_target}"
+    )
+    assert simple_std == pytest.approx(std_target, abs=0.05), (
+        f"{ticker} simple-return std {simple_std:.4f} not within 0.05 of {std_target}"
+    )
+    # Level column rebased to 100 at first observation.
+    assert feat[ticker].iloc[0] == pytest.approx(100.0)
+
+
+@pytest.mark.skipif(
+    not (WAER_INDEX_FILE.exists() and BSH_INDEX_FILE.exists()),
+    reason="Real index files not available",
+)
+@pytest.mark.parametrize("ticker", ["WAERLST", "BSHIELDT"])
+def test_real_index_volume_features(ticker):
+    path = WAER_INDEX_FILE if ticker == "WAERLST" else BSH_INDEX_FILE
+    raw = load_bloomberg_index_xlsx(path)
+    feat = compute_index_returns_and_volume(raw, ticker)
+
+    logvol = feat[f"logvol_{ticker}"]
+    z30 = feat[f"vol_z30_{ticker}"]
+    dvol = feat[f"dvol_{ticker}"]
+
+    # log1p guards against -inf on zero-volume days.
+    assert np.isfinite(logvol.dropna()).all()
+    assert not np.isinf(logvol).any()
+
+    # Causal 30-day warmup: NaN for first 29 rows, finite (or legitimately
+    # NaN only due to a source NaN, which does not occur here) after.
+    assert z30.iloc[:29].isna().all(), "vol_z30 should be NaN during the 29-day warmup"
+    assert np.isfinite(z30.iloc[29:].dropna()).all()
+    assert not np.isinf(z30.fillna(0)).any()
+    assert z30.iloc[29:].notna().sum() > 0
+
+    assert not np.isinf(dvol.fillna(0)).any()
+
+
+# ---------------------------------------------------------------------------
+# overlay_real_indices: synthetic-frame unit test (no raw constituent files
+# required)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.skipif(
+    not (WAER_INDEX_FILE.exists() and BSH_INDEX_FILE.exists()),
+    reason="Real index files not available",
+)
+def test_overlay_real_indices_synthetic():
+    # Synthetic "financial-ish" frame mimicking daily_master.parquet, with
+    # old reconstructed BSHIELDT columns present (to exercise the rename)
+    # plus a date range only partially overlapping the real index coverage
+    # (to exercise the left-join / no-data-loss behavior).
+    dates = pd.date_range("2019-12-01", "2020-01-15", freq="D")
+    synthetic = pd.DataFrame(
+        {
+            "r_SPX": np.random.default_rng(0).normal(0, 1, len(dates)),
+            "VIX": np.random.default_rng(1).uniform(10, 30, len(dates)),
+            "BSHIELDT": np.linspace(100, 105, len(dates)),
+            "r_BSHIELDT": np.random.default_rng(2).normal(0, 1.7, len(dates)),
+            "r_BSHIELDT_msadj": np.random.default_rng(3).normal(0, 1.5, len(dates)),
+        },
+        index=dates,
+    )
+    synthetic.index.name = "date"
+
+    out = overlay_real_indices(synthetic, WAER_INDEX_FILE, BSH_INDEX_FILE)
+
+    # Old recon columns renamed, and their values preserved under the new name.
+    assert "BSHIELDT_recon" in out.columns
+    assert "r_BSHIELDT_recon" in out.columns
+    assert "r_BSHIELDT_recon_msadj" in out.columns
+    pd.testing.assert_series_equal(
+        out["BSHIELDT_recon"], synthetic["BSHIELDT"], check_names=False
+    )
+
+    # New real columns present.
+    for col in [
+        "r_WAERLST", "WAERLST", "r_BSHIELDT", "BSHIELDT",
+        "logvol_WAERLST", "vol_z30_WAERLST", "dvol_WAERLST",
+        "logvol_BSHIELDT", "vol_z30_BSHIELDT", "dvol_BSHIELDT",
+    ]:
+        assert col in out.columns, f"Missing merged column: {col}"
+
+    # No data loss: every original date is preserved (left join).
+    assert len(out) == len(synthetic)
+    assert out.index.equals(synthetic.index)
+
+    # Original (non-overlapping) columns retain their original values.
+    pd.testing.assert_series_equal(out["r_SPX"], synthetic["r_SPX"])
+
+    # Dates that DO overlap real-index coverage (Dec 2019 has none; Jan
+    # 2020 1-15 partially does) get real, non-null WAERLST data on
+    # trading days within coverage.
+    assert out.loc["2020-01-02":"2020-01-15", "WAERLST"].notna().any()
+    # Dates before real-index coverage (real data starts 2020-01-01) are NaN.
+    assert out.loc["2019-12-01":"2019-12-15", "WAERLST"].isna().all()
 

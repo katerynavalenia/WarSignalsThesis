@@ -25,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from src.features.build_model_matrix import (
     CALENDAR_PASSTHROUGH_COLS,
     PRIMARY_TARGET,
-    SECONDARY_TARGET,
+    ROBUSTNESS_TARGETS,
     build_model_matrix,
 )
 from src.features.merge import load_paths_config
@@ -47,7 +47,7 @@ def _classify(name: str) -> tuple[str, str, str]:
         return "structural", "date", "n/a"
     if name == f"target_{PRIMARY_TARGET}_t1":
         return "target", "percent (%)", "market close on next trading day"
-    if name == f"target_{SECONDARY_TARGET}_t1":
+    if name in {f"target_{t}_t1" for t in ROBUSTNESS_TARGETS}:
         return "target", "percent (%)", "market close on next trading day"
     if name.startswith("target_"):
         return "target", "percent (%)", "market close on next trading day"
@@ -108,17 +108,30 @@ DESCRIPTIONS: dict[str, str] = {
     "vix_crisis": "1 if VIX ≥ 35 on day t-1.",
     "waerlst_missing": "1 if WAERLST reconstruction is NaN on day t-1.",
     f"target_{PRIMARY_TARGET}_t1": (
-        "PRIMARY TARGET — ITA ETF return on the next trading day after t "
-        "(per §9 weekend rule, Friday close → Monday return)."
+        "PRIMARY TARGET — real Bloomberg WAERLST index return on the next "
+        "trading day after t (per §9 weekend rule, Friday close → Monday "
+        "return). decision_log 2026-07-02."
     ),
-    f"target_{SECONDARY_TARGET}_t1": (
-        "SECONDARY TARGET — Bloomberg WAERLST reconstruction return on the next "
-        "trading day after t. Used for robustness (decision_log 2026-06-28)."
+    "target_r_BSHIELDT_t1": (
+        "ROBUSTNESS TARGET (European, war-exposed) — real Bloomberg BSHIELDT "
+        "index return on the next trading day after t. decision_log 2026-07-02."
     ),
-    "r_ITA_lag1": "ITA ETF return on day t-1 (one trading day lag).",
+    "target_r_ITA_t1": (
+        "ROBUSTNESS TARGET (US, optional) — ITA ETF (yfinance proxy) return on "
+        "the next trading day after t. decision_log 2026-07-02."
+    ),
+    "r_WAERLST_lag1": "Real Bloomberg WAERLST index return on day t-1 (one trading day lag).",
+    "r_WAERLST_lag2": "Real Bloomberg WAERLST index return 2 trading days back.",
+    "r_WAERLST_lag5": "Real Bloomberg WAERLST index return 5 trading days back.",
+    "abs_r_WAERLST_lag1": "Absolute value of r_WAERLST on t-1 (realized-variance proxy).",
+    "r_ITA_lag1": "ITA ETF return on day t-1 (one trading day lag). Robustness (US).",
     "r_ITA_msadj_lag1": "ITA return minus MSCI World return (market-adjusted).",
-    "r_BSHIELDT_lag1": "European defense index (reconstructed) return on t-1.",
+    "r_BSHIELDT_lag1": "Real Bloomberg BSHIELDT index return on t-1. Robustness (European, war-exposed).",
     "r_BSHIELDT_msadj_lag1": "BSHIELDT return minus STXE 600 return (ms-adj).",
+    "r_WAERLST_recon_lag1": (
+        "Demoted mcap-weighted WAERLST reconstruction return on t-1 — kept as a "
+        "lagged feature only, no longer a modeling target (decision_log 2026-07-02)."
+    ),
     "VIX_lag1": "VIX level on day t-1.",
     "d_VIX_lag1": "VIX daily change on day t-1.",
     "vol_5d_lag1": "5-day rolling std of ITA returns (sample, ddof=1) on t-1.",
@@ -126,6 +139,12 @@ DESCRIPTIONS: dict[str, str] = {
     "abs_r_ITA_lag1": "Absolute value of r_ITA on t-1 (realized-variance proxy).",
     "r_ITA_lag2": "ITA return 2 trading days back.",
     "r_ITA_lag5": "ITA return 5 trading days back.",
+    "logvol_WAERLST_lag1": "log1p(PX_VOLUME) for WAERLST on t-1 (liquidity signal).",
+    "vol_z30_WAERLST_lag1": "30-day rolling z-score of logvol_WAERLST on t-1.",
+    "dvol_WAERLST_lag1": "Day-over-day change in logvol_WAERLST on t-1.",
+    "logvol_BSHIELDT_lag1": "log1p(PX_VOLUME) for BSHIELDT on t-1 (liquidity signal).",
+    "vol_z30_BSHIELDT_lag1": "30-day rolling z-score of logvol_BSHIELDT on t-1.",
+    "dvol_BSHIELDT_lag1": "Day-over-day change in logvol_BSHIELDT on t-1.",
     "launched_total_lag1": "Total weapons launched across all categories on t-1.",
     "launched_uav_lag1": "Shahed-type UAVs launched on t-1.",
     "launched_cruise_missile_lag1": "Cruise missiles launched on t-1.",

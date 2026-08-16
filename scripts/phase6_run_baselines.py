@@ -5,7 +5,7 @@ Runs the full Phase 6 horse race:
 
 - 4 return baselines (HistoricalMean, AR1, OLS, Ridge)
 - 5 information sets (F, P, N, PN, PNG)
-- 2 targets (r_ITA primary, r_WAERLST_recon secondary)
+- 3 targets (r_WAERLST primary, r_BSHIELDT + r_ITA robustness; decision_log 2026-07-02)
 - 2 horizons (1-day, 5-day)
 - 3 GARCH-family volatility baselines (GARCH, GJR_GARCH, EGARCH)
 
@@ -24,7 +24,7 @@ Usage
     python scripts/phase6_run_baselines.py [--paths-yaml CONFIG] [--quick]
                                           [--refit-every N]
                                           [--info-sets F,P,N,PN,PNG]
-                                          [--targets r_ITA,r_WAERLST_recon]
+                                          [--targets r_WAERLST,r_BSHIELDT,r_ITA]
                                           [--horizons 1,5]
                                           [--out-suffix _TAG]
                                           [--audit-leakage]
@@ -67,7 +67,7 @@ logger = logging.getLogger("phase6")
 def _fig14_forecast_vs_realized(
     predictions: pd.DataFrame,
     out_path: Path,
-    target: str = "r_ITA",
+    target: str = "r_WAERLST",
     horizon: int = 1,
 ) -> Path:
     """Time-series plot: realized vs OLS predictions under F, PN, PNG.
@@ -115,7 +115,7 @@ def _fig14_forecast_vs_realized(
 def _fig15_loss_by_info_set(
     benchmark: pd.DataFrame,
     out_path: Path,
-    target: str = "r_ITA",
+    target: str = "r_WAERLST",
     horizon: int = 1,
 ) -> Path:
     """Grouped bar chart of MAE, RMSE, dir-acc by info set for OLS.
@@ -179,7 +179,7 @@ def _fig15_loss_by_info_set(
 def _fig16_garch_vol_diagnostic(
     predictions: pd.DataFrame,
     out_path: Path,
-    target: str = "r_ITA",
+    target: str = "r_WAERLST",
 ) -> Path:
     """GARCH(1,1) conditional variance vs realized variance, h=1 and h=5.
 
@@ -233,7 +233,7 @@ def main() -> int:
         help="Comma-separated list of info sets (default F,P,N,PN,PNG).",
     )
     parser.add_argument(
-        "--targets", default="r_ITA,r_WAERLST_recon",
+        "--targets", default="r_WAERLST,r_BSHIELDT,r_ITA",
         help="Comma-separated list of source targets.",
     )
     parser.add_argument(
@@ -328,22 +328,22 @@ def main() -> int:
     print(f"  predictions parquet: {pred_path}")
 
     # ── Figures ───────────────────────────────────────────────────────────
-    if "r_ITA" in targets:
+    if "r_WAERLST" in targets:
         fig14_path = fig_dir / f"fig14_oos_forecast_vs_realized{suffix}.png"
         _fig14_forecast_vs_realized(
-            out["predictions"], fig14_path, target="r_ITA", horizon=1,
+            out["predictions"], fig14_path, target="r_WAERLST", horizon=1,
         )
         print(f"  figure 14: {fig14_path}")
 
         fig15_path = fig_dir / f"fig15_loss_by_info_set{suffix}.png"
         _fig15_loss_by_info_set(
-            out["benchmark"], fig15_path, target="r_ITA", horizon=1,
+            out["benchmark"], fig15_path, target="r_WAERLST", horizon=1,
         )
         print(f"  figure 15: {fig15_path}")
 
         fig16_path = fig_dir / f"fig16_garch_vol_diagnostic{suffix}.png"
         _fig16_garch_vol_diagnostic(
-            out["predictions"], fig16_path, target="r_ITA",
+            out["predictions"], fig16_path, target="r_WAERLST",
         )
         print(f"  figure 16: {fig16_path}")
 

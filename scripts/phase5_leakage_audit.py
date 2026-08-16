@@ -6,7 +6,7 @@ For each lagged feature ``X_lag1`` at day ``t``, this script checks that:
 1. The feature is NOT correlated (|ρ| > 0.5) with the *same-day* return.
    (It should only be correlated with the *next-day* return, which is the
    target.)
-2. The target column ``target_r_ITA_t1`` is NOT present in any of the
+2. The target column ``target_r_WAERLST_t1`` is NOT present in any of the
    information sets (would be direct leakage).
 3. The rolling computations (vol_*, attack_surprise_*, n_*_rolling_mean) all
    use the past window only — verified by checking the correlation between
@@ -40,8 +40,10 @@ from src.features.merge import load_paths_config
 
 # Features that are known to be excluded from any leakage check because they
 # are target columns themselves (shouldn't appear in info sets, but if
-# they do, we flag them as CRITICAL leakage).
-TARGET_COLS = ("target_r_ITA_t1", "target_r_WAERLST_recon_t1")
+# they do, we flag them as CRITICAL leakage). Per decision_log 2026-07-02:
+# primary = r_WAERLST (real Bloomberg), robustness = r_BSHIELDT (real
+# Bloomberg, European/war-exposed) and r_ITA (yfinance proxy, US).
+TARGET_COLS = ("target_r_WAERLST_t1", "target_r_BSHIELDT_t1", "target_r_ITA_t1")
 
 # Correlation thresholds. If a feature at t is correlated with the same-day
 # return |ρ| > THIS_THRESHOLD, we flag it (high corr is OK if it's the
@@ -56,6 +58,9 @@ KNOWN_RETURN_LIKE = {
     "r_BSHIELDT_lag1", "r_BSHIELDT_msadj_lag1",
     "r_ITA_lag2", "r_ITA_lag5",
     "abs_r_ITA_lag1",
+    "r_WAERLST_lag1", "r_WAERLST_lag2", "r_WAERLST_lag5",
+    "abs_r_WAERLST_lag1",
+    "r_WAERLST_recon_lag1",
     "launched_total_lag1", "launched_uav_lag1",
     "launched_cruise_missile_lag1", "launched_ballistic_missile_lag1",
     "launched_recon_uav_lag1", "launched_loitering_munition_lag1",
@@ -108,7 +113,7 @@ def main() -> int:
     info_sets = mm.attrs.get("info_sets", {})
 
     # Build the per-feature audit table.
-    target = "target_r_ITA_t1"
+    target = "target_r_WAERLST_t1"
     if target not in mm.columns:
         print(f"ERROR: {target} not in model matrix.")
         return 1

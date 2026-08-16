@@ -91,7 +91,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--targets",
-        default="r_ITA,r_WAERLST_recon",
+        default="r_WAERLST,r_BSHIELDT,r_ITA",
         help="Comma-separated targets (default: %(default)s)",
     )
     parser.add_argument(

@@ -55,8 +55,8 @@ def main() -> int:
     mm = build_model_matrix(feat)
 
     print(f"  model_matrix: {mm.shape}  ({mm['date'].min().date()} → {mm['date'].max().date()})")
-    print(f"  primary target column:   {mm.attrs.get('primary_target')}")
-    print(f"  secondary target column: {mm.attrs.get('secondary_target')}")
+    print(f"  primary target column:      {mm.attrs.get('primary_target')}")
+    print(f"  robustness target columns: {mm.attrs.get('robustness_targets')}")
 
     print(f"\nWriting {out_path} …")
     mm.to_parquet(out_path, index=False)

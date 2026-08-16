@@ -26,7 +26,7 @@ Usage
         model_matrix=mm,
         info_sets=("F", "P", "N", "PN", "PNG"),
         horizons=(1, 5),
-        targets=("r_ITA", "r_WAERLST_recon"),
+        targets=("r_WAERLST", "r_BSHIELDT", "r_ITA"),
         param_grid=param_grid,
         n_splits=3,
         embargo=5,
@@ -76,7 +76,8 @@ class TuningResult:
     horizon : int
         Forecast horizon (1 or 5).
     target : str
-        Target column name (``r_ITA`` or ``r_WAERLST_recon``).
+        Target column name (``r_WAERLST`` primary, or ``r_BSHIELDT`` /
+        ``r_ITA`` robustness; decision_log 2026-07-02).
     best_params : dict
         Best hyperparameter dict.
     mean_val_mae : float
@@ -288,7 +289,7 @@ def tune_per_info_set(
     model_matrix: pd.DataFrame,
     info_sets: Sequence[str] = ("F", "P", "N", "PN", "PNG"),
     horizons: Sequence[int] = (1, 5),
-    targets: Sequence[str] = ("r_ITA", "r_WAERLST_recon"),
+    targets: Sequence[str] = ("r_WAERLST", "r_BSHIELDT", "r_ITA"),
     param_grid: Optional[Dict[str, Sequence]] = None,
     n_splits: int = 3,
     embargo: int = 5,
@@ -517,7 +518,7 @@ def _main() -> int:
         help="Comma-separated info sets (default F,P,N,PN,PNG).",
     )
     parser.add_argument(
-        "--targets", type=str, default="r_ITA,r_WAERLST_recon",
+        "--targets", type=str, default="r_WAERLST,r_BSHIELDT,r_ITA",
         help="Comma-separated targets.",
     )
     parser.add_argument(

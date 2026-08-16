@@ -135,7 +135,8 @@ class ExpandingWindowEngine:
         ``{set_name: [column_list]}`` mapping (output of
         :func:`src.features.build_model_matrix.build_info_sets`).
     targets : list of str
-        Source target column names (e.g. ``["r_ITA", "r_WAERLST_recon"]``).
+        Source target column names (e.g. ``["r_WAERLST", "r_BSHIELDT", "r_ITA"]``;
+        decision_log 2026-07-02).
         The engine looks up ``target_<name>_t<h>`` and ``target_var_<name>_t<h>``
         columns in the model matrix.
     horizons : list of int
@@ -340,6 +341,16 @@ class ExpandingWindowEngine:
             garch_x_cols = [
                 c for c in self.info_sets.get(garch_x_info_set, [])
                 if c in self.mm.columns
+                # Bug fix (2026-07): the GARCH source series (e.g.
+                # ``r_WAERLST_lag1``) is itself a member of info set "F".
+                # Including it as an exogenous *mean*-equation regressor
+                # for the very series being modeled creates a perfect
+                # (self-referential) fit: the ARX coefficient absorbs
+                # essentially all the variance, driving the fitted
+                # ``omega`` to ~0 and producing degenerate (near-zero or
+                # exploding) variance forecasts and astronomical QLIKE.
+                # Exclude the source column from the exogenous set.
+                and c != source_col
             ]
         # NaN-safe feature selection
         train_block = self.mm.iloc[:refit_pos]
@@ -356,8 +367,29 @@ class ExpandingWindowEngine:
             # GARCH-X: exog block for train (rows 0..refit_pos) and
             # horizon (rows refit_pos..fold_end).
             if garch_x_cols:
-                X_exog_train = train_block[garch_x_cols]
-                X_exog_horizon = test_block[garch_x_cols]
+                X_exog_train_raw = train_block[garch_x_cols]
+                X_exog_horizon_raw = test_block[garch_x_cols]
+                # Bug fix (2026-07): the raw exogenous regressors (e.g.
+                # VIX level ~11-52, ``days_since_invasion`` ~200-1600)
+                # are on a wildly different scale from the GARCH-X mean
+                # equation's target, which is internally divided by 100
+                # (``rescale=True`` in ``GARCHXForecaster``). Feeding
+                # unscaled regressors into the ARX mean equation causes
+                # the optimizer to fit huge/unstable coefficients that
+                # overfit in-sample noise, producing wild out-of-sample
+                # mean forecasts and (via the ARX residual feeding the
+                # GARCH recursion) equally wild variance forecasts.
+                # Standardize on the TRAIN block only (no leakage — the
+                # scaler is fit on train_block and applied unchanged to
+                # the horizon/test block, per instructions.md's
+                # training-only-preprocessing rule) and fill remaining
+                # NaN with 0 (the standardized mean) rather than the
+                # raw 0, which would otherwise be a large outlier on
+                # levels like VIX.
+                mu = X_exog_train_raw.mean()
+                sigma = X_exog_train_raw.std(ddof=0).replace(0.0, 1.0).fillna(1.0)
+                X_exog_train = ((X_exog_train_raw - mu) / sigma).fillna(0.0)
+                X_exog_horizon = ((X_exog_horizon_raw - mu) / sigma).fillna(0.0)
             else:
                 X_exog_train = None
                 X_exog_horizon = None
@@ -508,7 +540,7 @@ def run_horse_race_engine(
     model_matrix: pd.DataFrame,
     specs: List[ModelSpec],
     horizons: List[int] = (1, 5),
-    targets: List[str] = ("r_ITA", "r_WAERLST_recon"),
+    targets: List[str] = ("r_WAERLST", "r_BSHIELDT", "r_ITA"),
     test_fraction: float = 0.25,
     min_train_obs: int = 500,
     refit_every: int = 20,

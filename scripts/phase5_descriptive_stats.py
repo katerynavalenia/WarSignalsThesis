@@ -149,7 +149,7 @@ def main() -> int:
 
     # ── Figure 13: distributions of key features ────────────────────────────
     key_features = [
-        "r_ITA_lag1", "vol_5d_lag1", "vol_20d_lag1",
+        "r_WAERLST_lag1", "r_ITA_lag1", "vol_5d_lag1", "vol_20d_lag1",
         "launched_total_lag1", "attack_surprise_total_7d_lag1",
         "n_articles_total_lag1", "n_ukrainian_share_lag1",
         "VIX_lag1", "days_since_invasion",
@@ -183,9 +183,15 @@ def main() -> int:
         f.write(f"- Primary target `{primary}`: mean **{target.mean():.4f}%**, "
                 f"std **{target.std():.4f}%**, "
                 f"min **{target.min():.4f}%**, max **{target.max():.4f}%**\n")
-        f.write(f"- Secondary target `target_r_WAERLST_recon_t1`: "
-                f"mean **{mm['target_r_WAERLST_recon_t1'].mean():.4f}%**, "
-                f"std **{mm['target_r_WAERLST_recon_t1'].std():.4f}%**\n\n")
+        for rob_col, rob_label in (
+            ("target_r_BSHIELDT_t1", "Robustness target (European, war-exposed)"),
+            ("target_r_ITA_t1", "Robustness target (US, optional)"),
+        ):
+            if rob_col in mm.columns:
+                f.write(f"- {rob_label} `{rob_col}`: "
+                        f"mean **{mm[rob_col].mean():.4f}%**, "
+                        f"std **{mm[rob_col].std():.4f}%**\n")
+        f.write("\n")
         f.write("## Top-15 features by |ρ| with primary target\n\n")
         f.write("| Feature | |ρ| with target |\n|---|---|\n")
         for c, rho in corrs_with_target.head(15).items():

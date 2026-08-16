@@ -424,3 +424,217 @@ If a true labelled dataset (e.g., 50 articles per group hand-classified) becomes
 - `docs/data_sharing.md` extends the path-mappings table to include `data/processed/` and `outputs/model_objects/`.
 
 **Revisit condition:** If Colab Pro is unavailable, run locally with the `--quick` flag (4 configs × 2 folds) for the headline run, then expand the grid for the audit-quality run.
+
+## 2026-07-02 — Target hierarchy restructured around real Bloomberg WAERLST/BSHIELDT series
+
+**Decision:**
+Real Bloomberg daily series (`WAERLST Index.xlsx`, `BSHIELDT Index.xlsx`; PX_LAST +
+PX_VOLUME, 2020-01-01 → 2026-06-29, close-only, no OHLC/TR column) replace the noisy
+mcap-weighted reconstruction as the basis for the primary and robustness targets:
+- **Primary:** `r_WAERLST` (real Bloomberg global aerospace & defense index).
+- **Robustness (European, war-exposed):** `r_BSHIELDT` (real Bloomberg).
+- **Optional (US robustness):** `r_ITA` (yfinance ETF proxy) — kept unchanged.
+- **Demoted:** `r_WAERLST_recon` — kept as a lagged feature only, no longer a modeling target.
+
+**Reason:**
+Phase 1 used `r_ITA` as primary and `r_WAERLST_recon` as secondary because the actual
+Bloomberg index-level series were not yet delivered (only constituent-level prices with
+weights; the mcap-weighted reconstruction was too noisy for WAERLST, ρ=0.15 vs ITA,
+std 2.4×). The real series are now available and verified clean: 1,694 rows each, 0
+NaNs, 0 gaps >4 days, std 1.51% (WAERLST) / 1.77% (BSHIELDT), comparable to ITA
+(~1.7%). WAERLST is also the literal thesis-title outcome, and BSHIELDT (European
+defense) is the index most exposed to the Russia-Ukraine war, making it the most
+likely place for the attack/news signal (H1-H3) to appear and the natural H6
+(geographic robustness) comparison against WAERLST/ITA.
+
+**Alternatives considered:**
+- **Keep ITA primary, add real indices as robustness only** — least disruptive but
+  under-uses the real data and keeps a proxy as the headline result against the
+  thesis title.
+- **Make BSHIELDT primary** — highest chance of finding signal (most war-exposed) but
+  departs from the thesis title framing (WAERLST = global aerospace & defense).
+
+**Consequences:**
+- `src/data/financial.py`: new `load_bloomberg_index_xlsx()` for the single-index
+  sheet layout (distinct from the constituent `load_bloomberg_xlsx()`); real returns
+  `r_WAERLST`, `r_BSHIELDT`; volume features (`logvol`, `vol_z30`, `dvol`) with
+  zero/holiday-volume guards (`log1p`, masking).
+- `src/features/build_model_matrix.py`: `PRIMARY_TARGET = "r_WAERLST"`, robustness
+  targets `r_BSHIELDT` and `r_ITA`; `target_r_WAERLST_recon_t1` retired from the
+  target set (kept as `r_WAERLST_recon_lag1` feature).
+- `src/models/{horse_race,baselines,garch,ml_tuning,ml_explain}.py`: target tuples
+  updated from `("r_ITA", "r_WAERLST_recon")` to the new hierarchy.
+- Phases 6 and 7 re-run on the new targets, both h=1 and h=5. Close-only data
+  (verified — no OHLC/TR fields) confirms the returns-based volatility path
+  (abs/squared returns + GARCH) already implemented; no range-based estimator is used.
+- `docs/`, `README.md` updated to remove "ITA primary / recon secondary" language.
+
+**Revisit condition:**
+If the real WAERLST/BSHIELDT series are later found to be price-return rather than
+total-return (contradicting the Phase 1 TR assumption), or if Bloomberg later delivers
+genuine index-level OHLC/intraday data, revisit the volatility-target choice.
+
+---
+
+## 2026-07-02 — Code-level rename to the new target hierarchy (step 1 of 2)
+
+**Decision:**
+Completed the code-level rename implementing the 2026-07-02 target hierarchy restructure
+(`r_WAERLST` primary, `r_BSHIELDT`/`r_ITA` robustness, `r_WAERLST_recon` demoted to
+feature). No data files were rebuilt — `data/processed/model_matrix.parquet` on disk
+still has the old column names until a second agent runs the Phase 5 rebuild.
+
+**Reason:**
+Every hardcoded reference to the old primary/secondary (`r_ITA`/`r_WAERLST_recon`)
+pattern needed updating to the new 3-target hierarchy before the rebuild can produce a
+matrix consumers expect. A known info-set bug (N never unioned with F) was also fixed
+per the real_index_integration_plan §5 gate.
+
+**Alternatives considered:**
+- Keep a strict 2-target (primary/secondary) API and bolt BSHIELDT on separately —
+  rejected; the other Phase 6/7 modules (`horse_race.py`, `ml_tuning.py`, etc.) already
+  used an arbitrary-length `targets` tuple, so generalizing `build_model_matrix.py` to
+  match was the minimal, consistent change.
+
+**Consequences:**
+- `src/features/build_model_matrix.py`: `PRIMARY_TARGET = "r_WAERLST"`;
+  `ROBUSTNESS_TARGETS = ("r_BSHIELDT", "r_ITA")`; `TARGET_COLS` tuple added.
+  `build_targets()`/`build_model_matrix()` signatures changed from
+  `primary_target`/`secondary_target` to `primary_target`/`robustness_targets`
+  (breaking change for any caller passing `secondary_target=`).
+  `lag_features()`'s special-case re-lag logic for the demoted `r_WAERLST_recon`
+  source now keys off the literal column name instead of `SECONDARY_TARGET`.
+  `build_info_sets()`: `r_WAERLST_recon_lag1` removed from `base_excludes` (it is no
+  longer a target source, so excluding it was leakage-prevention logic applied to the
+  wrong column) and added to F's include list instead. **N-set bug fix:**
+  `out["N"] = sorted(set(out["F"]) | set(out["N"]))` added so N = F + news (previously
+  N was news-only, coincidentally sized like F). PN's nesting was also extended to
+  `P | N | PN_own` so PN = F + P + N as documented (previously PN = P + per-query/group
+  news only, missing N's plain news columns) — a deliberate extension beyond the literal
+  N-fix ask, flagged here for the rebuild agent.
+  F's include list gained `r_WAERLST_lag1/lag2/lag5`, `abs_r_WAERLST_lag1`,
+  `r_WAERLST_recon_lag1`, and volume features (`logvol_/vol_z30_/dvol_` ×
+  `{WAERLST,BSHIELDT}_lag1`) — declared now (inert until the columns exist), since
+  `build_info_sets` filters by existence. Only `r_WAERLST_lag1`/`r_BSHIELDT_lag1`
+  materialize for free via the existing raw→lag1 path; `r_WAERLST_lag2/lag5`,
+  `abs_r_WAERLST_lag1`, and all volume features require extending
+  `src/features/financial_features.py` (out of scope for this rename step — the
+  rebuild agent must add them, mirroring the existing `r_ITA_lag2/lag5`/`abs_r_ITA`
+  pattern and wiring in `compute_index_returns_and_volume` from `financial.py`).
+- `src/models/horse_race.py`, `ml_tuning.py`, `ml_explain.py`, `expanding_window.py`,
+  `scripts/{phase6_run_baselines,phase7_run_ml,phase7_tune}.py`: target-tuple/CLI
+  defaults changed from `("r_ITA", "r_WAERLST_recon")` to
+  `("r_WAERLST", "r_BSHIELDT", "r_ITA")`.
+- `scripts/phase5_leakage_audit.py`: `TARGET_COLS` and the headline audit target
+  updated to `target_r_WAERLST_t1`.
+- `scripts/phase5_data_dictionary.py`, `phase5_descriptive_stats.py`,
+  `phase5_build_model_matrix.py`: metadata/labels updated for the new hierarchy;
+  `.attrs["secondary_target"]` replaced by `.attrs["robustness_targets"]` (list).
+- `config/model_config.yaml`: `targets.secondary` replaced by `targets.robustness`
+  (list).
+- `docs/phase7_audit.md` §1.5: corrected from "N==F is by construction, not a bug" to
+  documenting the actual fix, with a code snippet and a note that exact post-fix
+  cardinalities are pending the Phase 5 rebuild.
+- `src/features/load_model_matrix.py`: `validate_model_matrix_for_phase6` generalized
+  to check all robustness targets, not just one secondary target.
+- Test fallout fixed in the same commit (not a separate step): `tests/test_phase5_model_matrix.py`,
+  `tests/test_phase6_baselines.py`, `tests/test_phase7_ml.py` updated for the new API
+  and new (correct) info-set semantics (`r_WAERLST_recon_lag1` now allowed in F; target
+  column count 8→12 per fixture). `TestPhase7RealData::test_real_mm_info_sets` (reads
+  the real, still-stale parquet) marked `xfail` with a precise reason: its hardcoded
+  cardinalities (F=26, N=26, PN=78) encode the pre-fix bug and will NOT be restored by
+  the rebuild — they need to be recomputed from a fresh `info_set_cardinality.csv`,
+  not just re-run.
+- `src/data/financial.py` and `src/models/garch.py` were NOT touched (owned by parallel
+  agents per task scope). No data files were rebuilt; `data/processed/model_matrix.parquet`
+  still has old columns until the rebuild step runs.
+
+**Revisit condition:**
+None — this is a mechanical rename step. Revisit only if the Phase 5 rebuild agent
+finds the new `build_model_matrix()` API awkward to call from `phase5_build_master.py`
+or needs a different `robustness_targets=None` convention.
+
+## 2026-07-02 — Real-index model matrix rebuilt; GARCH-X-in-mean found numerically non-viable
+
+**Decision:**
+1. `data/processed/{daily_master,feature_matrix,model_matrix}.parquet` rebuilt via
+   `scripts/phase5_overlay_real_indices.py` (new) + `scripts/phase5_build_model_matrix.py`,
+   overlaying the real WAERLST/BSHIELDT series onto the cached `daily_master.parquet`
+   (the original raw Bloomberg constituent files and `indexes.xlsx` market-benchmark
+   source are unavailable locally or on Drive — confirmed absent everywhere — so the
+   already-computed control columns, SPX/VIX/Brent/EURUSD/MSCI_World, were reused
+   rather than re-derived or fabricated). `src/features/financial_features.py` extended
+   to compute `r_WAERLST_lag1/2/5`, `abs_r_WAERLST`, and `r_BSHIELDT_msadj` (real,
+   mirroring the old reconstruction's msadj convention); `vol_5d`/`vol_20d` switched
+   from `r_ITA`-based to `r_WAERLST`-based (the new primary target) per this session's
+   target restructure. `config/paths.yaml` created locally from the example (was
+   missing) with a `feature_matrix` key added (missing from the example).
+2. Phase 5 leakage audit: 0 flags across 118 features (was 98). N info-set cardinality
+   fix confirmed working (N=63, was N=F=26 — the redundancy bug is resolved).
+3. Phase 6 baselines re-run on the real target hierarchy — clean, expected results
+   (r_WAERLST MAE ~0.95 at h=1, comparable to ITA's prior ~1.05; the "features don't
+   help returns" null holds as predicted, OLS/Ridge degrade with more features, AR1/
+   historical_mean remain best; plain GARCH/GJR/EGARCH numerically sane).
+4. **GARCH-X-in-mean (ARX exogenous regressors) found to be numerically non-viable on
+   this sample.** Two real bugs were found and fixed in `src/models/expanding_window.py`
+   during this session: (a) the GARCH source column itself was included in its own
+   exogenous regressor set (perfect self-fit, collapsed `omega`→~0, variance
+   forecast→~1e-27); (b) exogenous regressors (VIX levels, days_since_invasion, etc.)
+   were passed unscaled to `arch_model` while `y` is internally rescaled, destabilizing
+   the ARX-mean optimizer. Both fixed (exclude source column; standardize exog using
+   train-block-only mean/std, matching the training-only-preprocessing rule). After the
+   fix, GARCH-X variants are genuinely distinct (previously byte-identical due to both
+   collapsing to the same degenerate state) — but a residual `arch`-package ARX-mean
+   optimizer instability remains, rooted in `src/models/garch.py` (explicitly out of
+   scope for this fix). A point-in-time-safe degenerate-fold guard was added in
+   `src/models/horse_race.py::_aggregate` (excludes folds whose variance forecast is
+   >1000x or <0.001x the plain-GARCH forecast scale for the same target/horizon,
+   counted in a new `n_degenerate` column) — deliberately using the plain-GARCH models'
+   own contemporaneous forecast as the reference scale, NOT realized (future) variance,
+   to avoid outcome-dependent sample selection. Result: **100% of `r_BSHIELDT` folds are
+   degenerate for all 3 GARCH-X variants** (0 usable rows); `r_WAERLST`/`r_ITA` retain
+   25-55% usable folds with QLIKE 4-6 (vs plain GARCH's 1.4-1.8) — a legitimate null/
+   negative finding under `instructions.md`'s "a null result is valid" rule, not a bug
+   to keep chasing without touching the off-limits GARCH-X mean-equation design.
+
+**Reason:**
+The target restructure (prior 2026-07-02 entry) required a data rebuild since
+`financial_daily.parquet` never existed as a separate artifact on Drive (only merged
+`daily_master`/`feature_matrix`/`model_matrix` were persisted). The GARCH-X
+investigation was triggered by a smoke test showing all 3 GARCH-X variants producing
+byte-identical benchmark rows post-target-rename — a red flag before trusting any
+volatility results for H1.
+
+**Alternatives considered (GARCH-X):**
+- **Keep chasing full numerical stability** — would require editing `garch.py`'s
+  ARX/rescale design, explicitly scoped out of this fix to avoid conflicting with the
+  parallel target-rename work; the residual instability may be inherent to putting
+  correlated financial regressors in an ARX mean equation at this sample size (500-1300
+  obs) regardless of implementation.
+- **Silently suppress/clip extreme QLIKE values** — rejected; would hide a genuine
+  numerical failure rather than reporting it, violating the "no invented results" rule.
+- **Use realized (future) variance to filter degenerate folds** — rejected by design;
+  an earlier version of the guard did this and was caught as outcome-dependent sample
+  selection (leakage-adjacent). The final guard uses only same-fold plain-GARCH output.
+
+**Consequences:**
+- `scripts/phase5_overlay_real_indices.py` (new), `src/features/financial_features.py`,
+  `config/paths.yaml` (new), `tests/test_features_financial.py` updated (18 tests).
+- `src/models/expanding_window.py`, `src/models/horse_race.py` — GARCH-X exog fixes +
+  degenerate-fold guard; `tests/test_expanding_window.py` (new, 3 tests).
+- `docs/phase7_audit.md` §4 and §7 (known limitations) must be updated to report the
+  GARCH-X-in-mean null finding rather than a clean H1 volatility verdict; H1 should be
+  assessed primarily via plain GARCH/GJR/EGARCH (all numerically sane) with attack/news
+  features noted as testable only through the return-side XGBoost/Ridge horse race
+  (P/PN/PNG info sets) for now.
+- Full test suite: 437 passed, 2 pre-existing failures (missing
+  `financial_daily.parquet`/`attack_daily.parquet` raw sources, confirmed unrelated to
+  this session's changes via `git stash`), 1 documented xfail.
+
+**Revisit condition:**
+If a future session revisits `garch.py`'s ARX/rescale design specifically to fix the
+mean-equation optimizer instability (e.g. switching to variance-equation exog, which
+the original Phase 7 audit already flagged as the methodologically more direct test of
+H1 but noted as unstable in the `arch` package API), or reduces exog dimensionality to
+1-2 aggregate attack/news features instead of the full F info set, re-attempt GARCH-X
+and update this finding.

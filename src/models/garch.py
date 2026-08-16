@@ -509,9 +509,13 @@ class GARCHXForecaster:
         if self.result_ is None:
             return np.full(h, 1.0)
 
+        x_for_forecast = self._build_forecast_x(horizon=h, X_exog_horizon=X_exog_horizon)
+
         if h == 1:
             try:
-                fcast = self.result_.forecast(horizon=1, reindex=False)
+                fcast = self.result_.forecast(
+                    horizon=1, x=x_for_forecast, reindex=False,
+                )
                 var = np.asarray(
                     fcast.variance.iloc[-1].to_numpy(), dtype=float
                 )
@@ -520,24 +524,61 @@ class GARCHXForecaster:
                 return np.array([1.0])
 
         # h > 1 — recursive 1-step forecast with the exogenous path
-        return self._recursive_h_step_forecast(horizon=h, X_exog_horizon=X_exog_horizon)
+        return self._recursive_h_step_forecast(horizon=h, x_for_forecast=x_for_forecast)
+
+    def _build_forecast_x(
+        self, horizon: int, X_exog_horizon: Optional[pd.DataFrame],
+    ) -> Optional[dict]:
+        """Build the ``x=`` argument for ``arch``'s ``.forecast()``.
+
+        ``arch`` expects, for models fit with a DataFrame ``x``, a mapping
+        from exogenous-column name to an array of shape
+        ``(nobs - start, horizon)`` — i.e. one row (forecast origin) by
+        ``horizon`` columns (the expected future path of that regressor).
+        Since we only ever forecast from the last in-sample origin, the
+        row dimension is always 1.
+
+        Returns ``None`` if the model was fit without exogenous regressors.
+        """
+        if not self.exog_cols_:
+            return None
+        if X_exog_horizon is None:
+            raise ValueError(
+                "Model was fit with exogenous regressors but no "
+                "X_exog_horizon was provided to predict()."
+            )
+        X_exog_horizon = X_exog_horizon.reset_index(drop=True)
+        if len(X_exog_horizon) < horizon:
+            # Pad by repeating the last available row.
+            pad = pd.DataFrame(
+                [X_exog_horizon.iloc[-1]] * (horizon - len(X_exog_horizon))
+            )
+            X_exog_horizon = pd.concat(
+                [X_exog_horizon, pad], ignore_index=True,
+            )
+        X_exog_horizon = X_exog_horizon.iloc[:horizon].fillna(0.0)
+        return {
+            col: X_exog_horizon[col].to_numpy(dtype=float).reshape(1, -1)
+            for col in self.exog_cols_
+        }
 
     def _recursive_h_step_forecast(
-        self, horizon: int, X_exog_horizon: Optional[pd.DataFrame],
+        self, horizon: int, x_for_forecast: Optional[dict],
     ) -> np.ndarray:
-        """Recursive 1-step forecast for h > 1 (exog path consumed per step)."""
+        """h-step-ahead variance forecast with the exogenous path supplied.
+
+        Despite the name (kept for backward compatibility), this now uses
+        ``arch``'s native multi-step ``forecast(horizon=h, x=...)`` with the
+        expected exogenous path rather than a manual recursion — the exog
+        enters only the MEAN equation, so the analytic h-step VARIANCE
+        forecast from ``arch`` is exact once the correct ``x`` is supplied
+        (and is required at all when ``x`` is not ``None``, since ``arch``
+        raises otherwise).
+        """
         try:
-            # arch's forecast() with horizon=h gives the analytic h-step
-            # forecast IGNORING the exog path. So we cannot use it for
-            # GARCH-X. The best we can do without re-fitting is to use
-            # the unconditional h-step forecast and treat exog as a
-            # contemporaneous correction via the fitted mean coefficients.
-            # Practical approach: use the analytic h-step forecast and
-            # report it — this is the standard approach in the GARCH-X
-            # literature when exog enters the MEAN (the variance path
-            # is independent of the mean equation under the joint
-            # MLE).
-            fcast = self.result_.forecast(horizon=horizon, reindex=False)
+            fcast = self.result_.forecast(
+                horizon=horizon, x=x_for_forecast, reindex=False,
+            )
             var = np.asarray(fcast.variance.iloc[-1].to_numpy(), dtype=float)
             if var.size < horizon:
                 var = np.concatenate([var, np.full(horizon - var.size, var[-1])])
