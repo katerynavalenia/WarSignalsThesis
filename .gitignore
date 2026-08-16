@@ -12,6 +12,11 @@ build/
 .eggs/
 *.egg
 
+# ── Test / tooling caches ───────────────
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
 # ── Jupyter ─────────────────────────────
 .ipynb_checkpoints/
 *.ipynb_checkpoints

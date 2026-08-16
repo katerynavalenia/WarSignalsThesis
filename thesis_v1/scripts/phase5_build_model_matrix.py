@@ -21,7 +21,7 @@ import pandas as pd
 # Allow running from the repo root.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from src.features.build_model_matrix import build_model_matrix, TERTIARY_TARGET, US_COMPARISON_TARGET
+from src.features.build_model_matrix import build_model_matrix
 from src.features.merge import load_paths_config
 
 
@@ -52,14 +52,11 @@ def main() -> int:
     print(f"  feature_matrix: {feat.shape}")
 
     print("Building model matrix …")
-    mm = build_model_matrix(
-        feat,
-        extra_targets=[TERTIARY_TARGET, US_COMPARISON_TARGET],
-    )
+    mm = build_model_matrix(feat)
 
     print(f"  model_matrix: {mm.shape}  ({mm['date'].min().date()} → {mm['date'].max().date()})")
-    print(f"  primary target column:   {mm.attrs.get('primary_target')}")
-    print(f"  secondary target column: {mm.attrs.get('secondary_target')}")
+    print(f"  primary target column:      {mm.attrs.get('primary_target')}")
+    print(f"  robustness target columns: {mm.attrs.get('robustness_targets')}")
 
     print(f"\nWriting {out_path} …")
     mm.to_parquet(out_path, index=False)

@@ -46,8 +46,11 @@ became v2.
 
 1. [`supervisor_audit.md`](supervisor_audit.md) — the independent scientific
    review that triggered the pivot; contains the decisive OOS tests.
-2. [`project_status.md`](project_status.md) — phase-by-phase status as of
-   the pivot (Phases 0–7 substantially complete, 8–10 not started).
+2. [`../../thesis_v1/README.md`](../../thesis_v1/README.md) § "Current phase" —
+   phase-by-phase status as of the pivot (Phases 0–7 substantially complete,
+   8–10 not started). The former `project_status.md` was removed in the
+   2026-08-16 context cleanup; restore it from the `pre-context-cleanup` tag
+   if the fuller narrative is needed.
 3. [`phase1_financial_audit.md`](phase1_financial_audit.md) through
    [`phase7_audit.md`](phase7_audit.md) — per-phase technical audits.
 4. [`new_scope_plan.md`](new_scope_plan.md) — an intermediate, superseded

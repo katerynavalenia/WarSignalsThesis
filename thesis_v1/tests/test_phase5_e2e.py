@@ -66,16 +66,16 @@ def feature_matrix(daily_master):
 
 class TestDailyMasterE2E:
     def test_shape_matches_expected(self, daily_master):
-        # 2020-01-07 to 2026-06-30 = ~2,367 calendar days (extended with real Bloomberg)
-        assert len(daily_master) >= 2358
+        # 2020-01-07 to 2026-06-21 = ~2,358 calendar days
+        assert len(daily_master) == 2358
         assert daily_master["date"].iloc[0] == pd.Timestamp("2020-01-07")
-        assert daily_master["date"].iloc[-1] >= pd.Timestamp("2026-06-21")
+        assert daily_master["date"].iloc[-1] == pd.Timestamp("2026-06-21")
 
     def test_all_source_columns_present(self, daily_master):
         expected_cols = {
             "date",
-            # Financial (real Bloomberg + EU defense)
-            "r_WAERLST", "r_BSHIELDT", "r_EUDEF", "r_ITA", "VIX",
+            # Financial
+            "ITA", "r_ITA", "VIX", "r_WAERLST_recon",
             # Attack
             "launched_total", "destroyed_total", "interception_rate",
             # News
@@ -83,7 +83,7 @@ class TestDailyMasterE2E:
             # News pivot
             "n_ukrainian_russian_attack_direct",
             # Derived
-            "has_attack_report", "waerlst_missing", "is_weekend", "is_holiday",
+            "waerlst_missing", "is_weekend", "is_holiday",
         }
         missing = expected_cols - set(daily_master.columns)
         assert not missing, f"daily_master missing columns: {missing}"
@@ -122,19 +122,19 @@ class TestFeatureMatrixE2E:
 
     def test_surprise_features_use_past_only(self, feature_matrix):
         # The surprise at t must use the *past* mean (window excludes t).
-        # With the NaN→0 fix (supervisor audit), no-attack days are 0
-        # instead of NaN. The surprise is "actual - past_mean" — with
-        # all zeros in the early window, surprise = actual (since past_mean=0).
+        # With ``np.nanmean``, the window ignores NaN days, so the surprise
+        # can be non-NaN as soon as the window has any past data.
         # We verify:
         #   (1) At t=0 (first day of modeling window, 2022-09-29), the
-        #       surprise is finite (actual attack count, past_mean=0).
-        #   (2) At a well-populated index (t=30), the surprise is finite.
+        #       7-day window is entirely pre-coverage → all NaN → surprise
+        #       must be NaN.
+        #   (2) At a well-populated index (t=30), the surprise is finite
+        #       (window has past data with non-NaN mean).
         #   (3) The surprise is "actual - past_mean" — a value above 0 means
         #       the current attack count exceeds the past mean.
         modeling = feature_matrix[feature_matrix["date"] >= "2022-09-29"].reset_index(drop=True)
-        val_0 = modeling["attack_surprise_total_7d"].iloc[0]
-        assert np.isfinite(val_0), (
-            f"surprise at t=0 should be finite (NaN→0 fix), got {val_0}"
+        assert pd.isna(modeling["attack_surprise_total_7d"].iloc[0]), (
+            "surprise at t=0 should be NaN (no past attack data)"
         )
         surprise_at_30 = modeling["attack_surprise_total_7d"].iloc[30]
         # Use isfinite or NaN — if launched_total is NaN on that day, surprise is NaN.

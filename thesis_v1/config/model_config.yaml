@@ -140,10 +140,11 @@ comparison:
   - "clark_west"
   - "model_confidence_set"
 
-# Targets
+# Targets (decision_log 2026-07-02: WAERLST primary, BSHIELDT + ITA robustness,
+# r_WAERLST_recon demoted from target to lagged feature)
 targets:
-  primary: "r_ITA"
-  secondary: "r_WAERLST_recon"
+  primary: "r_WAERLST"
+  robustness: ["r_BSHIELDT", "r_ITA"]
 
 # Seeds
 seeds:

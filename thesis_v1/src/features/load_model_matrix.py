@@ -19,7 +19,7 @@ import pandas as pd
 
 from src.features.build_model_matrix import (
     PRIMARY_TARGET,
-    SECONDARY_TARGET,
+    ROBUSTNESS_TARGETS,
     build_model_matrix,
 )
 from src.features.merge import load_paths_config
@@ -43,7 +43,7 @@ def load_model_matrix(
     -------
     pd.DataFrame
         The model matrix with ``.attrs['info_sets']``, ``.attrs['primary_target']``,
-        ``.attrs['secondary_target']``, ``.attrs['modeling_start']``,
+        ``.attrs['robustness_targets']``, ``.attrs['modeling_start']``,
         ``.attrs['modeling_end']`` populated. The DataFrame is sorted by
         ``date`` ascending.
     """
@@ -81,10 +81,8 @@ def validate_model_matrix_for_phase6(mm: pd.DataFrame) -> Dict[str, object]:
     checks: List[tuple] = []
 
     # 1. Required columns present.
-    required = {
-        "date",
-        f"target_{PRIMARY_TARGET}_t1",
-        f"target_{SECONDARY_TARGET}_t1",
+    required = {"date", f"target_{PRIMARY_TARGET}_t1"} | {
+        f"target_{name}_t1" for name in ROBUSTNESS_TARGETS
     }
     missing = required - set(mm.columns)
     checks.append((
@@ -112,13 +110,13 @@ def validate_model_matrix_for_phase6(mm: pd.DataFrame) -> Dict[str, object]:
 
     # 3. Target columns NOT in any info set (would be leakage).
     primary_col = f"target_{PRIMARY_TARGET}_t1"
-    secondary_col = f"target_{SECONDARY_TARGET}_t1"
+    robustness_cols = [f"target_{name}_t1" for name in ROBUSTNESS_TARGETS]
+    all_target_cols = [primary_col] + robustness_cols
     targets_in_sets = []
     for s, cs in info_sets.items():
-        if primary_col in cs:
-            targets_in_sets.append((s, primary_col))
-        if secondary_col in cs:
-            targets_in_sets.append((s, secondary_col))
+        for tcol in all_target_cols:
+            if tcol in cs:
+                targets_in_sets.append((s, tcol))
     checks.append((
         "no target column in any info set",
         not targets_in_sets,

@@ -9,7 +9,7 @@ from src.features.build_model_matrix import (
     CALENDAR_PASSTHROUGH_COLS,
     INFO_SET_PATTERNS,
     PRIMARY_TARGET,
-    SECONDARY_TARGET,
+    ROBUSTNESS_TARGETS,
     _collect_n_next_trading_indices,
     _next_trading_day_index,
     _shift_to_n_trading_day_sum,
@@ -32,20 +32,33 @@ def _make_master(
     n: int = 10,
     r_ita: list[float] | None = None,
     r_waerlst: list[float] | None = None,
+    r_waerlst_recon: list[float] | None = None,
+    r_bshieldt: list[float] | None = None,
     extra: dict | None = None,
 ) -> pd.DataFrame:
-    """Build a minimal ``feature_matrix``-shaped DataFrame."""
+    """Build a minimal ``feature_matrix``-shaped DataFrame.
+
+    Includes the real primary/robustness target sources (``r_WAERLST``,
+    ``r_BSHIELDT``, ``r_ITA``; decision_log 2026-07-02) plus the demoted
+    ``r_WAERLST_recon`` feature source.
+    """
     dates = pd.date_range(start, periods=n, freq="D")
     if r_ita is None:
         r_ita = [0.0] * n
     if r_waerlst is None:
         r_waerlst = [0.0] * n
+    if r_waerlst_recon is None:
+        r_waerlst_recon = [0.0] * n
+    if r_bshieldt is None:
+        r_bshieldt = [0.0] * n
     df = pd.DataFrame(
         {
             "date": dates,
             "r_ITA": r_ita,
             "r_ITA_msadj": r_ita,
-            "r_WAERLST_recon": r_waerlst,
+            "r_WAERLST": r_waerlst,
+            "r_WAERLST_recon": r_waerlst_recon,
+            "r_BSHIELDT": r_bshieldt,
             "VIX": [15.0] * n,
             "d_VIX": [0.0] * n,
             "vol_5d": [1.0] * n,
@@ -128,22 +141,26 @@ class TestShiftToNextTradingDay:
 
 
 class TestBuildTargets:
-    def test_primary_and_secondary_targets(self):
-        df = _make_master(r_ita=[0.1] * 10, r_waerlst=[0.2] * 10)
+    def test_primary_and_robustness_targets(self):
+        df = _make_master(r_ita=[0.1] * 10, r_waerlst=[0.2] * 10, r_bshieldt=[0.3] * 10)
         targets = build_targets(df)
+        assert "target_r_WAERLST_t1" in targets.columns
+        assert "target_r_BSHIELDT_t1" in targets.columns
         assert "target_r_ITA_t1" in targets.columns
-        assert "target_r_WAERLST_recon_t1" in targets.columns
+        # r_WAERLST_recon is demoted and must NOT get a target column.
+        assert "target_r_WAERLST_recon_t1" not in targets.columns
         assert "date" in targets.columns
 
     def test_only_primary(self):
         df = _make_master()
-        targets = build_targets(df, secondary_target=None)
-        assert "target_r_ITA_t1" in targets.columns
-        assert "target_r_WAERLST_recon_t1" not in targets.columns
+        targets = build_targets(df, robustness_targets=None)
+        assert "target_r_WAERLST_t1" in targets.columns
+        assert "target_r_BSHIELDT_t1" not in targets.columns
+        assert "target_r_ITA_t1" not in targets.columns
 
     def test_missing_primary_raises(self):
-        df = _make_master().drop(columns=["r_ITA"])
-        with pytest.raises(KeyError, match="r_ITA"):
+        df = _make_master().drop(columns=["r_WAERLST"])
+        with pytest.raises(KeyError, match="r_WAERLST"):
             build_targets(df)
 
 
@@ -226,7 +243,7 @@ class TestLagFeatures:
 class TestBuildInfoSets:
     def test_nesting_F_subset_of_P_subset_of_PN_subset_of_PNG(self):
         cols = {
-            PRIMARY_TARGET, SECONDARY_TARGET,
+            PRIMARY_TARGET, *ROBUSTNESS_TARGETS,
             "ITA", "BSHIELDT", "WAERLST_recon",
             "r_ITA", "vol_5d", "launched_total",
             "n_articles_total", "n_articles_ukrainian",
@@ -240,34 +257,50 @@ class TestBuildInfoSets:
         assert set(out["P"]).issubset(set(out["PN"]))
         assert set(out["PN"]).issubset(set(out["PNG"]))
 
-    def test_excludes_target_and_raw_columns(self):
-        # The target columns (``target_r_ITA_t1``, etc.) and the raw
-        # index levels (``ITA``, ``BSHIELDT``, ``WAERLST_recon``) must NOT
-        # be features. The raw return source ``r_WAERLST_recon_lag1``
-        # (the GARCH source for the secondary target) is excluded from
-        # the F/P/N/PN/PNG feature sets (C3 fix). The primary lagged
-        # return ``r_ITA_lag1`` (= r_ITA at t-1) IS a valid F feature
-        # (C5 fix) and must be included.
+    def test_N_strictly_contains_F(self):
+        # Regression guard for the N-set union bug fix (decision_log
+        # 2026-07-02 / real_index_integration_plan §5): N must be F + news,
+        # not news-only. Use lagged column names so the F include patterns
+        # actually match (F's patterns are all ``*_lag1``/``*_lag2``/etc.).
         cols = {
-            PRIMARY_TARGET, SECONDARY_TARGET,
+            "r_ITA_lag1", "vol_5d_lag1", "VIX_lag1",  # F
+            "n_articles_ukrainian_lag1", "tone_ukrainian_lag1",  # N-only
+            "day_of_week",  # calendar passthrough (also in F)
+        }
+        out = build_info_sets(cols)
+        assert set(out["F"]) < set(out["N"]), (
+            "N must strictly contain F (N = F + news); "
+            f"F={sorted(out['F'])}, N={sorted(out['N'])}"
+        )
+        assert "n_articles_ukrainian_lag1" in out["N"]
+
+    def test_excludes_target_and_raw_columns(self):
+        # The target columns (``target_r_WAERLST_t1``, etc.) and the raw
+        # index levels (``ITA``, ``BSHIELDT``, ``WAERLST_recon``) must NOT
+        # be features. ``r_WAERLST_recon`` is demoted (decision_log
+        # 2026-07-02) from target to plain feature, so its lag1
+        # (``r_WAERLST_recon_lag1``) is now a legitimate F-set feature (no
+        # longer excluded on leakage grounds). The primary lagged return
+        # ``r_ITA_lag1`` (= r_ITA at t-1) IS a valid F feature (C5 fix)
+        # and must be included.
+        cols = {
+            PRIMARY_TARGET, *ROBUSTNESS_TARGETS,
             f"target_{PRIMARY_TARGET}_t1",
-            f"target_{SECONDARY_TARGET}_t1",
+            *[f"target_{t}_t1" for t in ROBUSTNESS_TARGETS],
             "ITA", "BSHIELDT", "WAERLST_recon",
             "r_ITA_lag1", "r_WAERLST_recon_lag1",
             "r_ITA_msadj_lag1", "vol_5d_lag1", "date",
         }
         out = build_info_sets(cols)
         for c in (
-            f"target_{PRIMARY_TARGET}_t1",
-            f"target_{SECONDARY_TARGET}_t1",
-            "ITA", "BSHIELDT", "WAERLST_recon", "date",
+            [f"target_{PRIMARY_TARGET}_t1"]
+            + [f"target_{t}_t1" for t in ROBUSTNESS_TARGETS]
+            + ["ITA", "BSHIELDT", "WAERLST_recon", "date"]
         ):
             assert c not in out["F"], f"{c} in F"
             assert c not in out["PNG"], f"{c} in PNG"
-        # The secondary target source must NOT be in any info set.
-        for s in ("F", "P", "N", "PN", "PNG"):
-            assert "r_WAERLST_recon_lag1" not in out[s], \
-                f"r_WAERLST_recon_lag1 in {s}"
+        # The demoted recon feature IS allowed as an F-set feature now.
+        assert "r_WAERLST_recon_lag1" in out["F"]
         # r_ITA_lag1 (= r_ITA at t-1) is a valid F feature (C5 fix).
         assert "r_ITA_lag1" in out["F"]
         assert "r_ITA_msadj_lag1" in out["F"]
@@ -321,18 +354,17 @@ class TestBuildInfoSets:
             assert c not in out["PN"]
             assert c in out["PNG"]
 
-    def test_target_source_columns_excluded_from_F(self):
-        # Regression guard for the C3 fix: the secondary target source
-        # column ``r_WAERLST_recon_lag1`` must NOT be a feature in any
-        # info set (it is the GARCH/AR1 source for the secondary
-        # target). The primary lagged return ``r_ITA_lag1`` IS a valid
-        # F feature (C5 fix).
+    def test_recon_feature_included_in_F(self):
+        # Regression guard, updated for decision_log 2026-07-02:
+        # ``r_WAERLST_recon`` is demoted from target to plain feature, so
+        # its lag1 (``r_WAERLST_recon_lag1``) is now a legitimate F-set
+        # feature (previously excluded when it was the secondary target's
+        # source). The primary lagged return ``r_ITA_lag1`` remains a
+        # valid F feature (C5 fix).
         cols = {"r_ITA_lag1", "r_WAERLST_recon_lag1",
                 "VIX_lag1", "day_of_week"}
         out = build_info_sets(cols)
-        for s in ("F", "P", "N", "PN", "PNG"):
-            assert "r_WAERLST_recon_lag1" not in out[s], \
-                f"r_WAERLST_recon_lag1 in {s}"
+        assert "r_WAERLST_recon_lag1" in out["F"]
         # r_ITA_lag1 IS in F (C5 fix).
         assert "r_ITA_lag1" in out["F"]
 
@@ -344,7 +376,7 @@ class TestBuildModelMatrix:
     def test_basic_shape(self):
         df = _make_master(n=30)
         mm = build_model_matrix(df)
-        assert "target_r_ITA_t1" in mm.columns
+        assert "target_r_WAERLST_t1" in mm.columns
         assert "date" in mm.columns
         # First 7 days are dropped (modeling_start = 2022-09-29, but our
         # synthetic data starts 2024-01-01 → 30 days).
@@ -356,7 +388,7 @@ class TestBuildModelMatrix:
         # The last row in the model matrix should have a non-NaN target
         # (the very-last day of the input has no next trading day, so it
         # should be dropped).
-        last_target = mm["target_r_ITA_t1"].iloc[-1]
+        last_target = mm["target_r_WAERLST_t1"].iloc[-1]
         assert not pd.isna(last_target)
 
     def test_info_sets_in_attrs(self):
@@ -380,15 +412,21 @@ class TestBuildModelMatrix:
         # day_of_week should keep its original values (not lagged)
         assert list(mm["day_of_week"]) == list(df["day_of_week"])[:len(mm)]
 
-    def test_secondary_target_present(self):
+    def test_robustness_targets_present(self):
         df = _make_master(n=30)
         mm = build_model_matrix(df)
-        assert "target_r_WAERLST_recon_t1" in mm.columns
-
-    def test_no_secondary_when_disabled(self):
-        df = _make_master(n=30)
-        mm = build_model_matrix(df, secondary_target=None)
+        assert "target_r_BSHIELDT_t1" in mm.columns
+        assert "target_r_ITA_t1" in mm.columns
+        # r_WAERLST_recon is demoted — no target column, but its lag1
+        # feature must still be present.
         assert "target_r_WAERLST_recon_t1" not in mm.columns
+        assert "r_WAERLST_recon_lag1" in mm.columns
+
+    def test_no_robustness_when_disabled(self):
+        df = _make_master(n=30)
+        mm = build_model_matrix(df, robustness_targets=None)
+        assert "target_r_BSHIELDT_t1" not in mm.columns
+        assert "target_r_ITA_t1" not in mm.columns
 
     def test_no_leakage_target_not_in_features(self):
         """The target column should NOT appear in any information set."""
@@ -396,11 +434,11 @@ class TestBuildModelMatrix:
         mm = build_model_matrix(df)
         info_sets = mm.attrs["info_sets"]
         primary = mm.attrs["primary_target"]
-        secondary = mm.attrs.get("secondary_target")
+        robustness = mm.attrs.get("robustness_targets") or []
         for name, cols in info_sets.items():
             assert primary not in cols, f"target in {name}!"
-            if secondary:
-                assert secondary not in cols, f"target in {name}!"
+            for rob in robustness:
+                assert rob not in cols, f"target in {name}!"
 
 
 # ── Phase 6.1 — t5 and variance targets ────────────────────────────────────
@@ -509,18 +547,18 @@ class TestBuildT5AndVarianceTargets:
     def test_default_horizons_add_t1_and_t5(self):
         df = _make_master(n=30)
         targets = build_targets(df)
+        assert "target_r_WAERLST_t1" in targets.columns
+        assert "target_r_WAERLST_t5" in targets.columns
+        assert "target_r_BSHIELDT_t1" in targets.columns
         assert "target_r_ITA_t1" in targets.columns
-        assert "target_r_ITA_t5" in targets.columns
-        assert "target_r_WAERLST_recon_t1" in targets.columns
-        assert "target_r_WAERLST_recon_t5" in targets.columns
 
     def test_default_adds_variance_targets(self):
         df = _make_master(n=30)
         targets = build_targets(df)
+        assert "target_var_r_WAERLST_t1" in targets.columns
+        assert "target_var_r_WAERLST_t5" in targets.columns
+        assert "target_var_r_BSHIELDT_t1" in targets.columns
         assert "target_var_r_ITA_t1" in targets.columns
-        assert "target_var_r_ITA_t5" in targets.columns
-        assert "target_var_r_WAERLST_recon_t1" in targets.columns
-        assert "target_var_r_WAERLST_recon_t5" in targets.columns
 
     def test_add_variance_false_omits_variance(self):
         df = _make_master(n=30)
@@ -532,10 +570,10 @@ class TestBuildT5AndVarianceTargets:
         df = _make_master(n=30)
         targets = build_targets(df, horizons=(1, 3, 5))
         for h in (1, 3, 5):
-            assert f"target_r_ITA_t{h}" in targets.columns
-            assert f"target_var_r_ITA_t{h}" in targets.columns
-        assert "target_r_ITA_t2" not in targets.columns
-        assert "target_r_ITA_t10" not in targets.columns
+            assert f"target_r_WAERLST_t{h}" in targets.columns
+            assert f"target_var_r_WAERLST_t{h}" in targets.columns
+        assert "target_r_WAERLST_t2" not in targets.columns
+        assert "target_r_WAERLST_t10" not in targets.columns
 
     def test_horizons_invalid_raises(self):
         df = _make_master(n=30)
@@ -547,33 +585,33 @@ class TestBuildT5AndVarianceTargets:
     def test_t5_target_is_sum_of_next_5_trading_returns(self):
         # Build a small fixture where we know the next 5 trading-day returns.
         dates = pd.date_range("2024-01-02", periods=20, freq="B")
-        r_ita = pd.Series(np.arange(20, dtype=float), index=dates, name="r_ITA")
+        r_waerlst = pd.Series(np.arange(20, dtype=float), index=dates, name="r_WAERLST")
         df = _make_master(
-            n=20, r_ita=list(r_ita.values)
+            n=20, r_waerlst=list(r_waerlst.values)
         )
         # Override dates to business days
         df["date"] = dates
         targets = build_targets(df)
-        # At i=0, the next 5 trading-day returns are r_ITA[1:6] = [1,2,3,4,5]
+        # At i=0, the next 5 trading-day returns are r_WAERLST[1:6] = [1,2,3,4,5]
         # → sum = 15.0
-        assert targets["target_r_ITA_t5"].iloc[0] == 15.0
-        # At i=14, next 5 are r_ITA[15:20] = [15,16,17,18,19] → sum = 85
-        assert targets["target_r_ITA_t5"].iloc[14] == 85.0
+        assert targets["target_r_WAERLST_t5"].iloc[0] == 15.0
+        # At i=14, next 5 are r_WAERLST[15:20] = [15,16,17,18,19] → sum = 85
+        assert targets["target_r_WAERLST_t5"].iloc[14] == 85.0
         # At i=15..19, not enough future trading days → NaN
         for i in (15, 16, 17, 18, 19):
-            assert pd.isna(targets["target_r_ITA_t5"].iloc[i])
+            assert pd.isna(targets["target_r_WAERLST_t5"].iloc[i])
 
     def test_variance_t1_is_squared_next_return(self):
         dates = pd.date_range("2024-01-02", periods=10, freq="B")
-        r_ita = pd.Series([0.0, 1.0, -2.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        r_waerlst = pd.Series([0.0, 1.0, -2.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                           index=dates)
-        df = _make_master(n=10, r_ita=list(r_ita.values))
+        df = _make_master(n=10, r_waerlst=list(r_waerlst.values))
         df["date"] = dates
         targets = build_targets(df)
         # At i=0, next trading day is i=1 → 1.0² = 1.0
-        assert targets["target_var_r_ITA_t1"].iloc[0] == 1.0
+        assert targets["target_var_r_WAERLST_t1"].iloc[0] == 1.0
         # At i=1, next trading day is i=2 → (-2.0)² = 4.0
-        assert targets["target_var_r_ITA_t1"].iloc[1] == 4.0
+        assert targets["target_var_r_WAERLST_t1"].iloc[1] == 4.0
 
 
 class TestBuildModelMatrixPhase6:
@@ -581,10 +619,10 @@ class TestBuildModelMatrixPhase6:
         df = _make_master(n=30)
         mm = build_model_matrix(df)
         for c in (
+            "target_r_WAERLST_t1", "target_r_WAERLST_t5",
+            "target_r_BSHIELDT_t1", "target_r_BSHIELDT_t5",
             "target_r_ITA_t1", "target_r_ITA_t5",
-            "target_r_WAERLST_recon_t1", "target_r_WAERLST_recon_t5",
-            "target_var_r_ITA_t1", "target_var_r_ITA_t5",
-            "target_var_r_WAERLST_recon_t1", "target_var_r_WAERLST_recon_t5",
+            "target_var_r_WAERLST_t1", "target_var_r_WAERLST_t5",
         ):
             assert c in mm.columns, f"missing {c}"
 
@@ -610,26 +648,28 @@ class TestBuildModelMatrixPhase6:
     def test_t5_disabled_when_horizons_single(self):
         df = _make_master(n=30)
         mm = build_model_matrix(df, horizons=(1,), add_variance_targets=False)
-        assert "target_r_ITA_t1" in mm.columns
-        assert "target_r_ITA_t5" not in mm.columns
+        assert "target_r_WAERLST_t1" in mm.columns
+        assert "target_r_WAERLST_t5" not in mm.columns
         for c in mm.columns:
             assert not c.startswith("target_var_")
 
     def test_extra_variance_column_count(self):
-        # With primary + secondary × {t1, t5} × {return, variance} = 8 new
-        # target columns added on top of the existing 2 return columns the
-        # model matrix previously had — net delta = 6 (we already had t1 for
-        # both, now we add t5 for both and var_t{1,5} for both).
+        # With primary + 2 robustness targets × {t1, t5} × {return, variance}
+        # = 3 targets × 2 horizons × 2 (return + variance) = 12 target
+        # columns (decision_log 2026-07-02: 3-target hierarchy replaces the
+        # old primary+secondary 2-target pattern).
         df = _make_master(n=30)
         mm = build_model_matrix(df)
         target_cols = [c for c in mm.columns if c.startswith("target_")]
-        assert len(target_cols) == 8
+        assert len(target_cols) == 12
         # Specifically:
         for c in (
+            "target_r_WAERLST_t1", "target_r_WAERLST_t5",
+            "target_r_BSHIELDT_t1", "target_r_BSHIELDT_t5",
             "target_r_ITA_t1", "target_r_ITA_t5",
-            "target_r_WAERLST_recon_t1", "target_r_WAERLST_recon_t5",
+            "target_var_r_WAERLST_t1", "target_var_r_WAERLST_t5",
+            "target_var_r_BSHIELDT_t1", "target_var_r_BSHIELDT_t5",
             "target_var_r_ITA_t1", "target_var_r_ITA_t5",
-            "target_var_r_WAERLST_recon_t1", "target_var_r_WAERLST_recon_t5",
         ):
             assert c in target_cols
 

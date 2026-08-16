@@ -6,13 +6,21 @@ Bloomberg data loading and index reconstruction for the War Signals thesis.
 
 Functions
 ---------
-load_bloomberg_xlsx(path)        -- Load a Bloomberg 'values only' sheet
-reconstruct_index(wide, meta)    -- Mcap-weighted return-based index reconstruction
-load_benchmarks(path)            -- Load and clean the benchmark file
-build_financial_table()          -- Build the modeling-ready daily table
+load_bloomberg_xlsx(path)          -- Load a Bloomberg 'values only' sheet (constituents)
+load_bloomberg_index_xlsx(path)    -- Load a Bloomberg single-index 'Worksheet' sheet
+                                       (real WAERLST/BSHIELDT PX_LAST + PX_VOLUME series)
+compute_index_returns_and_volume() -- Return/level/volume feature helper for the
+                                       real index series
+reconstruct_index(wide, meta)      -- Mcap-weighted return-based index reconstruction
+load_benchmarks(path)              -- Load and clean the benchmark file
+build_financial_table()            -- Build the modeling-ready daily table
+overlay_real_indices()             -- Merge real WAERLST/BSHIELDT series onto an
+                                       existing financial-ish DataFrame
 
 The reconstruction methodology is documented in
-docs/phase1_financial_audit.md (Section 4).
+docs/phase1_financial_audit.md (Section 4). The real-index integration is
+documented in docs/real_index_integration_plan.md and the 2026-07-02
+decision_log.md entry ("Target hierarchy restructured...").
 """
 
 from __future__ import annotations
@@ -88,6 +96,128 @@ def load_bloomberg_xlsx(path: str | Path) -> tuple[pd.DataFrame, pd.DataFrame, p
     ).sort_index()
 
     return prices_wide, prices_long, meta
+
+
+def load_bloomberg_index_xlsx(path: str | Path) -> pd.DataFrame:
+    """Load a real Bloomberg single-index daily series (e.g. WAERLST/BSHIELDT).
+
+    This is a **different sheet layout** from :func:`load_bloomberg_xlsx`
+    (which parses a "values only" constituent-level sheet). This function
+    parses sheet ``Worksheet``, which has a small metadata header block
+    (``Security``, ``Start Date``, ``End Date``, ``Period``, ``Currency``),
+    a blank row, then a data table with header row ``Date, PX_LAST,
+    PX_VOLUME``. The header row position is **located dynamically** (first
+    row where column 0 == "Date") rather than hardcoded, since Bloomberg
+    exports can shift the row offset.
+
+    The export's date order is not guaranteed (a prior delivery was
+    descending, the current one is ascending) -- this function always
+    sorts ascending defensively and de-duplicates on date (keeping the
+    last occurrence).
+
+    Parameters
+    ----------
+    path : path
+        Path to the ``<TICKER> Index.xlsx`` file.
+
+    Returns
+    -------
+    DataFrame
+        Date-indexed (ascending, deduped) frame with columns ``px``
+        (from PX_LAST) and ``volume`` (from PX_VOLUME), both numeric
+        float. Metadata (``security``, ``currency``, ``period``,
+        ``start_date``, ``end_date``) is attached via ``.attrs``.
+    """
+    raw = pd.read_excel(path, sheet_name="Worksheet", header=None)
+
+    # --- Metadata block: label in col 0, value in col 1 ---
+    meta: dict[str, object] = {}
+    meta_labels = {"Security", "Start Date", "End Date", "Period", "Currency"}
+    for i in range(len(raw)):
+        label = raw.iat[i, 0]
+        if isinstance(label, str) and label.strip() in meta_labels:
+            meta[label.strip().lower().replace(" ", "_")] = raw.iat[i, 1]
+        if isinstance(label, str) and label.strip() == "Date":
+            header_row = i
+            break
+    else:
+        raise ValueError(f"Could not locate a 'Date' header row in {path}")
+
+    # --- Data table ---
+    data = raw.iloc[header_row + 1 :].copy()
+    data.columns = raw.iloc[header_row].tolist()
+    data = data.rename(columns={"Date": "date", "PX_LAST": "px", "PX_VOLUME": "volume"})
+    data["date"] = pd.to_datetime(data["date"], errors="coerce")
+    data = data.dropna(subset=["date"])
+    data["px"] = pd.to_numeric(data["px"], errors="coerce")
+    data["volume"] = pd.to_numeric(data["volume"], errors="coerce")
+
+    data = data.sort_values("date").drop_duplicates(subset="date", keep="last")
+    out = data.set_index("date")[["px", "volume"]].sort_index()
+    out.index.name = "date"
+
+    out.attrs["security"] = meta.get("security")
+    out.attrs["currency"] = meta.get("currency")
+    out.attrs["period"] = meta.get("period")
+    out.attrs["start_date"] = meta.get("start_date")
+    out.attrs["end_date"] = meta.get("end_date")
+
+    return out
+
+
+def compute_index_returns_and_volume(
+    df: pd.DataFrame, name: str, base: float = 100.0
+) -> pd.DataFrame:
+    """Derive return/level/volume features from a loaded real-index frame.
+
+    Parameters
+    ----------
+    df : DataFrame
+        Output of :func:`load_bloomberg_index_xlsx` -- date-indexed
+        (ascending) with columns ``px``, ``volume``.
+    name : str
+        Index name suffix used in the output column names, e.g.
+        ``"WAERLST"`` or ``"BSHIELDT"``.
+    base : float
+        Level to rebase the price series to on the first observation
+        (matches the ``ITA_index`` / reconstructed-index convention
+        elsewhere in this module: ``close / close.iloc[0] * base``).
+
+    Returns
+    -------
+    DataFrame
+        Date-indexed frame with columns:
+          - ``{name}`` -- price level rebased to ``base`` at the first obs.
+          - ``r_{name}`` -- log return in percent:
+            ``np.log(px / px.shift(1)) * 100`` (matches the convention
+            used for ``r_ITA`` / ``r_WAERLST_recon`` / ``r_BSHIELDT``
+            elsewhere in this module -- NOT simple pct_change).
+          - ``logvol_{name}`` -- ``log1p(volume)`` (zero-guarded: avoids
+            ``-inf`` on zero-volume / holiday rows, which do occur, e.g.
+            BSHIELDT has 28 zero-volume days in the verified file).
+          - ``vol_z30_{name}`` -- 30-day rolling z-score of ``logvol``,
+            computed causally: ``rolling(30)`` at day t uses days
+            ``t-29..t`` only (no future information), so it is NaN for
+            the first 29 observations and finite from day 30 onward.
+          - ``dvol_{name}`` -- day-over-day change in ``logvol``.
+    """
+    px = df["px"].astype(float)
+    vol = df["volume"].astype(float)
+
+    out = pd.DataFrame(index=df.index)
+    out.index.name = "date"
+
+    out[name] = px / px.iloc[0] * base
+    out[f"r_{name}"] = np.log(px / px.shift(1)) * 100
+
+    logvol = np.log1p(vol)
+    out[f"logvol_{name}"] = logvol
+    roll_mean = logvol.rolling(30).mean()
+    roll_std = logvol.rolling(30).std()
+    out[f"vol_z30_{name}"] = (logvol - roll_mean) / roll_std
+    out[f"dvol_{name}"] = logvol.diff()
+
+    return out
 
 
 def reconstruct_index(
@@ -206,38 +336,6 @@ def load_ita_proxy(start: str = "2020-01-01", end: str = "2026-06-30") -> pd.Dat
     return out
 
 
-def load_bloomberg_index(path: str | Path) -> pd.DataFrame:
-    """Load a real Bloomberg index-level export (PX_LAST + PX_VOLUME).
-
-    These files have a simple format:
-        Row 0: Security name
-        Row 1: Start Date
-        Row 2: End Date
-        Row 3: Period
-        Row 4: Currency
-        Row 5: (blank)
-        Row 6: Date | PX_LAST | PX_VOLUME
-        Row 7+: Data (descending dates)
-
-    Returns
-    -------
-    DataFrame
-        Index: DatetimeIndex (ascending).
-        Columns: ['PX_LAST', 'PX_VOLUME', 'log_return'].
-    """
-    raw = pd.read_excel(path, sheet_name="Worksheet", header=None)
-    # Data starts at row 7, columns 0-2
-    data = raw.iloc[7:, :3].copy()
-    data.columns = ["date", "PX_LAST", "PX_VOLUME"]
-    data["date"] = pd.to_datetime(data["date"], errors="coerce")
-    data["PX_LAST"] = pd.to_numeric(data["PX_LAST"], errors="coerce")
-    data["PX_VOLUME"] = pd.to_numeric(data["PX_VOLUME"], errors="coerce")
-    data = data.dropna(subset=["date", "PX_LAST"])
-    data = data.sort_values("date").set_index("date")
-    data["log_return"] = np.log(data["PX_LAST"] / data["PX_LAST"].shift(1))
-    return data
-
-
 # European defense equities for the geographic-robustness hypothesis (H6).
 # These are more Ukraine-narrative-sensitive than US primes (LMT/RTX).
 EU_DEFENSE_TICKERS = {
@@ -254,6 +352,13 @@ def load_eu_defense_basket(
     end: str = "2026-06-30",
 ) -> pd.DataFrame:
     """Load European defense equities via yfinance and build an equal-weight basket.
+
+    .. note::
+       Written for the 2026-07-01 supervisor-audit scope (``r_EUDEF`` as a
+       tertiary target). The 2026-07-02 target hierarchy uses the real
+       Bloomberg WAERLST/BSHIELDT series instead, so this loader is **not
+       wired into** :func:`build_financial_table` — it is retained as a
+       standalone helper for the H6 geographic-robustness check and for v2.
 
     Returns
     -------
@@ -296,18 +401,43 @@ def build_financial_table(
     bbg_dir: str | Path = DEFAULT_BBG_DIR,
     out_path: str | Path | None = None,
     include_ita: bool = True,
-    include_eu_defense: bool = True,
 ) -> pd.DataFrame:
     """Build the modeling-ready daily financial table.
 
-    **Updated 2026-07-01 (supervisor audit):** Uses real Bloomberg index
-    files (WAERLST Index.xlsx, BSHIELDT Index.xlsx) instead of constituent
-    reconstructions. Adds European defense basket via yfinance.
+    .. note::
+       **Superseded 2026-07-02 (see decision_log.md).** Real Bloomberg
+       WAERLST/BSHIELDT index series (PX_LAST + PX_VOLUME) are now
+       available and are the primary/robustness targets going forward --
+       see :func:`load_bloomberg_index_xlsx`, :func:`compute_index_returns_and_volume`,
+       and :func:`overlay_real_indices`. This function's mcap-weighted
+       **reconstruction** of BSHIELDT from constituent files is no longer
+       the primary source for the ``BSHIELDT``/``r_BSHIELDT`` columns --
+       those names are now reserved for the real series merged in by
+       :func:`overlay_real_indices`. The reconstruction output of this
+       function is renamed to ``BSHIELDT_recon`` / ``r_BSHIELDT_recon`` /
+       ``r_BSHIELDT_recon_msadj`` and kept purely as an **archival**
+       column (methodology cross-check), consistent with
+       ``WAERLST_recon``/``r_WAERLST_recon`` naming. The reconstruction
+       code path itself is left intact -- it still runs and produces
+       these archival columns whenever the raw constituent files
+       (``bbg_dir``) are available.
 
-    Primary target: **r_WAERLST** (real Bloomberg global A&D, USD).
-    Secondary target: **r_BSHIELDT** (real Bloomberg European defense, EUR).
-    Tertiary target: **r_EUDEF** (equal-weight European defense basket).
-    US comparison: r_ITA (iShares US Aerospace & Defense ETF).
+    Primary target: ITA (iShares U.S. Aerospace & Defense ETF) -- a real,
+    liquid, USD-denominated defense index with full 6+ year history available
+    free via yfinance. Historically used as the WAERLST proxy before the
+    real Bloomberg WAERLST series arrived; now kept as an optional US
+    robustness target (see decision_log.md 2026-07-02).
+
+    The reconstructed WAERLST is kept as an **archival column** for
+    transparency and cross-checking, but is NOT recommended for forecasting
+    (ρ=0.14 vs ITA -- too noisy due to small-cap and multi-currency
+    constituents; see Phase 1 audit §8).
+
+    BSHIELDT is still reconstructed from constituents (no free full-history
+    European defense index is available -- EUAD/ASWC start only in 2024),
+    but the reconstruction is now demoted to an archival ``BSHIELDT_recon``
+    column now that the real Bloomberg BSHIELDT series is available (merge
+    it in with :func:`overlay_real_indices`).
 
     Parameters
     ----------
@@ -316,104 +446,85 @@ def build_financial_table(
     out_path : path, optional
         If given, save the result as parquet + csv.
     include_ita : bool
-        If True (default), fetch ITA via yfinance.
-    include_eu_defense : bool
-        If True (default), fetch European defense equities via yfinance.
+        If True (default), fetch ITA via yfinance. If False or fetch fails,
+        ITA columns are NaN and the user must populate them.
 
     Returns
     -------
     DataFrame
-        Daily modeling table. Primary columns:
-          - r_WAERLST, WAERLST, WAERLST_VOLUME  (primary, real Bloomberg)
-          - r_BSHIELDT, BSHIELDT, BSHIELDT_VOLUME  (secondary, real Bloomberg)
-          - r_EUDEF, r_Rheinmetall, r_Leonardo, r_BAESystems, r_Thales, r_Hensoldt
-          - r_ITA, ITA  (US comparison)
+        Daily modeling table (1,610 × 15). Primary columns:
+          - r_ITA, ITA, r_ITA_msadj  (optional US defense proxy)
+          - r_BSHIELDT_recon, BSHIELDT_recon  (European defense, archival
+            reconstruction -- real BSHIELDT now merged separately)
+          - WAERLST_recon, r_WAERLST_recon  (archival, low quality)
           - r_SPX, r_SXXP, r_MSCI_World, r_Brent, r_EURUSD, VIX, d_VIX
     """
     bbg_dir = Path(bbg_dir)
 
-    # ── Real Bloomberg indices (supervisor audit fix) ──────────────────
-    waer = load_bloomberg_index(bbg_dir / "WAERLST Index.xlsx")
-    bsh = load_bloomberg_index(bbg_dir / "BSHIELDT Index.xlsx")
-
-    # ── Benchmarks (market + macro controls) ───────────────────────────
+    waer_wide, _, waer_meta = load_bloomberg_xlsx(
+        bbg_dir / "WAERLST as of Jun 04 2026.xlsx"
+    )
+    bsh_wide, _, bsh_meta = load_bloomberg_xlsx(
+        bbg_dir / "BSHIELDT as of Jun 05 2026.xlsx"
+    )
     bench = load_benchmarks(bbg_dir / "indexes.xlsx")
 
-    # ── ITA (US comparison, no longer primary) ─────────────────────────
+    waer_idx, waer_logret, _ = reconstruct_index(waer_wide, waer_meta, min_n=80)
+    bsh_idx, bsh_logret, _ = reconstruct_index(bsh_wide, bsh_meta, min_n=20)
+
+    # ITA proxy (PRIMARY target for WAERLST)
     ita = None
     if include_ita:
         try:
             ita = load_ita_proxy(
-                start=waer.index.min().strftime("%Y-%m-%d"),
-                end=waer.index.max().strftime("%Y-%m-%d"),
+                start=waer_idx.dropna().index.min().strftime("%Y-%m-%d"),
+                end=waer_idx.dropna().index.max().strftime("%Y-%m-%d"),
             )
         except Exception as exc:  # pragma: no cover
             warnings.warn(f"ITA fetch failed: {exc}. Continuing without ITA.")
 
-    # ── European defense basket ────────────────────────────────────────
-    eu_def = None
-    if include_eu_defense:
-        try:
-            eu_def = load_eu_defense_basket(
-                start=waer.index.min().strftime("%Y-%m-%d"),
-                end=waer.index.max().strftime("%Y-%m-%d"),
-            )
-        except Exception as exc:  # pragma: no cover
-            warnings.warn(f"EU defense fetch failed: {exc}. Continuing without EU basket.")
-
-    # ── Date index: use WAERLST (real Bloomberg, cleanest) ─────────────
-    valid_dates = waer.dropna(subset=["PX_LAST"]).index
+    # Date index: prefer ITA dates (cleanest, longest history)
+    if ita is not None:
+        valid_dates = ita.dropna(subset=["ITA_close"]).index
+    else:
+        valid_dates = waer_idx.dropna().index
 
     fin = pd.DataFrame(index=valid_dates)
     fin.index.name = "date"
 
-    # === PRIMARY TARGET: WAERLST (real Bloomberg, USD) ===
-    fin["WAERLST"] = waer.loc[valid_dates, "PX_LAST"]
-    fin["r_WAERLST"] = waer.loc[valid_dates, "log_return"] * 100
-    fin["WAERLST_VOLUME"] = waer.loc[valid_dates, "PX_VOLUME"]
-
-    # === SECONDARY TARGET: BSHIELDT (real Bloomberg, EUR) ===
-    fin["BSHIELDT"] = bsh.reindex(valid_dates)["PX_LAST"]
-    fin["r_BSHIELDT"] = bsh.reindex(valid_dates)["log_return"] * 100
-    fin["BSHIELDT_VOLUME"] = bsh.reindex(valid_dates)["PX_VOLUME"]
-
-    # === TERTIARY TARGET: European defense basket ===
-    if eu_def is not None:
-        for col in eu_def.columns:
-            fin[col] = eu_def.reindex(valid_dates)[col]
-
-    # === US COMPARISON: ITA ===
+    # === PRIMARY TARGET: ITA (US defense ETF proxy) ===
     if ita is not None:
-        fin["ITA"] = ita.reindex(valid_dates)["ITA_index"]
-        fin["r_ITA"] = ita.reindex(valid_dates)["ITA_log_return"] * 100
+        fin["ITA"] = ita.loc[valid_dates, "ITA_index"]
+        fin["r_ITA"] = ita.loc[valid_dates, "ITA_log_return"] * 100
 
     # === Controls: market + macro ===
     bench_ret = np.log(bench / bench.shift(1)) * 100
     for col in ["SPX", "SXXP", "MSCI_World", "Brent", "EURUSD"]:
         if col in bench_ret.columns:
-            fin[f"r_{col}"] = bench_ret.reindex(valid_dates)[col]
+            fin[f"r_{col}"] = bench_ret.loc[valid_dates, col]
     if "VIX" in bench.columns:
-        fin["VIX"] = bench.reindex(valid_dates)["VIX"]
-        fin["d_VIX"] = bench.reindex(valid_dates)["VIX"].diff()
+        fin["VIX"] = bench.loc[valid_dates, "VIX"]
+        fin["d_VIX"] = bench.loc[valid_dates, "VIX"].diff()
 
-    # === Derived: market-adjusted returns ===
-    if "r_WAERLST" in fin.columns and "r_MSCI_World" in fin.columns:
-        fin["r_WAERLST_msadj"] = fin["r_WAERLST"] - fin["r_MSCI_World"]
-    if "r_BSHIELDT" in fin.columns and "r_SXXP" in fin.columns:
-        fin["r_BSHIELDT_msadj"] = fin["r_BSHIELDT"] - fin["r_SXXP"]
+    # === Derived: market-adjusted ITA (vs MSCI World) ===
     if "r_ITA" in fin.columns and "r_MSCI_World" in fin.columns:
         fin["r_ITA_msadj"] = fin["r_ITA"] - fin["r_MSCI_World"]
 
-    # === ARCHIVAL: reconstructed WAERLST (kept for methodology documentation) ===
-    try:
-        waer_wide, _, waer_meta = load_bloomberg_xlsx(
-            bbg_dir / "WAERLST as of Jun 04 2026.xlsx"
-        )
-        waer_recon_idx, waer_recon_logret, _ = reconstruct_index(waer_wide, waer_meta, min_n=80)
-        fin["WAERLST_recon"] = waer_recon_idx.reindex(valid_dates)
-        fin["r_WAERLST_recon"] = waer_recon_logret.reindex(valid_dates) * 100
-    except Exception:
-        pass  # Reconstruction is archival; don't fail if old file is missing
+    # === European robustness: BSHIELDT_recon (reconstructed, archival) ===
+    # Demoted 2026-07-02: the real Bloomberg BSHIELDT series is now the
+    # primary BSHIELDT/r_BSHIELDT source (merged separately via
+    # overlay_real_indices). This reconstruction is kept as an archival
+    # cross-check under the _recon suffix.
+    fin["BSHIELDT_recon"] = bsh_idx.reindex(valid_dates)
+    fin["r_BSHIELDT_recon"] = bsh_logret.reindex(valid_dates) * 100
+    if "r_SXXP" in fin.columns:
+        fin["r_BSHIELDT_recon_msadj"] = fin["r_BSHIELDT_recon"] - fin["r_SXXP"]
+
+    # === ARCHIVAL: Bloomberg-reconstructed WAERLST (low quality, see audit) ===
+    # Kept for transparency and to support the methodology discussion in
+    # the thesis. NOT to be used as the forecasting target.
+    fin["WAERLST_recon"] = waer_idx.reindex(valid_dates)
+    fin["r_WAERLST_recon"] = waer_logret.reindex(valid_dates) * 100
 
     if out_path is not None:
         out_path = Path(out_path)
@@ -422,6 +533,74 @@ def build_financial_table(
         fin.to_csv(out_path.with_suffix(".csv"))
 
     return fin
+
+
+def overlay_real_indices(
+    df: pd.DataFrame,
+    waerlst_path: str | Path,
+    bshieldt_path: str | Path,
+) -> pd.DataFrame:
+    """Merge real WAERLST/BSHIELDT series onto an existing financial table.
+
+    Takes an existing date-indexed financial-ish DataFrame -- e.g. the
+    cached ``data/processed/daily_master.parquet`` or the output of
+    :func:`build_financial_table` -- and left-joins in the real Bloomberg
+    ``r_WAERLST``, ``r_BSHIELDT``, ``WAERLST``, ``BSHIELDT``, and volume
+    features (``logvol_*``, ``vol_z30_*``, ``dvol_*``). Any pre-existing
+    reconstructed BSHIELDT columns (``BSHIELDT``, ``r_BSHIELDT``,
+    ``r_BSHIELDT_msadj``, produced by the old constituent-based
+    :func:`reconstruct_index` path in :func:`build_financial_table`) are
+    renamed to the ``_recon`` suffix (``BSHIELDT_recon``,
+    ``r_BSHIELDT_recon``, ``r_BSHIELDT_recon_msadj``) before the real
+    columns are attached, since the real series now takes the plain names.
+
+    This function does **not** require the raw Bloomberg constituent
+    files (``WAERLST as of ...xlsx``, ``BSHIELDT as of ...xlsx``,
+    ``indexes.xlsx``) -- only the two real single-index ``.xlsx`` paths.
+
+    Return/level/volume features are computed on the **native, contiguous
+    trading-day series** of each real index first (so rolling windows and
+    day-over-day diffs are not corrupted by gaps), and only then left-joined
+    onto ``df``'s date index -- preserving every row of ``df``, including
+    dates that fall outside the real-index coverage (those get NaN for the
+    new columns).
+
+    Parameters
+    ----------
+    df : DataFrame
+        Existing date-indexed financial(-ish) table to overlay onto.
+    waerlst_path : path
+        Path to ``WAERLST Index.xlsx`` (real Bloomberg single-index sheet).
+    bshieldt_path : path
+        Path to ``BSHIELDT Index.xlsx`` (real Bloomberg single-index sheet).
+
+    Returns
+    -------
+    DataFrame
+        Copy of ``df`` with old BSHIELDT recon columns renamed and the
+        new real WAERLST/BSHIELDT return, level, and volume columns
+        left-joined in on the date index.
+    """
+    out = df.copy()
+
+    rename_map = {
+        "BSHIELDT": "BSHIELDT_recon",
+        "r_BSHIELDT": "r_BSHIELDT_recon",
+        "r_BSHIELDT_msadj": "r_BSHIELDT_recon_msadj",
+    }
+    rename_map = {k: v for k, v in rename_map.items() if k in out.columns}
+    out = out.rename(columns=rename_map)
+
+    waer_raw = load_bloomberg_index_xlsx(waerlst_path)
+    bsh_raw = load_bloomberg_index_xlsx(bshieldt_path)
+
+    waer_feat = compute_index_returns_and_volume(waer_raw, "WAERLST")
+    bsh_feat = compute_index_returns_and_volume(bsh_raw, "BSHIELDT")
+
+    merged = waer_feat.join(bsh_feat, how="outer")
+    out = out.join(merged, how="left")
+
+    return out
 
 
 def cross_validate_ita_vs_recon(

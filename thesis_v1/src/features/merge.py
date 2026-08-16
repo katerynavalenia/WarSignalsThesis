@@ -153,28 +153,7 @@ def build_daily_master(
             )
         master = master.merge(src, on="date", how="left")
 
-    # 3. Data-integrity fix (supervisor audit §1.4): no-attack days are
-    #    a true zero, not a missing observation. The calendar left-join
-    #    produces NaN for days outside the attack source's date range.
-    #    Recode attack count columns to 0 and add a `has_attack_report` flag.
-    attack_count_cols = [
-        c for c in master.columns
-        if c.startswith(("launched_", "destroyed_", "n_attack_events",
-                         "n_records", "war_intensity", "large_attack_indicator"))
-        or c in ("interception_rate", "weapon_diversity")
-        or c.startswith("attack_")
-    ]
-    if attack_count_cols:
-        master["has_attack_report"] = master[attack_count_cols[0]].notna().astype(np.int8)
-        # Fill count columns with 0 (true zero = no attack that day)
-        zero_fill = [c for c in attack_count_cols if c not in ("interception_rate", "weapon_diversity")]
-        master[zero_fill] = master[zero_fill].fillna(0)
-        # interception_rate and weapon_diversity are undefined when no attack;
-        # leave as NaN (they are derived ratios, not counts)
-    else:
-        master["has_attack_report"] = np.int8(0)
-
-    # 4. Derived columns.
+    # 3. Derived columns.
     #    `waerlst_missing` is 1 wherever the WAERLST reconstruction is NaN;
     #    financial-only baselines can drop this column if they don't need
     #    the WAERLST signal.

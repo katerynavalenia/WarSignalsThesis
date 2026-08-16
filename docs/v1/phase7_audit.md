@@ -1,6 +1,7 @@
 # Phase 7 — ML Models Audit
 
-**Last updated:** 2026-07-01
+**Last updated:** 2026-07-02 (populated with real results after the WAERLST/BSHIELDT
+target-hierarchy rebuild; see decision_log 2026-07-02 entries)
 
 > See the [`Master_Thesis_Research_Completion_Plan.md`](../Master_Thesis_Research_Completion_Plan.md)
 > for the research plan and [`docs/phase6_audit.md`](phase6_audit.md) for the
@@ -8,245 +9,226 @@
 
 ---
 
-## Headline result (read this first)
-
-> **Return predictability (h=1)**: XGBoost matches the best econometric baseline
-> on the financial baseline (F) and modestly improves when news features are
-> added (PN/PNG). All differences are < 0.3% in MAE — economically negligible.
-> Directional accuracy hovers at 0.54 (random-walk null). The H1/H2 null on
-> returns is **confirmed** for the h=1 horizon.
->
-> **Volatility**: GARCH-X did not run in this headline run. The Phase 6 GARCH
-> family QLIKE ≈ 1.36–1.59 (h=1) is the current best. GARCH-X remains a
-> follow-up item.
->
-> **SHAP feature importance**: Volatility proxies (`vol_5d_lag1`, `vol_20d_lag1`)
-> and the post-invasion day count (`days_since_invasion`) are the most stable
-> top-10 features across all 5 info sets. Attack-surprise and news-volume
-> features only enter the top-10 under the wider info sets (P, PN, PNG) and
-> with lower fold-stability (56–72%).
-
----
-
 ## 1. Setup
 
 ### 1.1 Compute & data environment
 
-- **Compute**: Colab Pro CPU (Python 3, no GPU)
-- **Data**: Google Drive folder `WarSignalsThesis_Data/` (folder ID `1i1kkelDYszQ5Bi5Hv94NGT6wjCHkbIWU`)
-- **Model matrix**: `gdrive:WarSignalsThesis_Data/data/processed/model_matrix.parquet` (1,342 × 136)
-- **Outputs** (on Drive and pulled to local):
-  - `gdrive:WarSignalsThesis_Data/outputs/tables/phase7_*.{csv,parquet}`
-  - `gdrive:WarSignalsThesis_Data/outputs/model_objects/{xgb_best_params.csv, shap_phase7.npz}`
-  - `gdrive:WarSignalsThesis_Data/outputs/figures/fig17_shap_summary_*.png` (10 files, h=1 only)
-- **Git**: local laptop only — `rclone` is local-only, not available in Colab
+- **Compute (this run)**: local laptop, default (non-tuned) XGBoost hyperparameters
+  from `config/model_config.yaml`. Full run (all 5 info sets × 2 horizons × 3 targets,
+  340-day OOS test window, 18 refits) completed in **3.1 minutes** — the earlier
+  Colab-Pro-only guidance was written when the pipeline used a 6,480-fit tuning grid;
+  the *default*-hyperparameter run used for this audit is cheap enough to run locally.
+  A tuned run (`scripts/phase7_tune.py`, 216 configs × 3 folds) is still recommended for
+  the final thesis numbers and remains a Colab-Pro candidate (~110 min).
+- **Model matrix**: `data/processed/model_matrix.parquet` (1,358 × 154, real
+  WAERLST/BSHIELDT targets, rebuilt 2026-07-02).
+- **Prior run**: an earlier Colab Pro run (2026-07-01) used the OLD target hierarchy
+  (`r_ITA` primary, `r_WAERLST_recon` secondary) and is now superseded by this run.
 
-### 1.2 Phase 7.0 — pre-Colab data push (hard gate)
+### 1.2 Dependencies
 
-The model matrix was already on Drive from the Phase 5 sync (853 KB, 1,342 × 136).
-No fresh push was required for Phase 7.
-
-### 1.3 Dependencies
-
-`requirements.txt` (added 2026-07-01):
-- `xgboost>=2.0` — principal gradient-boosting algorithm
+Added to `requirements.txt`:
+- `xgboost>=2.0` — principal gradient-boosting algorithm (decision_log 2026-07-01)
 - `shap>=0.44` — SHAP TreeExplainer for XGBoost feature attribution
 
-Installed on Colab via `pip install -q xgboost>=2.0 shap>=0.44` (Cell 4 of the notebook).
-
-### 1.4 Config changes
+### 1.3 Config
 
 `config/model_config.yaml`:
-- `ml.algorithm: "xgboost"` (was `null` in Phase 6)
-- `ml.defaults` — conservative hyperparams (max_depth=5, lr=0.05, n_est=500, early_stopping=50)
-- `ml.tuning` — grid (216 configs × 3 folds), embargo=5 days, val_fraction=0.15
+- `ml.algorithm: "xgboost"`, conservative defaults (max_depth=5, lr=0.05, n_est=500,
+  early_stopping=50) — **used as-is for this run** (no tuning grid applied yet).
+- `garch_x.mean: "ARX"` — exogenous regressors enter the mean equation (see §4, §7 for
+  why this specification is now flagged as numerically fragile).
 
-### 1.5 Information-set cardinality sanity check
+### 1.4 Target hierarchy (decision_log 2026-07-02)
 
-> **Status: EXPLANATION.** The cardinality file `outputs/tables/info_set_cardinality.csv`
-> shows F=23, N=21, P=58, PN=74, PNG=77 (h=1 run; expected 26/26/62/78/81).
-> The 3-column drop is because the tuning subset excluded some features
-> that had NaN in the early training period. This does not affect the
-> H1/H2/H3 verdicts.
+- **Primary:** `r_WAERLST` (real Bloomberg global aerospace & defense index)
+- **Robustness (European, war-exposed):** `r_BSHIELDT` (real Bloomberg)
+- **Robustness (US):** `r_ITA` (yfinance ETF proxy)
+- `r_WAERLST_recon` is **retired as a target** (kept as a lagged feature only)
 
-| | F | N | P | PN | PNG |
-|---|---|---|---|---|---|
-| Cardinality (this run, h=1) | 23 | 21 | 58 | 74 | 77 |
-| Cardinality (expected, full) | 26 | 26 | 62 | 78 | 81 |
+### 1.5 Information-set cardinality — N==F bug fixed
 
-**F=23 ⊃ N=21 ⊂ PN ⊂ PNG** (nesting still holds). The H1/H2 verdicts are
-unaffected because:
-- F vs P (Δ=35 attack features) still cleanly tests the attack-signal hypothesis.
-- PN vs P (Δ=16 per-query×per-group features) still tests the news signal.
-- PNG vs PN (Δ=3 narrative-gap features) still tests the narrative-gap signal.
+The N==F redundancy flagged in earlier drafts of this audit was a genuine bug, not
+"by construction." `build_info_sets()` in `src/features/build_model_matrix.py` unions
+P/PN/PNG progressively but was **missing the equivalent union for N**. Fixed
+2026-07-02:
 
-The N vs F comparison remains **redundant** in the current build (N adds no
-new columns over F). This is a known limitation; future work should populate
-N-specific news lag-1 columns or drop the N info set.
+```python
+out["P"] = sorted(set(out["F"]) | set(out["P"]))
+out["N"] = sorted(set(out["F"]) | set(out["N"]))
+out["PN"] = sorted(set(out["P"]) | set(out["N"]) | set(out["PN"]))
+out["PNG"] = sorted(set(out["PN"]) | set(out["PNG"]))
+```
+
+**Post-fix, post-rebuild cardinalities** (`outputs/tables/info_set_cardinality.csv`):
+
+| info_set | n_features |
+|---|---|
+| F | 37 |
+| P | 73 |
+| N | 63 |
+| PN | 115 |
+| PNG | 118 |
+
+N (63) is now a genuine superset of F (37) plus news-only columns — no longer equal to
+F. H1 (P vs F), H2 (PN vs P), and now N vs F are all meaningful, non-redundant
+comparisons.
 
 ---
 
 ## 2. Tuned hyperparameters
 
-The TS-CV grid search wrote the best (info_set, target) → params mapping
-to `outputs/model_objects/xgb_best_params.csv`. **5 info sets × 2 targets = 10 rows**
-(h=1 only — h=5 was not run in this headline run).
-
-| info_set | target | max_depth | learning_rate | n_estimators | min_child_weight | reg_alpha | reg_lambda | mean_val_MAE |
-|---|---|---|---|---|---|---|---|---|
-| F | r_ITA | 3 | 0.1 | 200 | 20 | 0.0 | 1.0 | 0.716 |
-| F | r_WAERLST_recon | 5 | 0.05 | 200 | 5 | 0.0 | 1.0 | 1.464 |
-| P | r_ITA | 3 | 0.1 | 200 | 5 | 0.1 | 1.0 | 0.716 |
-| P | r_WAERLST_recon | 3 | 0.1 | 200 | 5 | 0.0 | 1.0 | 1.463 |
-| N | r_ITA | 3 | 0.05 | 200 | 5 | 0.1 | 1.0 | 0.718 |
-| N | r_WAERLST_recon | 3 | 0.03 | 200 | 5 | 0.1 | 5.0 | 1.466 |
-| PN | r_ITA | 5 | 0.1 | 200 | 5 | 0.1 | 1.0 | 0.716 |
-| PN | r_WAERLST_recon | 3 | 0.1 | 200 | 20 | 0.0 | 1.0 | 1.463 |
-| PNG | r_ITA | 5 | 0.1 | 200 | 5 | 0.0 | 5.0 | 0.716 |
-| PNG | r_WAERLST_recon | 3 | 0.1 | 200 | 5 | 0.1 | 5.0 | 1.463 |
-
-**Observations**:
-- The grid search consistently picks **shallow trees** (max_depth=3 or 5) and **200 estimators** with lr ∈ {0.05, 0.1}. This matches the Master Plan §10.4 conservative defaults.
-- The mean val MAE for r_ITA clusters tightly at **0.716 ± 0.001** across all 5 info sets — meaning **adding more features does not improve in-sample CV fit**. This is the first signal that the news/attack features do not add information beyond the financial baseline.
-- For r_WAERLST_recon (European proxy, noisier), val MAE is **1.464 ± 0.001** — same story.
-- Total compute: 10 runs × 432 fits per run = 4,320 XGBoost fits (~10 min on Colab Pro).
+**Not run in this pass.** This audit uses `config/model_config.yaml` defaults
+(max_depth=5, lr=0.05, n_estimators=500, early_stopping=50) for all info
+sets/targets/horizons. The 216-config TS-CV grid search (`scripts/phase7_tune.py`) is
+still available and recommended before finalizing thesis numbers, but the return-side
+null result (§3) is unlikely to change materially with tuning, given how flat MAE/
+dir_acc already are across info sets.
 
 ---
 
-## 3. Returns benchmark (h=1, 337 OOS obs)
+## 3. Returns benchmark (XGBoost)
 
-> Source: `outputs/tables/phase7_benchmark.csv` (50 rows = 5 models × 5 info sets × 2 targets).
+Full results: `outputs/tables/phase7_benchmark.csv` (150 rows: 5 return models ×
+5 info sets × 3 targets × 2 horizons). XGBoost rows only, primary target:
 
-### 3.1 Best model per info set, r_ITA (h=1, by MAE)
+| target | horizon | info_set | MAE | RMSE | dir_acc | corr |
+|---|---|---|---|---|---|---|
+| r_WAERLST | 1 | F | 0.9596 | 1.2478 | 0.5513 | -0.014 |
+| r_WAERLST | 1 | N | 0.9573 | 1.2446 | 0.5572 | 0.050 |
+| r_WAERLST | 1 | P | 0.9566 | 1.2470 | 0.5543 | 0.007 |
+| r_WAERLST | 1 | PN | 0.9583 | 1.2466 | 0.5367 | 0.013 |
+| r_WAERLST | 1 | PNG | 0.9556 | 1.2450 | 0.5543 | 0.042 |
+| r_WAERLST | 5 | F | 2.2462 | 2.8710 | 0.5210 | 0.017 |
+| r_WAERLST | 5 | PNG | 2.2286 | 2.8766 | 0.5210 | -0.065 |
 
-| info_set | best model | MAE | RMSE | dir_acc | corr |
+r_BSHIELDT and r_ITA show the same flat pattern (MAE/dir_acc barely move across F→PNG;
+see the full CSV for all rows).
+
+**Verdict: null result on returns, as anticipated.** Directional accuracy stays in the
+51-56% band and MAE is essentially flat (±1%) across F/P/N/PN/PNG for all three
+targets and both horizons. Adding attack/news information does not measurably improve
+XGBoost point-forecast accuracy for next-day or 5-day returns. This mirrors the Phase 6
+econometric-baseline finding (AR1/historical-mean already win) and is consistent with
+near-efficient-market daily-return behavior — **a valid null result per
+`instructions.md`**, not a pipeline failure.
+
+---
+
+## 4. Volatility benchmark (GARCH family)
+
+Full results: `outputs/tables/phase7_volatility_benchmark.csv`.
+
+### 4.1 Plain GARCH/GJR-GARCH/EGARCH (no exogenous regressors) — numerically sound
+
+| target | horizon | model | MAE | RMSE | QLIKE |
 |---|---|---|---|---|---|
-| F | **xgboost** | 1.0478 | 1.3355 | 0.540 | -0.020 |
-| N | historical_mean | 1.0479 | 1.3357 | 0.540 | -0.124 |
-| P | historical_mean | 1.0479 | 1.3357 | 0.540 | -0.124 |
-| PN | **xgboost** | 1.0452 | 1.3402 | **0.552** | -0.020 |
-| PNG | **xgboost** | 1.0453 | 1.3372 | 0.543 | 0.025 |
+| r_WAERLST | 1 | garch | 1.482 | 2.567 | 1.285 |
+| r_WAERLST | 1 | gjr_garch | 1.465 | 2.551 | 1.299 |
+| r_WAERLST | 1 | egarch | 1.430 | 2.550 | 1.267 |
+| r_BSHIELDT | 1 | garch | 2.842 | 4.395 | 1.392 |
+| r_BSHIELDT | 1 | gjr_garch | 2.879 | 4.407 | 1.404 |
+| r_BSHIELDT | 1 | egarch | 2.964 | 4.423 | 1.402 |
+| r_ITA | 1 | garch | 1.655 | 2.616 | 1.362 |
+| r_ITA | 1 | gjr_garch | 1.687 | 2.615 | 1.368 |
+| r_ITA | 1 | egarch | 1.685 | 2.603 | 1.343 |
 
-### 3.2 XGBoost MAE on each info set, r_ITA (h=1)
+(h=5 rows in the CSV; all QLIKE values in the sane 1.3-4.8 range, comparable to Phase
+6's plain-GARCH numbers built on the old target hierarchy.)
 
-| info_set | MAE | dir_acc | Notes |
-|---|---|---|---|
-| F | 1.0478 | 0.540 | financial baseline |
-| N | 1.0497 | 0.540 | same as F (N is redundant) |
-| P | 1.0481 | 0.540 | +36 attack features, no improvement |
-| **PN** | **1.0452** | **0.552** | **+16 news features, best XGBoost MAE and dir_acc** |
-| PNG | 1.0453 | 0.543 | +3 narrative-gap features, no further improvement |
+### 4.2 GARCH-X (exogenous regressors, F info set, mean equation) — numerically non-viable
 
-### 3.3 XGBoost vs econometric baselines on F, r_ITA (h=1)
+**Two real bugs were found and fixed** in `src/models/expanding_window.py` during this
+session (see decision_log 2026-07-02 for full detail):
+1. The GARCH source column itself was included in its own exogenous-regressor set,
+   producing a perfect self-fit (`omega` collapsed to ~0, variance forecast to ~1e-27).
+2. Exogenous regressors (VIX level, `days_since_invasion`, etc.) were passed unscaled
+   to `arch_model` while `y` is internally rescaled, destabilizing the ARX-mean
+   optimizer.
 
-| model | MAE | RMSE | dir_acc | corr |
+Both are fixed (source column excluded; exog standardized on train-block-only
+mean/std). A **point-in-time-safe degenerate-fold guard** was added in
+`src/models/horse_race.py::_aggregate` — folds whose variance forecast is >1000x or
+<0.001x the plain-GARCH forecast scale for the same target/horizon are excluded from
+MAE/RMSE/QLIKE and counted in `n_degenerate`. The guard uses only same-fold
+*plain-GARCH* output as the reference (not realized/future variance), so it does not
+introduce outcome-dependent sample selection.
+
+**Result — full 340-day OOS window (`n_degenerate` / total folds):**
+
+| target | horizon | garch_x_garch | garch_x_gjr_garch | garch_x_egarch |
 |---|---|---|---|---|
-| ar1 | 1.0524 | 1.3354 | 0.540 | 0.034 |
-| historical_mean | 1.0479 | 1.3357 | 0.540 | -0.124 |
-| ols | 1.0629 | 1.3520 | 0.513 | 0.010 |
-| ridge | 1.0627 | 1.3517 | 0.510 | 0.010 |
-| **xgboost** | **1.0478** | **1.3355** | **0.540** | -0.020 |
+| r_WAERLST | 1 | 261/341 (76%) | 281/341 (82%) | 281/281 (100%) |
+| r_WAERLST | 5 | 134/334 (40%) | 260/334 (78%) | — |
+| r_BSHIELDT | 1 | 201/341 (59%) | 341/341 (**100%**) | 180/180 (**100%**) |
+| r_BSHIELDT | 5 | 194/334 (58%) | 334/334 (**100%**) | — |
+| r_ITA | 1 | 225/325 (69%) | 220/325 (68%) | 145/145 (**100%**) |
+| r_ITA | 5 | 139/319 (44%) | 180/319 (56%) | — |
 
-XGBoost is the best return model on F by 0.0001 MAE — **statistically indistinguishable** from HistoricalMean. This matches the Phase 6 finding that return predictability is bounded by the random-walk null.
+**Verdict: GARCH-X-in-mean, as currently specified, is numerically non-viable on this
+sample.** `r_BSHIELDT` is 100% degenerate for GJR-GARCH-X and EGARCH-X (0 usable
+folds); the surviving fraction for other target/variant combinations ranges 18-60%,
+with QLIKE on survivors (4-6) still notably worse than the plain-GARCH baseline
+(1.3-1.8). This is a **legitimate null/negative finding**, not a remaining bug to keep
+chasing — the residual instability is rooted in the `arch` package's ARX-mean
+optimizer combined with correlated financial regressors (VIX, lagged returns, vol) at
+this sample size (~500-1,300 training observations), which is out of scope to redesign
+in this session (see §7, §8 for what a future fix would require).
 
-### 3.4 European robustness, r_WAERLST_recon (h=1, XGBoost)
-
-| info_set | MAE | dir_acc | Notes |
-|---|---|---|---|
-| F | 1.9295 | 0.508 | noisy reconstruction |
-| P | 1.9346 | 0.508 | attacks don't help |
-| PN | 1.9319 | 0.514 | marginal improvement |
-| PNG | 1.9293 | 0.502 | narrative gap neutral |
-
-Same null pattern as the ITA target — XGBoost matches the econometric baselines, no information-set significantly improves the forecast. The WAERLST_recon target is ~80% noisier (reconstruction artifacts, see Phase 1 audit).
-
-### 3.5 OLS / Ridge on P, PN, PNG — the H1 / H2 null for linear models (re-confirmed)
-
-OLS and Ridge on the wider info sets (P, PN, PNG) degrade substantially:
-
-| model | info_set | MAE | dir_acc |
-|---|---|---|---|
-| ridge | F | 1.0627 | 0.510 |
-| ridge | P | 1.2387 | 0.466 |
-| ridge | PN | 1.2699 | 0.472 |
-| ridge | PNG | 1.2559 | 0.501 |
-| ols | F | 1.0629 | 0.513 |
-| ols | P | 1.3968 | 0.457 |
-| ols | PN | 1.4507 | 0.469 |
-| ols | PNG | 1.4321 | 0.484 |
-
-This is the **same pattern as Phase 6**: the linear models overfit to the
-attack/news NaN distribution shift between train and test. XGBoost's native
-NaN handling makes it immune. **Phase 7 confirms Phase 6's C6 fix** —
-`standardize=True` for OLS/Ridge mitigates but does not eliminate the
-distribution-shift penalty.
-
----
-
-## 4. Volatility benchmark
-
-> Source: `outputs/tables/phase7_volatility_benchmark.csv` (empty, 0 rows).
-
-**Status: NOT RUN IN THIS HEADLINE RUN.** The GARCH-X variants were not
-included in the headline Colab invocation (either the `--garch-x-info-set F`
-flag was missing, or the run failed silently for the vol specs). This is a
-**known limitation** of the headline run, not a code bug — the GARCH-X code
-is unit-tested and end-to-end-tested on synthetic data, and produces valid
-results when invoked explicitly.
-
-**Follow-up**: Re-run the OOS with `--garch-x-info-set F` to fill this
-section. Expected: 6 vol rows (3 GARCH + 3 GARCH-X × 1 target × 1 horizon),
-with the GARCH-X rows showing the H1 vol test (do attack/news features add
-value to the conditional variance forecast).
-
-The Phase 6 GARCH-family benchmark (in `outputs/tables/phase6_volatility_benchmark.csv`)
-remains the best-published vol result: **QLIKE ≈ 1.36 (GARCH, h=1) and
-QLIKE ≈ 1.58 (EGARCH, h=1) for r_ITA**. EGARCH h=5 is now MC-simulated
-(Phase 6 C4 fix).
+**H1 (volatility) should therefore be assessed via the plain GARCH-family models
+(§4.1) as the volatility baseline**, with attack/news information's *volatility*
+contribution left as an open question pending a GARCH-X redesign (variance-equation
+exog, or far fewer exogenous regressors) — not asserted either way from the current
+GARCH-X-in-mean results.
 
 ---
 
 ## 5. SHAP results
 
-> Source: `outputs/model_objects/shap_phase7.npz` (190 arrays, 18 folds ×
-> 10 (info_set, horizon, target) groups, h=1 only). Figures:
-> `outputs/figures/fig17_shap_summary_*.png` (10 PNGs).
+Per (info_set, horizon, target): `outputs/figures/fig17_shap_summary_<info_set>_h<horizon>_<target>.png`
+(beeswarm + bar), raw values in `outputs/model_objects/shap_phase7.npz`.
 
-### 5.1 Feature stability — top features by fold appearance (h=1, r_ITA, 18 folds)
+**Top-10 features by mean |SHAP|, PNG info set, h=1** (the full-information comparison,
+computed by concatenating all fold-level SHAP arrays):
 
-| info_set | n_features | top-1 feature (stability) | top-2 | top-3 | top-4 | top-5 |
-|---|---|---|---|---|---|---|
-| F | 23 | `vol_5d_lag1` (100%) | `days_since_invasion` (100%) | `vol_20d_lag1` (100%) | `VIX_lag1` (78%) | `vix_crisis` (72%) |
-| N | 21 | `n_western_z30_lag1` (100%) | `tone_other_lag1` (100%) | `n_ukrainian_z30_lag1` (94%) | `tone_western_lag1` (89%) | `tone_ukrainian_lag1` (89%) |
-| P | 58 | `vol_20d_lag1` (89%) | `attack_surprise_uav_30d_lag1` (72%) | `vol_5d_lag1` (72%) | `days_since_invasion` (67%) | `attack_surprise_penetrations_7d_lag1` (61%) |
-| PN | 74 | `vol_5d_lag1` (89%) | `n_ukrainian_ukraine_defense_energy_lag1` (89%) | `n_western_defense_industry_western_lag1` (83%) | `days_since_invasion` (83%) | `attack_surprise_penetrations_7d_lag1` (72%) |
-| PNG | 77 | `vol_5d_lag1` (94%) | `n_ukrainian_ukraine_defense_energy_lag1` (94%) | `attack_surprise_penetrations_7d_lag1` (67%) | `interception_rate_lag1` (56%) | `attack_surprise_uav_30d_lag1` (56%) |
+**r_WAERLST** (global, less war-exposed):
+1. `vol_20d_lag1` (0.0495)
+2. `logvol_WAERLST_lag1` (0.0393)
+3. `attack_surprise_uav_30d_lag1` (0.0159)
+4. `vol_5d_lag1` (0.0095)
+5. `destroyed_uav_lag1` (0.0094)
+6. `days_since_invasion` (0.0088)
+7. `attack_surprise_penetrations_30d_lag1` (0.0074)
+8. `n_russian_z30_lag1` (0.0069)
+9. `n_ukrainian_z30_lag1` (0.0056)
+10. `n_western_defense_industry_western_lag1` (0.0052)
 
-### 5.2 Interpretation
+**r_BSHIELDT** (European, most war-exposed):
+1. `destroyed_uav_lag1` (0.0442)
+2. `destroyed_total_lag1` (0.0320)
+3. `attack_surprise_uav_30d_lag1` (0.0239)
+4. `vol_5d_lag1` (0.0208)
+5. `launched_total_lag1` (0.0135)
+6. `attack_surprise_uav_90d_lag1` (0.0129)
+7. `n_other_share_lag1` (0.0097)
+8. `n_russian_defense_industry_western_lag1` (0.0077)
+9. `logvol_BSHIELDT_lag1` (0.0076)
+10. `month` (0.0073)
 
-- **F set**: Volatility proxies and the post-invasion day count dominate. This
-  is consistent with the H1/H2 null — the financial baseline's information
-  content is concentrated in the lagged volatility and the regime indicator.
-- **N set**: News z-scores and tones are the only candidates (no financial
-  features in N's include list, but XGBoost still finds the same news
-  signals dominant). This is the **redundant N vs F issue** confirmed in §1.5.
-- **P set**: Attack-surprise features (uav_30d and penetrations_7d) make the
-  top-5 for the first time, but at 61–72% stability — they are **informative
-  but not dominant**. The vol proxies still win on stability.
-- **PN set**: News per-query features (UA-defense-energy, Western-defense)
-  tie with vol_5d_lag1 at 89% stability. This is the strongest evidence in
-  the headline run that **news information has predictive value** — but the
-  MAE improvement vs F is only 0.0026 (1.0452 vs 1.0478, ~0.25%).
-- **PNG set**: Adding the 3 narrative-gap features does not change the top
-  features materially; the top-2 are unchanged from PN. H3 (narrative gap
-  > raw volume) is **not supported** in the headline run.
+**Notable pattern (H1/H6 evidence):** for `r_WAERLST`, model-driving features are
+dominated by volatility/liquidity (own-vol, own-volume). For `r_BSHIELDT` — the
+European, most war-exposed index — **4 of the top 6 features are physical-attack
+features** (`destroyed_uav`, `destroyed_total`, `attack_surprise_uav_30d`,
+`launched_total`), a materially different importance profile from WAERLST. This is
+consistent with H1's premise (physical attack intensity is more informative for the
+more war-exposed index) even though it does not move the headline MAE/dir_acc metric
+(§3) — SHAP importance and point-forecast accuracy are answering different questions;
+the former shows the model *uses* attack information more heavily for BSHIELDT, the
+latter shows this use doesn't (yet) translate into a materially better forecast.
 
-### 5.3 SHAP figures (10 PNGs, h=1 only)
-
-- `fig17_shap_summary_{F,N,P,PN,PNG}_h1_{r_ITA,r_WAERLST_recon}.png`
-- Each figure is a SHAP beeswarm + bar plot for the test set (337 obs) and
-  the per-fold averaged attributions. Top feature is consistent with §5.1.
-- Figures for h=5 were not produced (h=5 was not run in the headline run).
+**H3 verdict (narrative gap > raw volume): NOT supported.** No `narrative_gap_*`
+feature appears in the top-10 for either target's PNG info set — raw attack/volume/
+liquidity features dominate over narrative-gap features in this sample.
 
 ---
 
@@ -254,100 +236,44 @@ QLIKE ≈ 1.58 (EGARCH, h=1) for r_ITA**. EGARCH h=5 is now MC-simulated
 
 | Hypothesis | Verdict | Evidence |
 |---|---|---|
-| **H1** (physical → returns) | **NULL** | XGBoost P MAE = 1.0481 vs F = 1.0478, Δ = +0.0003 (0.03% worse). Attack features add no predictive value. Matches Phase 6. |
-| **H2** (news → returns) | **NULL** | XGBoost PN MAE = 1.0452 vs P = 1.0481, Δ = -0.0029 (0.28% better — within noise). Directional accuracy +0.012 (0.552 vs 0.540). Marginal at best. |
-| **H3** (narrative gap > raw volume) | **NULL** | XGBoost PNG MAE = 1.0453 vs PN = 1.0452, Δ = +0.0001 (no change). Top features unchanged (vol_5d_lag1 + n_ukrainian_ukraine_defense_energy_lag1). |
-| **H5** (h=1 vs h=5) | **NOT TESTED** | Headline run is h=1 only. H5 requires the h=5 re-run. |
-| **H6** (global vs European robustness) | **NULL (consistent)** | r_ITA MAE range 1.045–1.062; r_WAERLST_recon MAE range 1.929–1.946. Same null pattern in both. WAERLST_recon is ~80% noisier (reconstruction artifacts, see Phase 1 audit). |
-| **H7** (vol via GARCH-X, deferred from Phase 6) | **NOT TESTED** | GARCH-X did not run in the headline invocation — see §4 follow-up. |
-
-### 6.1 What this means for the thesis
-
-- **The random-walk null is robust**. All 5 models (HM, AR1, OLS, Ridge, XGBoost)
-  produce forecasts within 0.5% of each other on MAE for h=1, with directional
-  accuracy indistinguishable from 0.5. This is consistent with the Master Plan
-  §12.1 explicit acceptance: *"Return predictability is difficult. Null return
-  results are acceptable if volatility results are informative."*
-- **XGBoost wins the model-comparison story, not the H1/H2 story**. It
-  matches HistoricalMean on F and is the best model on PN/PNG by MAE, but
-  the margin is sub-1%. The thesis can claim "XGBoost is the most flexible
-  return model and best handles the train/test distribution shift" without
-  claiming "XGBoost extracts information from attack/news signals."
-- **The GARCH-X follow-up is essential for the vol story**. Without it, the
-  thesis has no Phase 7 contribution to the vol hypothesis. The headline run
-  left this on the table; a re-run with `--garch-x-info-set F` would close it.
+| H1 (physical → returns) | **Null** (no MAE/dir_acc lift) | §3: XGBoost P vs F, all targets |
+| H1 (physical → vol) | **Inconclusive** (GARCH-X non-viable) | §4.2: 18-100% degenerate folds |
+| H1 (physical, SHAP importance) | **Supported for BSHIELDT** | §5: attack features dominate BSHIELDT's top-10, not WAERLST's |
+| H2 (news → returns) | **Null** | §3: PN vs P flat MAE/dir_acc |
+| H3 (narrative gap > raw volume) | **Not supported** | §5: no narrative_gap_* in top-10 |
+| H5 (horizon differences) | **Minimal** | §3: h=1 vs h=5 patterns near-identical (flat both ways) |
+| H6 (global vs European robustness) | **Partially supported** | §5: BSHIELDT's feature-importance profile differs qualitatively from WAERLST/ITA (attack-driven vs vol-driven), even though point-forecast metrics are similar in magnitude across all three |
 
 ---
 
 ## 7. Known limitations
 
-- **h=5 was not run**. The headline invocation was `--horizons 1` (only). The
-  full run would produce 50 more return rows and 10 more SHAP figures
-  (5 info sets × 1 horizon × 2 targets = 10 PNGs).
-- **GARCH-X did not run**. The volatility benchmark is empty. Re-run with
-  `--garch-x-info-set F` (and optionally `P` for the H1 vol test).
-- **No LightGBM comparison**. The decision log explicitly chose XGBoost as
-  the principal algorithm; LightGBM is the documented robustness alternative
-  but was not run.
-- **Sample size**: 1,006 training observations and 337 test observations.
-  XGBoost with the conservative hyperparams (max_depth=3-5, lr=0.05-0.1) is
-  appropriate; deeper trees would overfit. The grid search selected these
-  values consistently.
-- **N=21=F=23 cardinality**: redundant comparison in current build; future work
-  should populate N-specific news lag-1 columns or drop the N info set.
-- **The val_MAE for r_ITA clusters at 0.716 ± 0.001 across all 5 info sets**:
-  this is the cleanest evidence that the news/attack features do not add
-  information beyond the financial baseline, even on the in-sample CV.
+- **Returns are a genuine null across the whole pipeline** — Phase 6 econometric
+  baselines, Phase 7 XGBoost (default hyperparameters), all info sets, both horizons,
+  all three targets. This is consistent and not an artifact of any single model choice.
+- **GARCH-X-in-mean is numerically non-viable on this sample** (§4.2) — a future
+  session could retry with (a) far fewer exogenous regressors (e.g. 1-2 attack/news
+  aggregates instead of the full F info set), or (b) a genuine variance-equation exog
+  specification (the `arch` package's API for this is unstable, as originally noted;
+  a two-step ARX-residual + univariate-GARCH fallback remains undocumented in code).
+- **Hyperparameters not tuned** — this audit uses `config/model_config.yaml` defaults.
+  `scripts/phase7_tune.py` (216-config grid) should be run before finalizing thesis
+  numbers, though the flatness of the null result across info sets makes a tuning-driven
+  reversal unlikely.
+- **Single algorithm**: only XGBoost is the principal ML algorithm; LightGBM is a
+  documented but unrun robustness alternative.
+- **SHAP is fold-averaged** over the full 325-341 day OOS test window per target.
 
 ---
 
-## 8. Supervisor-review fixes (C-fixes)
+## 8. Next steps
 
-| # | Issue | Status |
-|---|---|---|
-| C7 | h=5 was not run in the headline Colab invocation | **OPEN** — follow-up run needed |
-| C8 | GARCH-X did not run (vol benchmark is empty) | **OPEN** — follow-up run needed |
-| C9 | N=21=F=23 cardinality redundancy in current build | **DOCUMENTED** — §1.5 explains the construction |
-
----
-
-## 9. Local post-run workflow (executed)
-
-The user ran the Colab notebook successfully, then pulled results locally:
-
-```bash
-rclone copy --update --progress --include "phase7_*" gdrive:WarSignalsThesis_Data/outputs/tables/ outputs/tables/
-rclone copy --update --progress gdrive:WarSignalsThesis_Data/outputs/model_objects/ outputs/model_objects/
-rclone copy --update --progress --include "fig17_*" gdrive:WarSignalsThesis_Data/outputs/figures/ outputs/figures/
-```
-
-**Pulled**:
-- `outputs/tables/phase7_benchmark.csv` (5.3 KB, 50 rows)
-- `outputs/tables/phase7_info_set_cardinality.csv` (55 B, 5 rows)
-- `outputs/tables/phase7_predictions.parquet` (102 KB, 16,850 rows)
-- `outputs/tables/phase7_volatility_benchmark.csv` (64 B, 0 rows — empty)
-- `outputs/model_objects/xgb_best_params.csv` (1.3 KB, 10 rows)
-- `outputs/model_objects/shap_phase7.npz` (234 KB, 190 arrays)
-- `outputs/figures/fig17_shap_summary_*.png` (10 PNGs, h=1 only)
-
-**Not yet on git** (per user preference, awaiting explicit commit instruction):
-- All Phase 7 outputs above
-- The updated [docs/phase7_audit.md](phase7_audit.md) (this file)
-- The updated [notebooks/07_ml_models.ipynb](../notebooks/07_ml_models.ipynb) (with the cell 2 fix)
-
----
-
-## 10. Follow-up actions
-
-To close C7 and C8, re-run the OOS on Colab with:
-
-```bash
-python scripts/phase7_run_ml.py \
-    --data-path /content/drive/MyDrive/WarSignalsThesis_Data/data/processed/model_matrix.parquet \
-    --output-dir /content/drive/MyDrive/WarSignalsThesis_Data/outputs/tables/ \
-    --tuned-params /content/drive/MyDrive/WarSignalsThesis_Data/outputs/model_objects/xgb_best_params.csv \
-    --horizons 1,5 \
-    --garch-x-info-set F
-```
-
-This produces 100 return rows (5 × 5 × 2 × 2), 6 vol rows (3 GARCH + 3 GARCH-X × 2 horizons × 1 target), 20 SHAP figures (5 × 2 × 2), and fills C7/C8 in the next audit revision.
+1. Run `scripts/phase7_tune.py` (Colab-Pro-viable, ~110 min) for tuned hyperparameters
+   and re-verify §3's null result holds under tuning.
+2. If GARCH-X is worth pursuing further for H1, redesign with far fewer exogenous
+   regressors (e.g., `attack_surprise_total_30d`, `n_articles_total_z30` only) rather
+   than the full F info set, to reduce ARX-mean optimizer instability.
+3. Update `docs/project_status.md` and `README.md` to reflect Phase 7 complete with
+   these (honest, partially-null) findings, and move to Phase 8 (statistical
+   comparison / robustness) — the null result on returns and the GARCH-X limitation
+   are valid, reportable findings, not blockers.

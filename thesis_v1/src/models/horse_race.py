@@ -12,7 +12,8 @@ the expanding-window engine. It:
 The returned ``benchmark`` and ``vol_benchmark`` DataFrames match the
 schema promised in the Phase 6 plan:
 
-- ``target``      — source target name (``r_ITA`` or ``r_WAERLST_recon``)
+- ``target``      — source target name (``r_WAERLST`` primary, or
+  ``r_BSHIELDT`` / ``r_ITA`` robustness; decision_log 2026-07-02)
 - ``horizon``     — 1 or 5
 - ``model``       — short model name
 - ``info_set``    — ``F / P / N / PN / PNG`` (or ``"-"`` for GARCH)
@@ -203,11 +204,12 @@ def default_ml_specs(
     horizon/target.
 
     For Phase 7's headline run we use a SIMPLER approach: one spec per
-    info set, using the **horizon-1, target=r_ITA** tuned params as the
-    default. The OOS loop then uses these params for ALL horizons and
-    targets. Per-horizon / per-target tuning can be enabled by the
-    user via the ``--per-horizon-params`` CLI flag (which the
-    phase7_run_ml.py script implements via a per-fit lookup).
+    info set, using the **horizon-1, target=r_WAERLST** (primary target,
+    decision_log 2026-07-02) tuned params as the default. The OOS loop
+    then uses these params for ALL horizons and targets. Per-horizon /
+    per-target tuning can be enabled by the user via the
+    ``--per-horizon-params`` CLI flag (which the phase7_run_ml.py script
+    implements via a per-fit lookup).
     """
     fallback = default_xgb_params or {
         "max_depth": 5,
@@ -221,10 +223,11 @@ def default_ml_specs(
     }
     specs: List[ModelSpec] = []
     for set_name in info_sets:
-        # Pick the (h=1, r_ITA) tuned params as the default for this set.
+        # Pick the (h=1, r_WAERLST) tuned params as the default for this set
+        # (r_WAERLST is the primary target, decision_log 2026-07-02).
         params_for_set: Dict[str, Any] = dict(fallback)
         if tuned_params:
-            key = (set_name, 1, "r_ITA")
+            key = (set_name, 1, "r_WAERLST")
             if key in tuned_params:
                 params_for_set.update(tuned_params[key])
         params_for_set.setdefault("random_state", 42)
@@ -299,16 +302,63 @@ def build_benchmark_tables(
     vol = predictions[predictions["info_set"] == "-"].copy()
 
     benchmark = _aggregate(returns, model_type="returns")
-    vol_benchmark = _aggregate(vol, model_type="vol")
+    vol_benchmark = _aggregate(vol, model_type="vol", full_vol_df=vol)
     return benchmark, vol_benchmark
 
 
-def _aggregate(df: pd.DataFrame, model_type: str) -> pd.DataFrame:
+# Degenerate-forecast guard threshold: a vol-model fold prediction more
+# than this multiple above/below the sanity-check scale is treated as a
+# numerically degenerate fit (optimizer non-convergence) rather than a
+# genuine forecast. See ``_aggregate``.
+DEGENERATE_VOL_RATIO = 1_000.0
+
+
+def _vol_scale_reference(full_vol_df: Optional[pd.DataFrame], target: str, horizon: int) -> float:
+    """Point-in-time-safe scale reference for the degenerate-forecast guard.
+
+    We deliberately do NOT use the realized (future) variance as the
+    sanity-check scale — that would be outcome-dependent sample
+    selection (discarding a model's worst *forecasts* using knowledge
+    of the future truth it is being scored against, which flatters the
+    model and is exactly the kind of leakage this project's rules
+    prohibit).
+
+    Instead we use the median **prediction** of the plain (non-X)
+    ``garch`` / ``gjr_garch`` / ``egarch`` models for the same
+    ``(target, horizon)``. Those are themselves out-of-sample forecasts
+    (available at the same information time as the GARCH-X forecast
+    being checked, not future information), and are already verified to
+    be well-behaved (Master Plan-scale variance, not degenerate) — so
+    they provide a reasonable order-of-magnitude reference for "what a
+    sane variance forecast on this target looks like right now."
+    """
+    if full_vol_df is None or full_vol_df.empty:
+        return np.nan
+    plain_names = {"garch", "gjr_garch", "egarch"}
+    ref = full_vol_df[
+        (full_vol_df["target"] == target)
+        & (full_vol_df["horizon"] == horizon)
+        & (full_vol_df["model"].isin(plain_names))
+    ]
+    if ref.empty:
+        return np.nan
+    preds = pd.to_numeric(ref["prediction"], errors="coerce").to_numpy(dtype=float)
+    preds = preds[np.isfinite(preds) & (preds > 0)]
+    if preds.size == 0:
+        return np.nan
+    return float(np.median(preds))
+
+
+def _aggregate(
+    df: pd.DataFrame,
+    model_type: str,
+    full_vol_df: Optional[pd.DataFrame] = None,
+) -> pd.DataFrame:
     """Aggregate the long-form predictions into one row per group."""
     if df.empty:
         return pd.DataFrame(columns=[
             "target", "horizon", "model", "info_set",
-            "n_obs", "MAE", "RMSE", "dir_acc", "corr", "QLIKE",
+            "n_obs", "MAE", "RMSE", "dir_acc", "corr", "QLIKE", "n_degenerate",
         ])
     rows: List[Dict[str, Any]] = []
     for (target, horizon, model, info_set), sub in df.groupby(
@@ -324,6 +374,7 @@ def _aggregate(df: pd.DataFrame, model_type: str) -> pd.DataFrame:
                 "target": target, "horizon": horizon, "model": model,
                 "info_set": info_set, "n_obs": 0, "MAE": np.nan, "RMSE": np.nan,
                 "dir_acc": np.nan, "corr": np.nan, "QLIKE": np.nan,
+                "n_degenerate": 0,
             }
         else:
             if model_type == "returns":
@@ -333,17 +384,71 @@ def _aggregate(df: pd.DataFrame, model_type: str) -> pd.DataFrame:
                     "info_set": info_set, "n_obs": n_obs,
                     "MAE": m["MAE"], "RMSE": m["RMSE"],
                     "dir_acc": m["dir_acc"], "corr": m["corr"],
-                    "QLIKE": np.nan,
+                    "QLIKE": np.nan, "n_degenerate": 0,
                 }
             else:
-                m = compute_vol_metrics(yhat[mask], y[mask])
-                row = {
-                    "target": target, "horizon": horizon, "model": model,
-                    "info_set": info_set, "n_obs": n_obs,
-                    "MAE": m["MAE"], "RMSE": float(np.sqrt(m["MSE"])),
-                    "dir_acc": np.nan, "corr": np.nan,
-                    "QLIKE": m["QLIKE"],
-                }
+                yhat_masked = yhat[mask]
+                y_masked = y[mask]
+                # Degenerate-forecast guard (2026-07): the ``arch``
+                # package's ARX-mean optimizer can occasionally fail to
+                # converge on a given expanding-window fold (few hundred
+                # obs, correlated exogenous regressors), producing a
+                # variance forecast that is off by many orders of
+                # magnitude from a sane scale. A single such fold
+                # dominates QLIKE (which is `realized/forecast`) and
+                # MAE/RMSE, making the aggregate benchmark meaningless.
+                #
+                # IMPORTANT: the sanity-check scale must NOT be derived
+                # from the realized (future) variance — that would be
+                # outcome-dependent sample selection (discarding a
+                # model's worst *forecasts* using knowledge of the
+                # future truth it is scored against), which flatters
+                # the model and violates this project's leakage rules
+                # (instructions.md: no look-ahead). Instead we use the
+                # median prediction of the plain (non-X) GARCH models
+                # for the same (target, horizon) as a point-in-time-safe
+                # reference for "what a sane variance forecast looks
+                # like right now" — see ``_vol_scale_reference``.
+                # We exclude folds whose forecast is more than
+                # ``DEGENERATE_VOL_RATIO``x larger or smaller than that
+                # reference and record how many were dropped, rather
+                # than silently clipping to a plausible value.
+                target_scale = _vol_scale_reference(full_vol_df, target, horizon)
+                if np.isfinite(target_scale) and target_scale > 0:
+                    ratio = yhat_masked / target_scale
+                    degenerate = (ratio > DEGENERATE_VOL_RATIO) | (ratio < 1.0 / DEGENERATE_VOL_RATIO)
+                    n_degenerate = int(degenerate.sum())
+                    if n_degenerate > 0:
+                        logger.warning(
+                            "vol model %s (target=%s, horizon=%s, info_set=%s): "
+                            "dropped %d/%d folds with degenerate variance "
+                            "forecast (>%gx or <%gx the plain-GARCH "
+                            "prediction scale) before computing "
+                            "MAE/RMSE/QLIKE",
+                            model, target, horizon, info_set, n_degenerate,
+                            len(yhat_masked), DEGENERATE_VOL_RATIO,
+                            1.0 / DEGENERATE_VOL_RATIO,
+                        )
+                        yhat_masked = yhat_masked[~degenerate]
+                        y_masked = y_masked[~degenerate]
+                else:
+                    n_degenerate = 0
+                if yhat_masked.size == 0:
+                    row = {
+                        "target": target, "horizon": horizon, "model": model,
+                        "info_set": info_set, "n_obs": 0, "MAE": np.nan,
+                        "RMSE": np.nan, "dir_acc": np.nan, "corr": np.nan,
+                        "QLIKE": np.nan, "n_degenerate": n_degenerate,
+                    }
+                else:
+                    m = compute_vol_metrics(yhat_masked, y_masked)
+                    row = {
+                        "target": target, "horizon": horizon, "model": model,
+                        "info_set": info_set, "n_obs": int(yhat_masked.size),
+                        "MAE": m["MAE"], "RMSE": float(np.sqrt(m["MSE"])),
+                        "dir_acc": np.nan, "corr": np.nan,
+                        "QLIKE": m["QLIKE"], "n_degenerate": n_degenerate,
+                    }
         rows.append(row)
     out = pd.DataFrame(rows)
     # Stable sort: target, horizon, info_set, model
@@ -359,7 +464,7 @@ def _aggregate(df: pd.DataFrame, model_type: str) -> pd.DataFrame:
 def run_horse_race(
     model_matrix: pd.DataFrame,
     horizons: Tuple[int, ...] = (1, 5),
-    targets: Tuple[str, ...] = ("r_ITA", "r_WAERLST_recon"),
+    targets: Tuple[str, ...] = ("r_WAERLST", "r_BSHIELDT", "r_ITA"),
     info_sets: Tuple[str, ...] = ("F", "P", "N", "PN", "PNG"),
     test_fraction: float = 0.25,
     min_train_obs: int = 500,
@@ -451,7 +556,7 @@ def save_benchmark_csvs(
 def run_phase7(
     model_matrix: pd.DataFrame,
     horizons: Tuple[int, ...] = (1, 5),
-    targets: Tuple[str, ...] = ("r_ITA", "r_WAERLST_recon"),
+    targets: Tuple[str, ...] = ("r_WAERLST", "r_BSHIELDT", "r_ITA"),
     info_sets: Tuple[str, ...] = ("F", "P", "N", "PN", "PNG"),
     tuned_params: Optional[Dict[Tuple[str, int, str], Dict[str, Any]]] = None,
     include_garch_x: bool = True,

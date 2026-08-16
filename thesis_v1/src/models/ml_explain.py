@@ -395,7 +395,7 @@ def load_shap_arrays(
     in_dir: Path,
     info_sets: Sequence[str] = ("F", "P", "N", "PN", "PNG"),
     horizons: Sequence[int] = (1, 5),
-    targets: Sequence[str] = ("r_ITA", "r_WAERLST_recon"),
+    targets: Sequence[str] = ("r_WAERLST", "r_BSHIELDT", "r_ITA"),
 ) -> List[FoldSHAP]:
     """Load all per-fold SHAP arrays from ``in_dir`` into a list of :class:`FoldSHAP`."""
     in_dir = Path(in_dir)
@@ -463,7 +463,7 @@ def _main() -> int:
         help="Comma-separated info sets.",
     )
     parser.add_argument(
-        "--targets", type=str, default="r_ITA,r_WAERLST_recon",
+        "--targets", type=str, default="r_WAERLST,r_BSHIELDT,r_ITA",
         help="Comma-separated targets.",
     )
     parser.add_argument(
