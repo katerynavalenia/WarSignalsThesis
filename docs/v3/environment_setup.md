@@ -69,21 +69,43 @@ has to be redefined rather than automated (§4).
 
 ## 3. Fixes, in priority order
 
-### 3.1 Connect the Claude GitHub App — do this first
+### 3.1 Connect GitHub — do this first
 
-Without it nothing the agent produces can be saved. Two steps, because of the
-account mismatch:
+Without it nothing the agent produces can be saved.
 
-1. **Install the Claude GitHub App on the `katerynavalenia` account** and grant
-   it access to the `WarSignalsThesis` repository. In claude.ai: Settings →
-   Connectors → GitHub → connect and select the repository. (The error message
-   points admins at https://claude.ai/admin-settings/claude-in-slack.)
-2. **Give `NikitaTishkov` write access to the repository** — GitHub → repo →
-   Settings → Collaborators → add as *Write*. The session authenticates as this
-   account, so App installation alone is not sufficient.
+**Nothing is installed into the repository.** No file, no workflow, no config.
+GitHub access for cloud sessions is a property of the *connecting GitHub
+account*, held at the account level.
 
-*Alternative if that is awkward:* move the repository into a shared GitHub
-organization that both accounts belong to, and install the App there.
+Per the [Claude Code on the web docs](https://code.claude.com/docs/en/claude-code-on-the-web#github-authentication-options)
+there are two ways to grant it, and **either one is sufficient**:
+
+| Method | How | Notes |
+|---|---|---|
+| **`/web-setup`** | Run `/web-setup` in the Claude Code CLI on a local machine where `gh` is already authenticated | Fastest. Syncs the local `gh` token to the claude.ai account. No admin action needed — unless a Team/Enterprise Owner has disabled it via the "Quick web setup" toggle at claude.ai/admin-settings/claude-code. |
+| **Claude GitHub App** | Authorize during web onboarding at claude.ai, or install from https://github.com/apps/claude | Installed on the **GitHub account** (visible afterwards at github.com/settings/installations), not on the repo. Also enables PR webhooks for Auto-fix. |
+
+**The decisive requirement — and the one that actually blocks us:** the docs
+state that "a cloud session can access any repository the connecting GitHub
+account can see, not just the repositories the Claude GitHub App is installed
+on. App installation … is not a session-level access control."
+
+So access follows the **connecting account's own GitHub permissions**. This
+session authenticates as **`NikitaTishkov`**, and the repository belongs to
+**`katerynavalenia`**. Therefore:
+
+- If **Kateryna** connects her own GitHub account, she already owns the repo and
+  nothing further is needed.
+- If **Nikita** is the connecting account, Kateryna must add him as a **Write**
+  collaborator: repo → Settings → Collaborators and teams → Add people → Write.
+  Installing the App does not substitute for this.
+
+Note that only the *owner* of a personal GitHub account can install a GitHub App
+on it — a collaborator cannot do it on someone else's behalf.
+
+*Alternative if the two-account split stays awkward:* move the repository into a
+GitHub organization both accounts belong to, or have Nikita work from a fork and
+open pull requests.
 
 **Verify it worked:** a new session should succeed at
 `git push -u origin <branch>`. There are currently **2 unpushed commits** on
