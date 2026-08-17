@@ -15,6 +15,9 @@ v1 paper.
    honest odds, and the decisions needed before starting.
 3. **[`supervisor_response_matrix.md`](supervisor_response_matrix.md)** — each of
    the five review comments answered, with a draft reply to send.
+4. **[`environment_setup.md`](environment_setup.md)** — what to configure
+   (GitHub App, BigQuery service account, Drive, Colab's role) so an agent
+   session can execute the plan end to end, and what will always need a human.
 
 ## Headline
 
