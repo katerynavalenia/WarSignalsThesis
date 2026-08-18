@@ -12,36 +12,61 @@ side by side**:
   horse race. Complete through Phase 7; its result is a rigorous **null**.
   Read-only in spirit: reuse its data and code, do not build new work on its
   question.
-- `thesis_v2/` — **active research.** Reframed from forecasting to
-  *contemporaneous response*: "Do defence and defence-related stocks respond
-  more strongly to realized conflict intensity or to media-driven geopolitical
-  expectations?" Currently a **skeleton** — `src/` holds only empty
-  `__init__.py` files, `scripts/` and `tests/` are empty. Phase 0 (setup), work
-  starts at Phase 1.
-- `docs/` — shared history. `docs/v1/` is the historical record (**do not
-  edit**); `docs/v2/` is where all new planning, status, and decisions go.
+- `thesis_v2/` — **the active codebase.** Still a **skeleton**: `src/` holds
+  only empty `__init__.py` files, `scripts/` has one diagnostic, `tests/` is
+  empty. Note the *directory* is called v2 but the *plan* it now implements is
+  v3 (below) — the tree was not renamed.
+- `docs/` — shared history. `docs/v1/` and `docs/v2/` are the historical record
+  (**do not edit**); **`docs/v3/` is where all new planning, status, and
+  decisions go.**
 
-**Read before doing anything substantive in v2:** `docs/v2/research_plan.md`
-(authoritative plan, hypotheses, phase list), then `docs/v2/decision_log.md`
-and `docs/v2/project_status.md`. `docs/v1/README.md` lists exactly which v1
-artifacts v2 reuses.
+**Read before doing anything substantive:** `docs/v3/README.md`, then
+`docs/v3/gdelt_measurement_diagnosis.md` (why the v1 news indicators were
+invalid), `docs/v3/research_plan_v3.md` (**the authoritative plan** —
+question, hypotheses, phases), and `docs/v3/supervisor_response_matrix.md`.
+`docs/v1/README.md` lists which v1 artifacts are reused.
+
+`docs/v2/research_plan.md` is **superseded** — it was the contemporaneous-
+response pivot, whose centrepiece (H4) was falsified. Its §6 preliminary
+regressions are still valid evidence and are carried into v3.
 
 ### Findings that constrain new work
 
 These are established results, not open questions — proposing work that
 assumes the opposite is a mistake:
 
+**Read the scope condition first.** Every result below was measured on the
+2022-09 → 2026-06 attrition-only sample, using news indicators that
+`docs/v3/gdelt_measurement_diagnosis.md` shows do not measure what they claim.
+They are established *for that sample and that measurement*, not in general.
+Do not cite them as reasons a v3 specification cannot work.
+
 - **Forecasting is null** (v1, multi-angle: OLS, Ridge, Clark–West, ITA and
-  real WAERLST/BSHIELDT). It survives in v2 only as the "efficiency" leg (H7).
-- **H4 is falsified**: firm response does *not* scale with SIPRI
-  defense-revenue exposure (two-way FE interaction p=0.82–0.99). Do not make
-  firm-level exposure heterogeneity the centerpiece.
-- **Media attention (GDELT volume) → volatility is null/negative.**
-- What survives as the headline candidate: `GPRD_THREAT` (expectations)
-  ≥ `GPRD_ACT` (realized) for **volatility**, strongest for European defense
-  (BSHIELDT), nothing on returns. See `research_plan.md` §2, §6.
-- Attack + GDELT coverage starts **Sep 2022**, so the Feb–Sep 2022 invasion
-  re-rating is out of sample. Structural, not fixable.
+  real WAERLST/BSHIELDT) — but judged on MAE and directional accuracy, which
+  are too blunt for the effect sizes this literature deals in. v3 re-runs it
+  with Campbell–Thompson R²_OS, Diebold–Mariano, Clark–West and MCS.
+- **H4 (exposure gradient) is falsified** on the attrition sample (two-way FE
+  interaction p=0.82–0.99). It was never tested across the Feb-2022 re-rating,
+  which is where a gradient would show. Do not make it the centerpiece; do not
+  treat it as closed either.
+- **Media attention (GDELT volume) → volatility is null/negative** — measured
+  on raw counts, which drift with GDELT's own source coverage. v3 uses each
+  ecosystem's *share* of daily output instead.
+- Surviving headline candidate: `GPRD_THREAT` (expectations) ≥ `GPRD_ACT`
+  (realized) for **volatility**, strongest for European defense (BSHIELDT),
+  nothing on returns. Carried into v3.
+
+### One claim that was wrong, and matters
+
+Earlier revisions of this file said the **Sep-2022 start** was "structural, not
+fixable". **It is fixable, and fixing it is the highest-value task in the
+project.** The start date came from `START = date(2022, 9, 29)` hardcoded in
+`thesis_v1/gkg_bulk_download.py` to match the air-attack data — there was no
+GDELT-side reason for it. GDELT's **translingual** GKG archive
+(`gdeltv2/*.translation.gkg.csv.zip`) runs from **2015-02-18**, verified against
+GDELT's master file list. Extending the sample takes n from ~920 to ~2,850
+trading days and puts the February-2022 re-rating *inside* it. This is
+supervisor review comment #1. See `docs/v3/research_plan_v3.md` §1.1 and §4.1.
 
 ## Commands
 
@@ -207,7 +232,7 @@ is a no-op locally.
 The green baseline there is **426 passed, 4 failed, 33 skipped** — the four
 failures are `test_phase5_merge.py::TestLoaders`, all missing-data. Do not fix
 them in the cloud, and never respond to a missing file by re-downloading from
-GDELT or the original sources. Data-independent work (thesis writing, `docs/v2/`,
+GDELT or the original sources. Data-independent work (thesis writing, `docs/v3/`,
 building out the empty `thesis_v2/src/`, the 426 fixture-based tests) is what
 belongs there. See `docs/cloud_sessions.md` for setup and the full breakdown.
 
@@ -251,9 +276,9 @@ path `thesis_v1/thesis_old_try/data/raw/{gpr,sipri}/`).
   `scripts/`, and diffs there are the visible evidence of a pipeline change.
 - `config/paths.yaml` is local and gitignored; only `paths.yaml.example` is
   committed. Modules raise a pointed error if it is missing.
-- New decisions go in `docs/v2/decision_log.md` (Decision / Reason /
+- New decisions go in `docs/v3/decision_log.md` (Decision / Reason /
   Alternatives considered / Consequences / Revisit condition). Status updates
-  go in `docs/v2/project_status.md`. Never rewrite `docs/v1/*` to reflect new
+  go in `docs/v3/project_status.md`. Never rewrite `docs/v1/*` or `docs/v2/*` to reflect new
   understanding.
 - AI-agent context files and machine-generated docs were stripped on
   2026-08-16; the pre-cleanup tree is tagged `pre-context-cleanup` (flat paths,
