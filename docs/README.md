@@ -24,6 +24,11 @@ WarSignalsThesis/
   [`v1/supervisor_audit.md`](v1/supervisor_audit.md).
 - **Want v2's preliminary regression evidence?** It is real and still useful —
   see [`v2/research_plan.md`](v2/research_plan.md) §6.
+- **Setting up, or working without the laptop?**
+  [`cloud_sessions.md`](cloud_sessions.md) covers GitHub connection and what is
+  possible from a dataless checkout; [`v3/environment_setup.md`](v3/environment_setup.md)
+  covers the BigQuery route that makes the GDELT rebuild possible from a cloud
+  session.
 
 ## Why there are three versions
 
