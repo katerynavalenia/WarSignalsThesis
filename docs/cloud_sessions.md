@@ -16,6 +16,16 @@ Google Drive, not in git.**
 
 This is the step that produced the "install the Claude GitHub App" prompt.
 
+> **Status, 2026-08-17: not done yet.** A cloud session tested this and push
+> still fails with `403`, and the GitHub API replies *"GitHub access is not
+> enabled for this session. An org admin must connect the Claude GitHub App for
+> this organization."* That gate is on the **claude.ai account side**, not
+> GitHub's — so the two facts below (public repo, `NikitaTishkov` has push
+> rights) are both correct and both insufficient on their own. `worktree-cloud-ready`
+> reached `origin` from a **local** session using its own git credentials; a
+> cloud session does not inherit those. Option A or Option B below still has to
+> be performed once.
+
 **The important thing to know first:** a cloud session can reach **any
 repository the connected GitHub account can see** — installing the Claude
 GitHub App *on this repository* is not required for session access. That
@@ -185,6 +195,21 @@ cloud session** and do not try to fix those four there.
   (`thesis_v1/thesis_old_try/data/raw/{gpr,sipri}/`) — absent from git *and*
   from your local checkout.
 - Anything that regenerates `outputs/`.
+
+### The exception: GDELT work *is* possible from a cloud session
+
+The constraint above is about the **Drive-hosted parquets**, and it holds. It
+does **not** hold for the v3 GDELT rebuild, which is the project's main
+remaining data task. GDELT is a public dataset on BigQuery, so a cloud session
+with a service-account key can run the filtering and daily aggregation
+**server-side** and receive a few megabytes of daily series — the 4.19 TB never
+touches the VM. That makes the single largest piece of remaining work
+cloud-native rather than laptop-bound.
+
+See [`v3/environment_setup.md`](v3/environment_setup.md) §3.2 for the service
+account setup, §3.3 for reaching Drive through the Drive API (the Drive
+*connector* exposes only share/trash/rename in a Claude Code session — it cannot
+read or download file contents), and §4 for how this changes the architecture.
 
 **Do not let a cloud session "fix" a missing-data failure by re-downloading
 from GDELT or the original sources.** That is the failure mode this section
