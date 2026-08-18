@@ -21,6 +21,9 @@ WarSignalsThesis/
 - **Need v1 history or data to reuse?** See [`v1/README.md`](v1/README.md)
   (index of the draft) and [`v1/supervisor_audit.md`](v1/supervisor_audit.md)
   (why the pivot happened).
+- **Working without the laptop?** See [`cloud_sessions.md`](cloud_sessions.md)
+  — GitHub setup for Claude Code cloud sessions, and which work is possible
+  from a checkout that has no data.
 
 ## Why there are two versions
 

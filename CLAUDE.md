@@ -52,9 +52,15 @@ directory*, and `sys.path` is anchored at the version root. Always `cd` into
 `thesis_v1/` or `thesis_v2/` first.
 
 ```bash
+bash bootstrap.sh                              # fresh checkout: venv + deps + paths.yaml
 source .venv/bin/activate
+```
+
+Or by hand:
+
+```bash
 pip install -r thesis_v2/requirements.txt      # v1 and v2 requirements are identical
-cp thesis_v2/config/paths.yaml.example thesis_v2/config/paths.yaml   # v2 has none yet; v1's exists
+cp thesis_v2/config/paths.yaml.example thesis_v2/config/paths.yaml   # both versions ship an .example
 ```
 
 Tests (v1 has 463 collected; v2 has none yet):
@@ -189,6 +195,26 @@ Verify before planning any pipeline run:
   the missing files are pulled from Drive. Say this out loud and sync rather
   than silently regenerating them or re-downloading from the original sources.
 
+### In a cloud session there is no data at all
+
+A cloud session (claude.ai/code, the mobile app, a routine) runs on a VM with
+no Drive credentials, so it gets a checkout with **zero** data files — not even
+the derived Phase 5 parquets listed as "Present" above, which are gitignored
+too. `.claude/cloud_setup.sh` runs at session start and writes the missing
+`config/paths.yaml` files, installs dependencies if absent, and pulls LFS; it
+is a no-op locally.
+
+The green baseline there is **426 passed, 4 failed, 33 skipped** — the four
+failures are `test_phase5_merge.py::TestLoaders`, all missing-data. Do not fix
+them in the cloud, and never respond to a missing file by re-downloading from
+GDELT or the original sources. Data-independent work (thesis writing, `docs/v2/`,
+building out the empty `thesis_v2/src/`, the 426 fixture-based tests) is what
+belongs there. See `docs/cloud_sessions.md` for setup and the full breakdown.
+
+Use `bootstrap.sh` at the repo root to prepare any other fresh checkout — a new
+laptop or a Colab clone. It creates the `.venv`, installs requirements, and
+writes the `paths.yaml` files.
+
 ## v2 conventions
 
 Same directory grammar as v1 (`config/`, `data/{raw,interim,processed,external}/`,
@@ -215,9 +241,12 @@ path `thesis_v1/thesis_old_try/data/raw/{gpr,sipri}/`).
 
 ## Data and git
 
-- `data/**` contents are gitignored (they live on Drive — see above), with a
-  few v1 GDELT news outputs as exceptions tracked via **Git LFS** (see
-  `.gitignore` / `.gitattributes`).
+- `data/**` contents are gitignored (they live on Drive — see above).
+  `.gitignore` carries negation rules that read as though the v1 GDELT news
+  parquets under `data/processed/news/` are tracked via **Git LFS**; they are
+  not. `git ls-files` under `data/` returns only `.gitkeep` files and three
+  markdown reports. The ten genuinely LFS-tracked files are CSVs under
+  `thesis_v1/outputs/`.
 - `outputs/` (figures, tables) **is** tracked — it is reproducible from
   `scripts/`, and diffs there are the visible evidence of a pipeline change.
 - `config/paths.yaml` is local and gitignored; only `paths.yaml.example` is
