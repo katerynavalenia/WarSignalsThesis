@@ -16,15 +16,14 @@ Google Drive, not in git.**
 
 This is the step that produced the "install the Claude GitHub App" prompt.
 
-> **Status, 2026-08-17: not done yet.** A cloud session tested this and push
-> still fails with `403`, and the GitHub API replies *"GitHub access is not
-> enabled for this session. An org admin must connect the Claude GitHub App for
-> this organization."* That gate is on the **claude.ai account side**, not
-> GitHub's — so the two facts below (public repo, `NikitaTishkov` has push
-> rights) are both correct and both insufficient on their own. `worktree-cloud-ready`
-> reached `origin` from a **local** session using its own git credentials; a
-> cloud session does not inherit those. Option A or Option B below still has to
-> be performed once.
+> **Status, 2026-08-18: done — Option B.** `/web-setup` was run from a local
+> CLI, and a cloud session has now pushed to `origin` successfully. Before that
+> it failed with `403` and *"GitHub access is not enabled for this session"*,
+> because the gate is on the **claude.ai account side**, not GitHub's — the two
+> facts below (public repo, `NikitaTishkov` has push rights) are both correct
+> and were both insufficient on their own. `worktree-cloud-ready` had reached
+> `origin` from a **local** session using its own git credentials, which a cloud
+> session does not inherit.
 
 **The important thing to know first:** a cloud session can reach **any
 repository the connected GitHub account can see** — installing the Claude

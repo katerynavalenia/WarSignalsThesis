@@ -42,3 +42,15 @@ shap>=0.44            # SHAP TreeExplainer for XGBoost feature attribution
 # ── Phase 4 Tier 2 NLP (deferred until after first milestone) ──
 # transformers         # multilingual NLP — Colab GPU
 # torch                # transformer backend — Colab GPU
+
+# ── v3 — panel econometrics, source matching, long-sample data ──
+linearmodels>=6.0        # PanelOLS with entity+time effects and clustered SEs
+rapidfuzz>=3.0           # SIPRI company-name → ticker matching
+yfinance>=0.2            # long-history defence basket + market controls back to 2015
+
+# ── v3 — GDELT ingestion via BigQuery (see docs/v3/environment_setup.md §3.2) ──
+# The 4.19 TB translingual archive is aggregated server-side; only a few MB of
+# daily series come back. Needs GCP_SA_KEY_B64 + GCP_PROJECT in the environment.
+google-cloud-bigquery>=3.20
+db-dtypes>=1.2           # BigQuery → pandas type mapping
+google-api-python-client>=2.100   # Drive API, if Drive access is configured

@@ -25,16 +25,18 @@
 
 ## Blockers
 
-1. **GitHub write access from cloud sessions is not yet configured.** Push
-   returns 403: *"GitHub access is not enabled for this session. An org admin
-   must connect the Claude GitHub App for this organization."* Fix: `/web-setup`
-   from a local CLI, or authorize the Claude GitHub App — see
-   [`../cloud_sessions.md`](../cloud_sessions.md) §1. Until then no cloud session
-   can save work to the repo.
+1. ~~GitHub write access from cloud sessions.~~ **Resolved 2026-08-18** via
+   `/web-setup` from a local CLI. A cloud session has pushed to `origin`
+   successfully. See [`../cloud_sessions.md`](../cloud_sessions.md) §1.
 2. **No BigQuery credentials.** Without them the GDELT rebuild cannot run from a
    cloud session at all. See [`environment_setup.md`](environment_setup.md) §3.2.
-3. **Data is on Google Drive, not in git.** A cloud checkout has no parquets;
-   the dataless test baseline is 426 passed / 4 failed / 33 skipped.
+3. **Data is on Google Drive, not in git.** A cloud checkout has no parquets.
+   Measured baseline on a dataless cloud checkout, 2026-08-18:
+   **425 passed, 4 failed, 34 skipped** in 48 s (`cd thesis_v1 && python3 -m pytest -q`).
+   All four failures are `test_phase5_merge.py::TestLoaders` — missing data, not
+   code. Do not try to fix them in a cloud session. (`cloud_sessions.md` records
+   426/4/33; one test has since moved from passed to skipped, which is
+   environment drift, not a regression.)
 
 ## Not yet started
 
