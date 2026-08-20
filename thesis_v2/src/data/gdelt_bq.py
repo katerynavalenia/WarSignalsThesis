@@ -150,6 +150,79 @@ def daily_ecosystem_sql(windows: list[tuple[str, str]]) -> str:
     """
 
 
+#: Realized violence. Fixed in docs/v3/gate3_preregistration.md before the test.
+ACT_THEMES = (
+    "KILL", "WOUND", "CRISISLEX_T03_DEAD", "CRISISLEX_T02_INJURED",
+    "ARMEDCONFLICT", "TERROR", "SIEGE", "REBELLION", "MANMADE_DISASTER_IMPLIED",
+)
+
+#: Anticipation, capability, deterrence.
+THREAT_THEMES = (
+    "THREATEN", "MILITARY", "TAX_WEAPONS", "TAX_FNCACT_TROOPS", "BORDER",
+    "NUCLEAR", "SANCTIONS", "EPU_CATS_NATIONAL_SECURITY", "USPEC_UNCERTAINTY1",
+    "SECURITY_SERVICES",
+)
+
+
+def _theme_match(themes: tuple[str, ...]) -> str:
+    """SQL predicate: does the V1 Themes string contain any of these themes?
+
+    Matched with delimiters on both sides so ``MILITARY`` does not also fire on
+    ``TAX_MILITARY_TITLE``, and ``KILL`` does not fire on ``SKILL``-type codes.
+    """
+    joined = ";' || Themes || ';"
+    tests = " OR ".join(f"STRPOS('{joined}', ';{t};') > 0" for t in themes)
+    return f"({tests})"
+
+
+def threat_act_sql(windows: list[tuple[str, str]]) -> str:
+    """Daily per-ecosystem ACT and THREAT shares of conflict coverage.
+
+    GDELT's GKG themes are assigned by one classifier to machine-translated text
+    across all 65 source languages, so the same taxonomy applies to a Ukrainian,
+    Russian and American article alike. That is what makes an anticipation
+    measure comparable across ecosystems without hand-validating a dictionary
+    per language.
+
+    Shares are of each ecosystem's own *conflict* output, so they answer "what
+    kind of conflict coverage is this ecosystem producing today", independent of
+    how much it is producing or how GDELT's source list has drifted.
+    """
+    from src.data.ecosystems import build_case_sql
+
+    clauses = " OR ".join(
+        f"(_PARTITIONTIME BETWEEN TIMESTAMP('{a}') AND TIMESTAMP('{b}'))"
+        for a, b in windows
+    )
+    case = build_case_sql(srclc_expr=SRCLC)
+    return f"""
+    WITH tagged AS (
+      SELECT
+        DATE(_PARTITIONTIME) AS day,
+        {case} AS ecosystem,
+        {_theme_match(ACT_THEMES)}    AS is_act,
+        {_theme_match(THREAT_THEMES)} AS is_threat
+      FROM {TABLE}
+      WHERE ({clauses})
+        AND SourceCommonName IS NOT NULL
+        AND {CONFLICT}
+        AND Themes IS NOT NULL
+    )
+    SELECT
+      day,
+      ecosystem,
+      COUNT(*) AS n_conflict,
+      COUNTIF(is_act) AS n_act,
+      COUNTIF(is_threat) AS n_threat,
+      SAFE_DIVIDE(COUNTIF(is_act), COUNT(*)) AS act_share,
+      SAFE_DIVIDE(COUNTIF(is_threat), COUNT(*)) AS threat_share
+    FROM tagged
+    WHERE ecosystem NOT IN ('AGGREGATOR', 'OTHER')
+    GROUP BY day, ecosystem
+    ORDER BY day, ecosystem
+    """
+
+
 def top_outlets_sql(days: list[str], limit: int = 400) -> str:
     """Highest-volume conflict-covering outlets, for building the register by hand.
 
