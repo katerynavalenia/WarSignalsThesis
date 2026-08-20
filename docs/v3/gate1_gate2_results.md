@@ -19,9 +19,10 @@
    re-specifying, not loosening — see §4.
 3. **Gate 2 fails.** Local-language perception adds nothing over Western media
    for defence-equity returns, and nothing at all in the Russia window.
-4. **One strong positive survives, and it is not an asset-pricing result:** the
-   censorship wedge. Russian state media's tone did not move when Russia
-   invaded, while every other ecosystem's did.
+4. **One positive survives, and it is not an asset-pricing result:** Russian
+   state media's tone did not move when Russia invaded, while Ukrainian media's
+   fell 1.66 points. The narrower state-versus-*independent* wedge does not
+   survive a fixed outlet panel — see [`gate3_results.md`](gate3_results.md).
 
 ---
 
@@ -153,7 +154,12 @@ what a daily-shock design needs them not to be.
 several hundred URLs in Russian and Ukrainian and cannot be automated. Gate 1 is
 **provisionally passed** pending it.
 
-## 5. The censorship wedge — the strongest result here
+## 5. The censorship wedge — partly retracted, read §5b
+
+> **Amended 2026-08-20.** The state-versus-independent contrast below does **not**
+> survive a fixed outlet panel (p=0.151), and one outlet in the register was
+> misclassified. See [`gate3_results.md`](gate3_results.md) "Addendum". The
+> *state-versus-Ukraine* contrast does survive and is the claim to make.
 
 Mean conflict tone, before and after the invasion:
 
