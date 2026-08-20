@@ -54,6 +54,14 @@ build/
 **/data/interim/**/*.parquet
 **/data/interim/**/*.json
 
+# ...except the v3 spine and perception indices. All under 500 KB, and the
+# GDELT one cost 182 GB of BigQuery quota to build — regenerating it needs
+# credentials and a day of the daily quota, so it is versioned rather than
+# treated as scratch.
+!thesis_v2/data/interim/spine_full.parquet
+!thesis_v2/data/interim/gdelt_ecosystems_daily.parquet
+!thesis_v2/data/interim/perception_indices.parquet
+
 # Processed data
 **/data/processed/**/*.csv
 **/data/processed/**/*.parquet
@@ -100,6 +108,15 @@ secrets.yaml
 
 # Google OAuth credentials (do not commit)
 client_secret_*.json
+
+# Google service-account keys download with unpredictable names such as
+# <project>-<keyid>.json, which none of the patterns above catch. Keys belong
+# outside the repo entirely (~/.config/gcp/); this is only a backstop against
+# one landing here and being swept up by `git add -A`.
+*-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]*.json
+*service-account*.json
+*service_account*.json
+gcp-*.json
 
 # ── Colab-simulated data (stored on Google Drive instead) ──
 # 5.1 GB of enriched GKG parquets are too large for git.

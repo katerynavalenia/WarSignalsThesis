@@ -1,0 +1,129 @@
+"""Assigning each article to a media ecosystem by **publisher**, not by topic.
+
+v1's fatal error was classifying by the country an article *mentions*
+(``docs/v3/gdelt_measurement_diagnosis.md``). This module classifies by who
+published it, using the tier order of ``research_plan_v3.md`` §5.2: a curated
+register first, then ccTLD, then source language conditioned on country.
+
+**Country dominates language, always.** Measured on the BigQuery corpus,
+Ukrainian outlets publish heavily in Russian — ``24tv.ua`` appears with 2,595
+Ukrainian-language and 1,865 Russian-language articles, and ``censor.net.ua``,
+``nv.ua`` and ``segodnya.ua`` are Russian-language almost throughout. A
+``srclc='rus'`` rule would file all of them under Russian media, which would
+manufacture agreement between the two ecosystems and destroy the result the
+thesis is trying to measure. Language is therefore only ever used to split
+*within* a country.
+
+The state/independent split for Russian media follows Bondarenko et al. (2024),
+who control for press freedom the same way. It is the most contestable part of
+the register and is marked as such: several outlets changed ownership or were
+shut down inside the sample window, and `PROVISIONAL` flags those.
+"""
+
+from __future__ import annotations
+
+# --- Tier 1: curated register -------------------------------------------------
+
+#: Russian outlets that are state-owned, state-founded, or under state control
+#: for most of the sample.
+RU_STATE = {
+    "tass.ru", "special.tass.ru", "ria.ru", "rg.ru", "rt.com", "riafan.ru",
+    "vesti.ru", "iz.ru", "vz.ru", "life.ru", "1tv.ru", "tvzvezda.ru",
+    "smotrim.ru", "sputniknews.com", "ren.tv", "1prime.ru", "mskagency.ru",
+    "aif.ru", "kp.ru", "pda.kp.ru", "vm.ru", "regnum.ru", "lenta.ru",
+    "gazeta.ru", "ura.news", "russian.rt.com", "inosmi.ru", "rueconomics.ru",
+}
+
+#: Russian-language outlets that are independent, exiled, or foreign-funded.
+#: PROVISIONAL: echo.msk.ru was liquidated in March 2022; kommersant, vedomosti
+#: and rbc are business titles whose editorial independence narrowed over the
+#: sample rather than switching on a single date.
+RU_INDEPENDENT = {
+    "meduza.io", "novayagazeta.eu", "novayagazeta.ru", "theins.ru",
+    "zona.media", "mediazona.ca", "svoboda.org", "currenttime.tv",
+    "moscowtimes.ru", "themoscowtimes.com", "republic.ru", "tvrain.ru",
+    "echo.msk.ru", "kommersant.ru", "vedomosti.ru", "rbc.ru", "znak.com",
+    "7x7-journal.ru", "dw.com",
+}
+
+#: Ukrainian outlets that do not carry a .ua domain.
+UA_REGISTER = {
+    "unian.net", "censor.net", "pravda.com.ua", "ukrinform.net",
+    "kyivindependent.com", "kyivpost.com", "epravda.com.ua", "hromadske.ua",
+    "liga.net", "obozrevatel.com", "korrespondent.net", "strana.news",
+}
+
+#: Investor-facing Western outlets on generic TLDs. Deliberately *excludes*
+#: aggregators (msn.com, yahoo.com, news.google.com, iheart.com), which carry
+#: large volume but no editorial voice — counting them as Western media would
+#: measure syndication, not perspective.
+WEST_REGISTER = {
+    "reuters.com", "bloomberg.com", "ft.com", "wsj.com", "nytimes.com",
+    "washingtonpost.com", "cnn.com", "bbc.co.uk", "bbc.com", "theguardian.com",
+    "telegraph.co.uk", "economist.com", "apnews.com", "cnbc.com", "politico.eu",
+    "spiegel.de", "lemonde.fr", "faz.net", "handelsblatt.com", "marketwatch.com",
+    "barrons.com", "forbes.com", "businessinsider.com", "axios.com", "npr.org",
+}
+
+#: Excluded from every ecosystem: syndication platforms with no newsroom.
+AGGREGATORS = {
+    "msn.com", "yahoo.com", "news.yahoo.com", "news.google.com", "iheart.com",
+    "finance.yahoo.com", "news.mail.ru", "news.meta.ua", "flipboard.com",
+    "newsbreak.com", "smartnews.com",
+}
+
+# --- Tier 2: country top-level domains ---------------------------------------
+
+#: NATO/EU member ccTLDs — the investor-facing information set.
+WEST_TLDS = {
+    "us", "uk", "de", "fr", "it", "es", "pl", "nl", "se", "no", "dk", "fi",
+    "ca", "au", "be", "at", "cz", "pt", "ie", "gr", "ro", "hu", "sk", "si",
+    "lt", "lv", "ee", "bg", "hr", "lu", "is", "nz", "ch",
+}
+
+
+def build_case_sql(domain: str = "SourceCommonName", srclc_expr: str = "srclc") -> str:
+    """SQL CASE assigning one ecosystem per article, tiers applied in order.
+
+    Emitted as SQL rather than applied in pandas because the classification has
+    to happen server-side — the whole point of the BigQuery route is that only
+    daily aggregates cross the wire.
+    """
+
+    def lit(items) -> str:
+        return ", ".join(f"'{d}'" for d in sorted(items))
+
+    return f"""
+    CASE
+      -- Tier 0: aggregators carry volume but no editorial voice.
+      WHEN {domain} IN ({lit(AGGREGATORS)}) THEN 'AGGREGATOR'
+
+      -- Tier 1: curated register. Country before language, throughout.
+      WHEN {domain} IN ({lit(UA_REGISTER)}) THEN 'UA'
+      WHEN {domain} IN ({lit(RU_STATE)}) THEN 'RU_STATE'
+      WHEN {domain} IN ({lit(RU_INDEPENDENT)}) THEN 'RU_INDEP'
+      WHEN {domain} IN ({lit(WEST_REGISTER)}) THEN 'WEST'
+
+      -- Tier 2: ccTLD. A .ua outlet is Ukrainian whatever language it uses.
+      WHEN ENDS_WITH({domain}, '.ua') THEN 'UA'
+      WHEN ENDS_WITH({domain}, '.ru') THEN 'RU_OTHER'
+      WHEN REGEXP_EXTRACT({domain}, r'\\.([a-z]+)$') IN ({lit(WEST_TLDS)}) THEN 'WEST'
+
+      -- Tier 3: language, only where country is unknown. Generic TLDs with no
+      -- translation record are overwhelmingly Anglophone newsrooms.
+      WHEN {srclc_expr} IS NULL THEN 'EN_GLOBAL'
+      WHEN {srclc_expr} = 'ukr' THEN 'UA'
+      WHEN {srclc_expr} = 'rus' THEN 'RU_OTHER'
+      ELSE 'OTHER'
+    END
+    """
+
+
+#: Ecosystems carried into the analysis. RU_OTHER is Russian media outside the
+#: register — kept separate so the state/independent split stays clean, and
+#: reported so unclassified Russian volume is visible rather than hidden.
+ECOSYSTEMS = ("UA", "RU_STATE", "RU_INDEP", "RU_OTHER", "WEST", "EN_GLOBAL", "OTHER")
+
+#: The arm that reproduces v1's information set, and the one Bondarenko et al.
+#: find inert for Russian macro aggregates.
+ENGLISH_ARM = "EN_GLOBAL"
