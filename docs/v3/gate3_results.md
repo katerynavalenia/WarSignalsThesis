@@ -113,7 +113,56 @@ the signature of a pattern that is not structural.
 - **The hand-labelled precision audit** (§5.5.1) still governs Gate 1's
   provisional status, and becomes mandatory if the censorship wedge is promoted
   to the centerpiece.
-- **Composition stability of RU_INDEP** across the invasion: echo.msk.ru was
-  liquidated in March 2022, so the ecosystem's membership changes at the event
-  the wedge is measured on. This needs a fixed-outlet-panel re-run before the
-  wedge is published.
+## Addendum — the censorship wedge does not survive a fixed outlet panel
+
+The wedge was the strongest surviving result, so it was re-run on outlets
+present on **both** sides of the invasion with ≥200 conflict articles in each
+period — 30 outlets, 24 state and 6 independent — rather than on whatever each
+ecosystem contained at the time.
+
+| | outlets | tone pre | tone post | shift |
+|---|---|---|---|---|
+| RU_STATE | 24 | −1.745 | −1.797 | **−0.052** |
+| RU_INDEP | 6 | −2.239 | −2.544 | −0.305 |
+
+Welch test on the difference in shifts: **p = 0.151. Not significant.**
+
+Two separate problems:
+
+1. **The contrast is underpowered.** Six independent outlets survive the fixed
+   panel, because most of that ecosystem is thin, exiled or was shut down —
+   meduza.io, tvrain.ru, zona.media, znak.com and themoscowtimes.com all drop
+   out, and echo.msk.ru falls from 13,951 articles to 1,043 after its
+   liquidation. The ecosystem-level wedge in `gate1_gate2_results.md` §5 was
+   therefore measured partly on a change of membership, which is exactly the
+   confound a fixed panel is for.
+2. **A register error inflated it.** `dw.com` — Deutsche Welle, a German public
+   broadcaster with a Russian-language service — was classified RU_INDEP. It is
+   the largest contributor to that ecosystem's volume and carries the largest
+   negative shift (−0.73). It is a *Western* outlet by publisher, which is the
+   criterion this project exists to apply. Fixed in `ecosystems.py`; the
+   committed tables predate the fix.
+
+**What still stands.** Russian state media's tone genuinely did not move: 24
+outlets, mean shift −0.05, with several turning *more positive* across the
+invasion (regnum.ru +0.23, gazeta.ru +0.48, ren.tv +0.43, mskagency.ru +0.40).
+Against Ukrainian media's −1.66 that contrast is enormous and will survive any
+reasonable test. **The state-versus-independent wedge specifically does not**,
+and should be reported as directional-but-not-significant until the register is
+audited and the independent panel is deepened.
+
+That the audit-class error was found by a robustness run rather than by the
+audit is the argument for doing the audit: `dw.com` sat in the register from the
+start and nothing downstream flagged it.
+
+## What was not tested
+
+- The **2017-19 window is now used**, so it is no longer held out. Any further
+  hypothesis needs a fresh test window; the honest options are a different asset
+  class or a different conflict.
+- **Intraday timing.** GDELT is 15-minute; equities here are daily. A genuine
+  lead-lag test of whether Ukrainian media move before Western wires needs
+  intraday prices and was never in scope.
+- **The hand-labelled precision audit** (§5.5.1) still governs Gate 1's
+  provisional status, and is now mandatory rather than advisable — see the
+  addendum above.

@@ -43,8 +43,17 @@ RU_INDEPENDENT = {
     "zona.media", "mediazona.ca", "svoboda.org", "currenttime.tv",
     "moscowtimes.ru", "themoscowtimes.com", "republic.ru", "tvrain.ru",
     "echo.msk.ru", "kommersant.ru", "vedomosti.ru", "rbc.ru", "znak.com",
-    "7x7-journal.ru", "dw.com",
+    "7x7-journal.ru",
 }
+# NOTE: ``dw.com`` was in this set for the 2026-08-20 ingest and should not have
+# been. Deutsche Welle is a German public broadcaster with a Russian-language
+# service — a Western outlet by publisher, which is the criterion this module
+# exists to apply. It is the single largest contributor to RU_INDEP volume and
+# carries the largest negative tone shift (−0.73), so it inflates that
+# ecosystem's measured reaction to the invasion. It now classifies as WEST via
+# :data:`WEST_REGISTER`. The committed ecosystem tables predate the fix; see
+# ``docs/v3/gate3_results.md``. This is exactly the error class the hand-labelled
+# precision audit exists to catch, found instead by a fixed-panel robustness run.
 
 #: Ukrainian outlets that do not carry a .ua domain.
 UA_REGISTER = {
@@ -63,6 +72,7 @@ WEST_REGISTER = {
     "telegraph.co.uk", "economist.com", "apnews.com", "cnbc.com", "politico.eu",
     "spiegel.de", "lemonde.fr", "faz.net", "handelsblatt.com", "marketwatch.com",
     "barrons.com", "forbes.com", "businessinsider.com", "axios.com", "npr.org",
+    "dw.com",
 }
 
 #: Excluded from every ecosystem: syndication platforms with no newsroom.
