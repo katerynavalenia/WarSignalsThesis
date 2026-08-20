@@ -1,7 +1,7 @@
 # What the surviving data already says about threat vs act
 
 **Date:** 2026-08-20 · **Status:** estimated, reproducible, not yet sent to the supervisor
-**Code:** `thesis_v2/scripts/phase1_gpr_regime_preview.py` · **Tables:** `thesis_v2/outputs/tables/phase1_*.csv`
+**Code:** `thesis_v2/scripts/gpr_regime_preview.py` · **Tables:** `thesis_v2/outputs/tables/gpr_*.csv`
 
 The GDELT rebuild is the expensive part of the v3 plan, and
 [`research_plan_v3.md`](research_plan_v3.md) §9 assigns probabilities to its
@@ -49,7 +49,7 @@ variable: daily log return.
 | invasion | 155 | +0.136 (0.27) | −0.012 (0.92) | +0.053 (0.53) | −0.056 (0.45) |
 | attrition *(= the whole v1 sample)* | 979 | −0.012 (0.78) | +0.054 (0.19) | −0.013 (0.67) | +0.043 (0.12) |
 
-Separate per-regime regressions agree (`phase1_race_returns_*.csv`).
+Separate per-regime regressions agree (`gpr_race_returns_*.csv`).
 
 **Threat beats act, but not uniformly.** For European defence (BSHIELDT) both
 channels are significant in the build-up and threat is the larger; for global
@@ -58,7 +58,7 @@ result, and overclaiming "threat, not act" would misstate the BSHIELDT column.
 
 ### Volatility: nothing, anywhere
 
-`phase1_race_vol_*.csv`: in changes, no regime × index × channel cell reaches
+`gpr_race_vol_*.csv`: in changes, no regime × index × channel cell reaches
 p<0.08. The v1/v2 focus on volatility as the responsive outcome is not
 supported once the transform is right.
 
@@ -76,7 +76,7 @@ window-length artefact.
 
 ## 4. Why v2's headline dies
 
-`phase1_levels_vs_changes.csv`, dependent variable `vol_bshieldt`, attrition
+`gpr_levels_vs_changes.csv`, dependent variable `vol_bshieldt`, attrition
 sample — the specification v2 reported as its strongest positive:
 
 | Transform | act | p | threat | p |
@@ -113,7 +113,7 @@ attrition regime *neither channel does anything*.
 
 ## 6. Predictability
 
-`phase1_predictability.csv` — next-day returns on today's shocks, in sample:
+`gpr_predictability.csv` — next-day returns on today's shocks, in sample:
 every p-value above 0.11, R² between 0.0004 and 0.03. An in-sample regression is
 the friendlier test, so the Phase-5 out-of-sample battery will not do better.
 This is fine, and it is the efficiency leg: the market prices anticipation *as
@@ -151,7 +151,7 @@ it arrives* and it is not exploitable afterwards.
 ## 9. Reproducing
 
 ```bash
-cd thesis_v2 && python scripts/phase1_gpr_regime_preview.py
+cd thesis_v2 && python scripts/gpr_regime_preview.py
 ```
 
 Needs the two Bloomberg workbooks in `thesis_v1/data/raw/bloomberg/` (gitignored;

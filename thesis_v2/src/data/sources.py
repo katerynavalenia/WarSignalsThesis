@@ -14,7 +14,7 @@ verified from a cloud session on 2026-08-20:
 Equity prices are deliberately *not* here. Yahoo Finance rate-limits this
 environment's shared egress IP and Stooq is behind a JavaScript challenge, so
 the defence-equity panel comes from Bloomberg (2020 onward, already collected)
-or from a keyed vendor. See ``docs/v3/phase1_data_sources.md``.
+or from a keyed vendor. See ``docs/v3/data_sources.md``.
 """
 
 from __future__ import annotations

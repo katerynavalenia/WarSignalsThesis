@@ -114,7 +114,7 @@ class TestRealizedVol:
 
 
 def test_thresholds_are_the_documented_ones():
-    # Guards against silent loosening; docs/v3/phase1_equity_validation.md
+    # Guards against silent loosening; docs/v3/equity_validation.md
     # quotes these numbers.
     assert THRESHOLDS["return_corr_min"] == 0.95
     assert THRESHOLDS["vol_corr_min"] == 0.90

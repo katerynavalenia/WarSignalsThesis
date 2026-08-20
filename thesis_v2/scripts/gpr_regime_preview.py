@@ -12,10 +12,10 @@ Canadian newspapers, so it is a *Western-media* threat/act decomposition, which
 makes this a preview of the WEST arm specifically, and the benchmark the rebuilt
 indices are validated against (``research_plan_v3.md`` §5.5).
 
-    cd thesis_v2 && python scripts/phase1_gpr_regime_preview.py
-    cd thesis_v2 && python scripts/phase1_gpr_regime_preview.py --bloomberg-dir ...
+    cd thesis_v2 && python scripts/gpr_regime_preview.py
+    cd thesis_v2 && python scripts/gpr_regime_preview.py --bloomberg-dir ...
 
-Findings are written up in ``docs/v3/phase1_gpr_regime_preview.md``.
+Findings are written up in ``docs/v3/gpr_regime_preview.md``.
 """
 
 from __future__ import annotations
@@ -55,7 +55,7 @@ def build_panel(bloomberg_dir: Path, start: str, end: str) -> pd.DataFrame:
     gpr = fetch_gpr_daily()
     # SP500 is the reachable market control. FRED truncates it to a rolling ten
     # years, which covers this 2020-2026 window but will not reach 2015 — the
-    # long sample needs a real regional benchmark (docs/v3/phase1_data_sources.md).
+    # long sample needs a real regional benchmark (docs/v3/data_sources.md).
     vix = fetch_fred_series("VIXCLS", start=start).rename("vix")
     spx = fetch_fred_series("SP500", start=start).rename("spx")
 
@@ -185,20 +185,20 @@ def main() -> None:
     )
 
     outputs = {
-        "phase1_regime_structure": regime_structure(panel),
-        "phase1_levels_vs_changes": levels_vs_changes(panel),
-        "phase1_race_returns_bshieldt": race_by_regime(panel, "r_bshieldt"),
-        "phase1_race_returns_waerlst": race_by_regime(panel, "r_waerlst"),
-        "phase1_race_vol_bshieldt": race_by_regime(panel, "vol_bshieldt"),
-        "phase1_race_vol_waerlst": race_by_regime(panel, "vol_waerlst"),
-        "phase1_interacted_bshieldt": interacted_race(panel, "r_bshieldt"),
-        "phase1_interacted_waerlst": interacted_race(panel, "r_waerlst"),
-        "phase1_window_sensitivity": window_sensitivity(
+        "gpr_regime_structure": regime_structure(panel),
+        "gpr_levels_vs_changes": levels_vs_changes(panel),
+        "gpr_race_returns_bshieldt": race_by_regime(panel, "r_bshieldt"),
+        "gpr_race_returns_waerlst": race_by_regime(panel, "r_waerlst"),
+        "gpr_race_vol_bshieldt": race_by_regime(panel, "vol_bshieldt"),
+        "gpr_race_vol_waerlst": race_by_regime(panel, "vol_waerlst"),
+        "gpr_interacted_bshieldt": interacted_race(panel, "r_bshieldt"),
+        "gpr_interacted_waerlst": interacted_race(panel, "r_waerlst"),
+        "gpr_window_sensitivity": window_sensitivity(
             panel,
             ["2021-08-01", "2021-09-01", "2021-10-01", "2021-11-01", "2021-12-01"],
         ),
-        "phase1_placebo": placebo(panel),
-        "phase1_predictability": predictability(panel),
+        "gpr_placebo": placebo(panel),
+        "gpr_predictability": predictability(panel),
     }
 
     args.out_dir.mkdir(parents=True, exist_ok=True)

@@ -8,7 +8,7 @@ the thesis's conclusions do not depend on which one is used".
 
 This module answers that on the 2020–2026 overlap, against criteria fixed in
 advance so the test cannot be talked into passing after the fact. See
-``docs/v3/phase1_equity_validation.md`` for why each threshold is where it is.
+``docs/v3/equity_validation.md`` for why each threshold is where it is.
 
 The precedent that motivates the design: v1 reconstructed WAERLST and BSHIELDT
 from constituents. ``r_BSHIELDT_recon`` matched the real series' standard

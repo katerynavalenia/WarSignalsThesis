@@ -51,6 +51,34 @@ forecast accuracy was judged on metrics too blunt to detect the effect sizes thi
 literature deals in. New question: **whose perception of geopolitical risk is
 priced in defence equities?** See [`v3/README.md`](v3/README.md).
 
+## Phase numbers do not carry across versions
+
+Each iteration numbered its phases independently, so a bare "Phase 5" is
+ambiguous — and v1's numbers are still live in filenames (`phase5_build_master.py`,
+`test_phase6_baselines.py`) while v3's exist only in prose.
+
+| # | v1 — *in filenames* | v2 | v3 — *in the plan* |
+|---|---|---|---|
+| 1 | Financial-data audit | Data assembly | Long-sample data spine |
+| 2 | Physical attack dataset | Panel construction | **Perception indices — the gate** |
+| 3 | GDELT extraction & classification | Main response analysis | Stylized facts |
+| 4 | GDELT tone | Heterogeneity | Dynamic response |
+| 5 | Merge & feature engineering | Predictability check | Forecasting repair |
+| 6 | Econometric baselines | Robustness | Cross-section & events |
+| 7 | Machine-learning models | Writing | Robustness |
+| 8 | — | Final validation | Writing |
+| 9 | — | — | Final validation |
+
+**Conventions, to stop this recurring:**
+
+- **Always qualify in prose**: "v3 Phase 5", never a bare "Phase 5".
+- **Never put a phase number in a new filename.** The numbering has been
+  rewritten twice in two months; files outlive it. Name by content instead —
+  `build_spine.py`, `gpr_regime_preview.py`, `gpr_race_returns_bshieldt.csv`.
+- **v1's phase-numbered filenames are frozen**, not a precedent. Roughly 78
+  references across `docs/v1/` cite them, and that trail is the point of keeping
+  v1 at all.
+
 ## Rules
 
 - Do not edit `docs/v1/*` or `docs/v2/*` — they are the historical record of what

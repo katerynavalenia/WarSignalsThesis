@@ -3,7 +3,7 @@
 ``WAERLST Index.xlsx`` (global A&D, USD) and ``BSHIELDT Index.xlsx`` (European
 defence, EUR) are the only proprietary series that survived the v1/v2 data
 attrition, and they are why a long-sample analysis is possible before the
-free-basket question (``docs/v3/phase1_equity_validation.md``) is settled: they
+free-basket question (``docs/v3/equity_validation.md``) is settled: they
 cover **2020-01-01 → 2026-06-30**, which already contains the 2021 build-up and
 the February-2022 re-rating that the reviewed paper missed.
 

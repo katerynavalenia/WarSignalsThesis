@@ -11,7 +11,7 @@ fixed before the test is run.
 
 This has not been run, because a cloud session has neither the Bloomberg files
 (they are on Drive) nor a reachable equity source
-(see [`phase1_data_sources.md`](phase1_data_sources.md) §2).
+(see [`data_sources.md`](data_sources.md) §2).
 
 ---
 
@@ -109,7 +109,7 @@ quality — by making the high-quality series the referee rather than dropping i
 1. The Bloomberg daily series for WAERLST and BSHIELDT, 2020-01 → 2026-06,
    synced from Drive and committed as a small CSV. That alone unblocks the test.
 2. A candidate basket, from a vendor key or a Colab run
-   ([`phase1_data_sources.md`](phase1_data_sources.md) §3).
+   ([`data_sources.md`](data_sources.md) §3).
 
 Then `validate_basket()` produces the table, and the answer is either a pass, or
 a specific reason to reconsider the basket's composition.

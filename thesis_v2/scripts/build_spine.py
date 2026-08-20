@@ -5,11 +5,11 @@ one daily table covering 2015-02-18 onward, and writes a coverage report.
 
 The equity half (defence returns, realized volatility, regional benchmarks) is
 attached by a later step, because it needs a data source this environment
-cannot reach — see ``docs/v3/phase1_data_sources.md``. Splitting the two means
+cannot reach — see ``docs/v3/data_sources.md``. Splitting the two means
 the macro side is finished, versioned and testable now instead of waiting.
 
-    cd thesis_v2 && python scripts/phase1_build_spine.py
-    cd thesis_v2 && python scripts/phase1_build_spine.py --start 2015-02-18 --end 2026-06-30
+    cd thesis_v2 && python scripts/build_spine.py
+    cd thesis_v2 && python scripts/build_spine.py --start 2015-02-18 --end 2026-06-30
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ from src.data.sources import FRED_SERIES, fetch_fred_panel, fetch_gpr_daily  # n
 from src.features.calendar import SAMPLE_START, build_calendar  # noqa: E402
 
 OUT_PARQUET = Path("data/interim/spine_macro.parquet")
-OUT_REPORT = Path("outputs/tables/phase1_spine_coverage.csv")
+OUT_REPORT = Path("outputs/tables/spine_coverage.csv")
 
 
 def build_spine(start: str, end: str) -> pd.DataFrame:

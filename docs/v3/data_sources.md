@@ -18,7 +18,7 @@ FRED series used: `VIXCLS` (vix), `DCOILBRENTEU` (brent), `DEXUSEU` (usd_eur),
 
 **Built and committed:** `data/interim/spine_macro.parquet` — 4,151 calendar
 days, 2015-02-18 → 2026-06-30, 18 columns, **100% coverage** on GPR and all five
-FRED controls. Reproduce with `cd thesis_v2 && python scripts/phase1_build_spine.py`.
+FRED controls. Reproduce with `cd thesis_v2 && python scripts/build_spine.py`.
 
 ## 2. What does not work from here
 

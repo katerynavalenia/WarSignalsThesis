@@ -439,6 +439,12 @@ not for the econometrics.
 Each phase has an acceptance test. Phases 1–2 are the make-or-break; do not start
 Phase 4 before Phase 2 passes.
 
+Numbers in this section are **v3's throughout**. They do not correspond to v1's
+phases, which are still live in filenames (`phase5_build_master.py`,
+`test_phase6_baselines.py`) and mean something else entirely — v1's Phase 5 was
+merge and feature engineering, v3's is the forecasting repair. Cross-version key:
+[`../README.md`](../README.md). Do not put a phase number in a new filename.
+
 | Phase | Work | Acceptance |
 |---|---|---|
 | **0. Notify (does not block)** | Send the supervisor a short note: his comment #3 uncovered a measurement error, and it is being fixed together with the sample extension. **This is information, not a request for permission** — see below. | Email sent. Work proceeds in parallel; nothing waits on a reply. |
