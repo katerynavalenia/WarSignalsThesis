@@ -1,6 +1,7 @@
 # Research Plan v3 — Whose Geopolitical Risk Is Priced?
 
-**Status:** proposed — awaiting Kateryna's and the supervisor's sign-off
+**Status:** active — execution starts immediately; see §8 Phase 0 on why no
+supervisor approval is required to begin
 **Date:** 2026-08-17
 **Trigger:** supervisor review (Thomas, 5 comments) on the v1 paper
 **Relationship to earlier plans:** supersedes `docs/v2/research_plan.md` as the
@@ -440,7 +441,7 @@ Phase 4 before Phase 2 passes.
 
 | Phase | Work | Acceptance |
 |---|---|---|
-| **0. Sign-off** | Agree the reframing with the supervisor. Send: the measurement diagnosis, the revised question, the sample extension, and the response matrix. | Written go-ahead; confirmation that a three-way perception extension of Bondarenko et al. is the right framing. |
+| **0. Notify (does not block)** | Send the supervisor a short note: his comment #3 uncovered a measurement error, and it is being fixed together with the sample extension. **This is information, not a request for permission** — see below. | Email sent. Work proceeds in parallel; nothing waits on a reply. |
 | **1. Long-sample data spine** | Back-extend financial data to 2015 (Bloomberg re-pull and/or free basket); back-extend market controls; assemble GPR over the full sample; build the regime calendar; **provisional indices via Route 3 (2017+)**. | A 2015–2026 daily table of returns, realized vol, controls and GPR; provisional perception indices plotted; free-basket vs Bloomberg correlation ≥0.95 on the overlap. |
 | **2. Perception indices (the core build)** | Verify BigQuery translingual coverage; build the outlet register; ingest 2015–2026; construct all indices (§5.4); run the full validation battery (§5.5). | **Gate:** hand-labelled precision reported per ecosystem; WEST index correlates strongly with published GPR; indices visibly spike on known events; the ecosystems are *not* mutually collinear (pairwise |ρ| well below the v1 topic-proxy levels). If this gate fails, stop and reconsider before investing in Blocks B–E. |
 | **3. Stylized facts** | Block A in full. | The descriptive chapter, ready to send to the supervisor as the first deliverable answering comments #1–#3. |
@@ -450,6 +451,37 @@ Phase 4 before Phase 2 passes.
 | **7. Robustness** | Classification-rule sensitivity, alternative dictionaries, alternative shock orderings, placebo dates, subsample stability, alternative market models. | Robustness matrix; every headline either survives or is explicitly demoted. |
 | **8. Writing** | Chapters per §9. | Draft. |
 | **9. Final validation** | Re-run end-to-end from raw; verify every number in the text against an output file. | Reproducibility log. |
+
+### Why Phase 0 does not block
+
+Four of the five review comments are unambiguous instructions — extend the
+sample, add the descriptive section, describe the methodology properly, report a
+Diebold–Mariano test, cite Bondarenko et al. Doing what a supervisor explicitly
+asked for does not require asking whether to do it. Phases 1–3 and 5 are those
+four comments and nothing else.
+
+Comment #3 is the one that grew. He asked for a fuller *description*; the
+description could not be written honestly, because the method classified
+articles by the country they mention rather than the outlet that published them.
+Replacing it is the only way to comply — a better description of an invalid
+measure is not what he asked for. So the rebuild is still a fix, not a
+departure.
+
+**The one genuine departure is the headline framing** — moving from "do war
+signals forecast defence equities" to "whose perception of geopolitical risk is
+priced". He reviewed a forecasting paper and gave fixes to that paper; he did
+not ask for a new question.
+
+That decision does not have to be made now, and should not be. Phases 1–3
+produce identical artifacts under either framing: the same long sample, the same
+publisher-classified indices, the same descriptive chapter, the same test
+battery. The framing only starts to matter at Phase 4, several weeks out — and
+by then the descriptive chapter exists, which is far better evidence for the
+choice than an argument made in advance. Raise it when sending him Phase 3.
+
+**Risk of proceeding:** near zero. If he rejects the reframing, every artifact
+from Phases 1–3 and 5 still stands, because each one exists to satisfy a comment
+he made himself.
 
 ### Chapter structure (§9)
 
@@ -519,6 +551,8 @@ every existing pipeline.
 4. **v2's contemporaneous-response work:** fold it into Block B/D as a
    short-sample robustness section rather than running it as a separate project.
    *Recommendation: fold in.*
-5. **What to send the supervisor now:** recommendation is a short memo containing
-   the measurement diagnosis (§1.2), the sample-extension plan (§4.1), and the
-   revised question (§2.1), asking for approval before the ~2-week data build.
+5. **What to send the supervisor now:** a short note reporting that comment #3
+   uncovered a measurement error and that it is being fixed alongside the sample
+   extension. Send it as **information, not a request** — the work proceeds
+   regardless. Hold the reframing question until Phase 3 is in hand (see §8
+   "Why Phase 0 does not block").

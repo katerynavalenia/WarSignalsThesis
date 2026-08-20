@@ -9,7 +9,7 @@
 
 ## Current phase
 
-**Phase 0 — Sign-off** 🟡 In progress
+**Phase 0 — Notify, then execute** 🟢 Unblocked
 
 - [x] Supervisor review received (5 comments) and answered point by point
       ([`supervisor_response_matrix.md`](supervisor_response_matrix.md))
@@ -19,8 +19,13 @@
       translingual archive verified available from 2015-02-18
       ([`gdelt_measurement_diagnosis.md`](gdelt_measurement_diagnosis.md))
 - [x] Bondarenko et al. (2024, *JIE*) read and adopted as the methodological anchor
-- [ ] **Kateryna's decision on the five open questions** ([`research_plan_v3.md`](research_plan_v3.md) §11)
-- [ ] **Supervisor sign-off on the reframing** before the data rebuild starts
+- [x] Established that supervisor approval is **not** required to begin — four of
+      the five comments are explicit instructions, and the fifth (methodology)
+      can only be complied with by rebuilding. See
+      [`research_plan_v3.md`](research_plan_v3.md) §8 "Why Phase 0 does not block".
+- [ ] Send the supervisor an informational note (does not block anything)
+- [ ] Decide the headline framing — **defer to Phase 3**, when the descriptive
+      chapter makes the choice evidential rather than speculative
 - [ ] Bloomberg: confirm whether WAERLST/BSHIELDT can be re-pulled from 2015
 
 ## Blockers
@@ -47,7 +52,8 @@ mutual non-collinearity), stop and reconsider before investing in Blocks B–E.
 
 ## Immediate next action
 
-Connect GitHub (blocker 1), then send the supervisor the memo described in
-[`research_plan_v3.md`](research_plan_v3.md) §11.5 — the measurement diagnosis,
-the sample-extension plan, and the revised question — and ask for approval
-before the ~2-week data build.
+Start Phase 5 (the test module — Diebold–Mariano, Clark–West, Campbell–Thompson
+R²_OS, MCS, Benjamini–Hochberg). It closes supervisor comment #4, needs no data
+and no credentials, and is required under every possible framing. In parallel,
+configure BigQuery (blocker 2) so Phase 2 can start, and send the supervisor the
+informational note.
