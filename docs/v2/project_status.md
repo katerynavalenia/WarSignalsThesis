@@ -1,5 +1,12 @@
 # Project Status — v2
 
+> **SUPERSEDED (2026-08-17).** After the supervisor's review of the v1 paper, the
+> active plan is [`../v3/research_plan_v3.md`](../v3/research_plan_v3.md). This
+> file is kept as a record. v2's preliminary regression evidence (research_plan
+> §6) is still valid and is carried into v3 Blocks B and D; v2's falsified
+> firm-exposure hypothesis is re-tested there across the February-2022 break,
+> where it was never tested.
+
 **Last updated:** 2026-07-01
 
 > See [`research_plan.md`](research_plan.md) for the full plan and

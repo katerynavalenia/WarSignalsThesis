@@ -107,3 +107,11 @@ client_secret_*.json
 # See docs/v1/data_sharing.md for setup (v1 only).
 **/data/news_colab_sim/**/*.parquet
 **/data/news_colab_sim/**/*.csv
+
+# ── Claude Code ─────────────────────────
+# Track the shared project config (.claude/settings.json, .claude/cloud_setup.sh);
+# ignore per-machine state. See docs/cloud_sessions.md.
+.claude/*
+!.claude/settings.json
+!.claude/cloud_setup.sh
+.claude/settings.local.json
