@@ -1,6 +1,6 @@
 # Project Status — v3
 
-**Last updated:** 2026-08-17
+**Last updated:** 2026-08-20
 
 > Plan: [`research_plan_v3.md`](research_plan_v3.md).
 > Why v3 exists: [`decision_log.md`](decision_log.md).
@@ -43,17 +43,43 @@
    426/4/33; one test has since moved from passed to skipped, which is
    environment drift, not a regression.)
 
+## Phase 1 — partially delivered
+
+- [x] Macro half of the spine ([`phase1_data_sources.md`](phase1_data_sources.md))
+- [x] Free-basket validation pre-registered ([`phase1_equity_validation.md`](phase1_equity_validation.md))
+- [x] **Threat-vs-act estimated on the surviving Bloomberg indices**
+      ([`phase1_gpr_regime_preview.md`](phase1_gpr_regime_preview.md)) — the
+      response is in **returns**, in the **build-up regime**, and nowhere else;
+      v2's volatility headline does not survive first-differencing; neither
+      channel forecasts one day ahead.
+- [x] Bloomberg workbooks mirrored to
+      `gdrive:WarSignalsThesis_Data/data/raw/bloomberg/` (2026-08-20). They had
+      existed only on one laptop, untracked by git and absent from Drive.
+- [ ] Equity half of the spine — still needs a Drive sync or a vendor key
+
+Three plan revisions follow from the preview and are **not yet applied** to
+[`research_plan_v3.md`](research_plan_v3.md): downgrade §9's "volatility
+response — high" prior, commit to changes/shocks rather than levels in Block A,
+and reframe the identification claim from sample *length* to the number of
+anticipation *episodes*. See the preview's §7.
+
 ## Not yet started
 
-Phases 1–9 of [`research_plan_v3.md`](research_plan_v3.md) §8. The gate is
+Phases 2–9 of [`research_plan_v3.md`](research_plan_v3.md) §8. The gate is
 **Phase 2**: if the rebuilt perception indices fail their validation battery
 (hand-labelled precision, correlation with published GPR, event face validity,
 mutual non-collinearity), stop and reconsider before investing in Blocks B–E.
+The gate's collinearity threshold is still stated qualitatively and should be
+fixed numerically *before* the ingest, the way
+[`phase1_equity_validation.md`](phase1_equity_validation.md) §3 fixes the basket
+criteria.
 
 ## Immediate next action
 
 Start Phase 5 (the test module — Diebold–Mariano, Clark–West, Campbell–Thompson
 R²_OS, MCS, Benjamini–Hochberg). It closes supervisor comment #4, needs no data
-and no credentials, and is required under every possible framing. In parallel,
-configure BigQuery (blocker 2) so Phase 2 can start, and send the supervisor the
-informational note.
+and no credentials, and is required under every possible framing — and the
+preview's predictability null makes the power statement it produces load-bearing
+rather than decorative. In parallel, configure BigQuery (blocker 2) so Phase 2
+can start, and send the supervisor the informational note, now with the
+preview's build-up result attached as a first empirical deliverable.
