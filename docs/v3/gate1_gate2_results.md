@@ -9,9 +9,11 @@
 
 ## 0. Verdict in four lines
 
-1. **The expectations/threat channel does not exist.** It was an artefact of
-   controlling European defence equities with the S&P 500. With STOXX 600 it
-   disappears. This retracts v2 §6.4 *and* `gpr_regime_preview.md`.
+1. **The expectations/threat channel is not defence-specific.** It was an
+   artefact of controlling European defence equities with the S&P 500; with
+   STOXX 600 it disappears. Threat *is* priced — in the broad European market
+   (§6b) — just not differentially in defence. This retracts v2 §6.4 *and*
+   `gpr_regime_preview.md`.
 2. **Gate 1 passes on measurement.** The rebuilt ecosystems are genuinely
    distinct populations, unlike v1's. The external GPR check needed
    re-specifying, not loosening — see §4.
@@ -204,6 +206,45 @@ So the answer to the thesis's central question is: **Western defence equities
 price the Western narrative. Local-language perception carries no incremental
 information for them.**
 
+## 6b. Three checks that sharpen the verdict
+
+**The retraction upgrades from "no effect" to "priced market-wide."** Regressing
+the European market index *itself* on the two channels, no market control:
+
+| window | index | ACT | THREAT |
+|---|---|---|---|
+| buildup+invasion | **SXXP** | −0.190 (0.35) | **+0.474 (p<0.0001)** |
+| buildup+invasion | SPX | −0.210 (0.13) | −0.085 (0.42) |
+
+So geopolitical threat *is* priced — in the **broad European market**, not
+differentially in defence equities, and not in the US market. That is why
+controlling for SXXP kills the defence-specific threat coefficient: the effect
+is in the control. This is a considerably better sentence than "no effect," and
+it is consistent with the +0.26 residual correlation measured in §1.
+
+**The Gate-2 null is not a power failure.** The same design, same specifications,
+detects the *Western* block in 6 of 31 cells — strongest at p=0.0005 — including
+cells where the local block is flatly null (weekly r_bshieldt: p_west=0.011,
+p_local=0.320). The instrument finds Western media when Western media matter. It
+does not find local media anywhere robust.
+
+**The null survives the timing convention.** GDELT days are full UTC days while
+European markets close ~16:30 UTC, so a same-day regression includes news
+published after the close. Lagging the news one day roughly doubles the raw
+correlations (r_bshieldt: −0.013 → +0.094) and does change *which* cells look
+significant — the Russia window improves markedly (r_ita 0.090 → 0.014,
+r_waerlst 0.324 → 0.042) while the 2025-26 survivors fade. But:
+
+| alignment | nominal 5% | survives BH |
+|---|---|---|
+| same-day | 8 of 31 | 2 |
+| news lagged 1 day | 6 of 31 | **0** |
+
+Nothing survives correction under either convention, and the fact that the
+"significant" cells relocate when an innocuous convention changes is itself
+evidence they are noise. **Report the lagged specification as primary** — it is
+the defensible one — and note that it makes the null cleaner, not weaker.
+
 ## 7. What this is worth
 
 **Secured, and good:**
@@ -246,8 +287,9 @@ cannot carry an introduction on its own.
   effect still hides.
 - **1,605 days ingested, not 4,151.** Episode windows ±75 days.
 - **No hand-labelled precision audit** (§5.5.1). Gate 1 is provisional.
-- **Daily frequency may be wrong** (§4). Weekly was tested and is where the only
-  BH survivors appear — worth pursuing before accepting the null as final.
+- **Frequency and timing were tested, not assumed** (§6b). Weekly and
+  news-lagged specifications both run; neither yields a BH survivor. Remaining
+  risk here is low.
 - **RU_INDEP is thin** — 0.8 M articles against WEST's 12.1 M, and several
   outlets were shut down or exiled mid-sample.
 - **Conflict filter is coarse** — V1 `Locations` containing Ukraine or Russia.
