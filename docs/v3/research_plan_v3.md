@@ -510,6 +510,23 @@ he made himself.
 
 ## 9. Honest assessment of the odds
 
+> **Settled empirically, 2026-08-23. This table is a record of priors, not a
+> live assessment — do not cite it as one.** Every row has since been tested:
+>
+> | prior | stated | outcome |
+> |---|---|---|
+> | SQ1 ecosystems differ | very high | **confirmed** — max pairwise ρ 0.673, UA↔EN_GLOBAL 0.05 |
+> | SQ2 response of defence vol | high | **wrong** — the evidence it cited (GPR_THREAT → BSHIELDT vol) was an omitted-control artefact |
+> | headline: local beats English | moderate | **no** — Gates 2 and 3, both nulls with passing positive controls |
+> | SQ4 threat dominates act | moderate–high | **wrong** — rested on the same retracted evidence |
+> | SQ3 OOS predictability | low–moderate | **no** — 0 of 50 Clark–West rejections; bounded by the power curve |
+> | SQ5 exposure gradient | moderate | **untestable** — the firm-level data no longer exists |
+>
+> The SQ2 and SQ4 rows are the instructive failures: both cited v2's
+> GPR_THREAT result as evidence, and that result did not survive a European
+> market control. A prior built on an unreplicated finding inherits its
+> fragility. See [`findings_status.md`](findings_status.md).
+
 | Result | Probability | Why |
 |---|---|---|
 | The ecosystems differ measurably and behave differently around Feb 2022 (SQ1) | **very high** | Different corpora, different incentives, a censorship wedge; and unlike v1 these are genuinely different populations. Delivers Chapters 5–6 regardless of everything else. |

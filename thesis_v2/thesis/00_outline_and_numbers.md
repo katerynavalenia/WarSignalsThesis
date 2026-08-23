@@ -5,6 +5,12 @@ the thesis will state is listed here with the file it comes from, so drafting is
 transcription rather than recomputation. If a number is not on this page, it does
 not go in the thesis.
 
+**Before using any number from `docs/v3/`, check
+[`../../docs/v3/findings_status.md`](../../docs/v3/findings_status.md).** Six
+claims in those documents have been retracted and the documents still state them
+in their own voice, because the retraction sequence is itself part of the
+thesis. That file is the authority on which results are live.
+
 **Title:** *Whose Perception of Geopolitical Risk Is Priced in Defence Equities?
 Evidence from the Russia–Ukraine War*
 
@@ -48,7 +54,8 @@ counterparty's equities and finds the opposite asymmetry. Campbell & Thompson
 |---|---|---|
 | GDELT translingual archive | 2015-02-18 onward; 390,440 files, 4.19 TB | `gdelt_measurement_diagnosis.md` |
 | BigQuery table | `gkg_partitioned`, 1.83 bn rows, 21.8 TB, day-partitioned | `gate1_gate2_results.md` §4 |
-| Ingested | 1,605 days, 7 ecosystems, 182 GB scanned | §4 |
+| Perception-index coverage | **2015-02-18 → 2026-05-20, 4,027 days, 98% of calendar, 4.4× the reviewed paper** | ingest logs |
+| Ingested for Gates 1–2 | 1,605 days (episode windows ±75d), 182 GB | `gate1_gate2_results.md` §4 |
 | Equity spine | 2015-02-18 → 2026-06-29, 2,837 trading days, 19 tickers | `data_sources.md` |
 | Regimes | pre_war 1,678 / buildup 79 / invasion 149 / attrition 931 | spine build log |
 | Bloomberg | WAERLST, BSHIELDT, 2020-01 → 2026-06, 1,698 days | `bloomberg.py` |

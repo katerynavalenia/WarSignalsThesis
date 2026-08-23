@@ -1,6 +1,25 @@
 # What the surviving data already says about threat vs act
 
-**Date:** 2026-08-20 · **Status:** estimated, reproducible, not yet sent to the supervisor
+> # ⚠ RETRACTED — 2026-08-20
+>
+> **The central result of this document is wrong and must not be cited.** The
+> build-up threat effect reported below (p=0.0001) is an artefact of controlling
+> European defence equities with the S&P 500. With STOXX 600 as the control it
+> goes to p=0.843, and the same reversal occurs for all four targets;
+> `corr(SPX, SXXP)` is only 0.409 in that window, so SP500 leaves nearly all
+> European market variation in the residual and that residual correlates 0.26
+> with the threat shock. See [`gate1_gate2_results.md`](gate1_gate2_results.md)
+> §1 and §6b.
+>
+> **What survives:** threat is priced in the *broad European market* — SXXP
+> itself loads at +0.474 (p<0.0001) — not differentially in defence equities.
+>
+> The document is kept unedited below because the retraction is part of the
+> thesis's methodological contribution: this is one of five plausible positives
+> that did not survive. See [`findings_status.md`](findings_status.md) for the
+> full list.
+
+**Date:** 2026-08-20 · **Status:** RETRACTED, kept as a record
 **Code:** `thesis_v2/scripts/gpr_regime_preview.py` · **Tables:** `thesis_v2/outputs/tables/gpr_*.csv`
 
 The GDELT rebuild is the expensive part of the v3 plan, and

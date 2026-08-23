@@ -1,6 +1,17 @@
 # Phase 1 — where the long-sample data actually comes from
 
-**Date:** 2026-08-20 · **Status:** macro half built; equity half blocked on a choice
+**Date:** 2026-08-20 · **Status:** SUPERSEDED in part — see the correction below
+
+> **Correction, 2026-08-22.** §2 and §3 below conclude that the equity half of
+> the spine cannot be built without a vendor key or a Colab run. That is true of
+> a **cloud session only**, whose shared egress IP Yahoo rate-limits. From a
+> residential connection the same endpoint serves every ticker the thesis needs
+> with full history, including `^STOXX` — the European benchmark whose absence
+> was the largest caveat of the Bloomberg-only work, and whose inclusion later
+> retracted the threat-channel result. The equity spine was built this way:
+> 2015-02-18 → 2026-06-29, 2,837 trading days, no credential and no cost.
+> See `thesis_v2/src/data/equities.py`. Treat §2 as a statement about cloud
+> sessions, not about the data's availability.
 
 Every claim below was tested from a cloud session, not assumed.
 

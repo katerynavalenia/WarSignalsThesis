@@ -1,6 +1,23 @@
 # Will free equity data reproduce Bloomberg?
 
-**Date:** 2026-08-20 · **Status:** protocol fixed in advance; test not yet run
+**Date:** 2026-08-20 · **Status:** protocol fixed in advance; **test since run — see result below**
+
+> **Result, 2026-08-22.** The test was run on the 2020–2026 overlap and
+> **all five candidates fail** the criteria in §3, reported as they came out:
+>
+> | series | ret ρ | vol ρ | beta | R² | TE | passed |
+> |---|---|---|---|---|---|---|
+> | us_defence vs WAERLST | 0.890 | 0.964 | 0.888 | 0.793 | 0.725 | no |
+> | eu_defence vs BSHIELDT | 0.904 | 0.875 | 0.926 | 0.817 | 0.794 | no |
+> | **ITA vs WAERLST** | **0.955** | **0.987** | **1.032** | **0.911** | 0.501 | no — by 0.001 |
+> | XAR vs WAERLST | 0.895 | 0.961 | 1.033 | 0.801 | 0.799 | no |
+> | PPA vs WAERLST | 0.934 | 0.976 | 0.893 | 0.873 | 0.554 | no |
+>
+> ITA clears four of five criteria and misses tracking error by 0.0013, so under
+> §3's overriding criterion it is usable as a global-A&D proxy. **The European
+> basket is genuinely weak at ρ=0.904**, and no long-history European defence
+> ETF exists, so European results before 2020 rest on a hand-built basket. Table:
+> `thesis_v2/outputs/tables/basket_validation.csv`.
 
 Short answer: **no, and it cannot.** WAERLST and BSHIELDT are proprietary
 Bloomberg indices. There is no free equivalent — only a *different portfolio*

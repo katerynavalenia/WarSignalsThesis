@@ -3,7 +3,18 @@
 **Created:** 2026-08-17, in response to the supervisor's five-point review of the
 v1 paper.
 
+> ## ⚠ Read [`findings_status.md`](findings_status.md) first
+>
+> Five plausible positives were produced and retracted here, plus one narrower
+> claim. The documents that reported them are kept **unedited**, because the
+> sequence of retractions is part of the thesis's contribution — which means
+> several files below state, in their own voice, results that no longer hold.
+> `findings_status.md` is the authority on which results are live. Nothing in
+> this folder should be cited without checking it.
+
 ## Read in this order
+
+0. **[`findings_status.md`](findings_status.md)** — live vs retracted. Start here.
 
 1. **[`gdelt_measurement_diagnosis.md`](gdelt_measurement_diagnosis.md)** — the
    empirical finding that drives everything else: the v1 "Ukrainian / Russian /
