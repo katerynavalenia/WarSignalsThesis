@@ -58,7 +58,7 @@ a coarse filter and will admit coverage that mentions either country
 incidentally. It was chosen over the richer `V2Themes` field because the two are
 priced very differently by BigQuery — 0.242 TB against 1.853 TB across the full
 sample — and the coarser filter kept the entire ingest inside the free tier.
-Section 8.4 reports what this costs.
+Section 8.7 reports what this costs.
 
 ## 4.3 Assigning articles to media ecosystems
 

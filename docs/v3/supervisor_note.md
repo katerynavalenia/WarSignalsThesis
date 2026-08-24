@@ -35,8 +35,9 @@ reason it should be believed.
 > **On the sample (comment 1).** You were right that the September 2022 start was
 > the binding limitation, and it was set by the air-attack dataset rather than by
 > GDELT. The sample now runs from 18 February 2015 — the first day of the
-> translingual archive — to May 2026: 4,027 days, about 4.4 times the reviewed
-> version, with the February 2022 period inside it.
+> translingual archive — to May 2026: 4,027 days of coverage, roughly three
+> times the reviewed version on matched units (2,837 trading days against 931),
+> with the February 2022 period inside it.
 >
 > **On the forecasting tests (comment 4).** These are now Campbell–Thompson
 > out-of-sample R² with Clark–West tests, with Benjamini–Hochberg correction

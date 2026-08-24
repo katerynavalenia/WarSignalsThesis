@@ -6,12 +6,53 @@ and because the previous version of this project moved directly to forecasting
 without ever showing what its indicators looked like — which made every later
 result harder to trust than it needed to be.
 
-Three things are established here. The ecosystems behave differently around the
-invasion; one of them barely reacted at all; and periods of anticipation without
-realization can be identified from published data alone, which sets up the
-research design of Chapter 6.
+The review asked for three specific things, and this chapter is organised around
+them: every indicator plotted over the full sample period (Figures 1 and 2,
+Section 5.1); their correlations reported (Section 5.5); and what happens around
+February 2022 highlighted (Sections 5.1–5.3, and the marked invasion date in
+both figures). Two further things are established along the way. One ecosystem
+barely reacted to the invasion at all, and periods of anticipation without
+realization can be identified from published data alone — which is what sets up
+the research design of Chapter 6.
 
-## 5.1 Attention around the invasion
+## 5.1 The indicators over the full sample
+
+Figure 1 plots each ecosystem's conflict-attention share and Figure 2 its mean
+conflict tone, both as thirty-day means, across the whole **4,027-day** coverage
+window from 18 February 2015 to 20 May 2026. The war regimes of Section 3.6 are
+shaded and 24 February 2022 is marked with a dashed line.
+
+![Conflict attention by media ecosystem, 30-day mean, full
+sample](../outputs/figures/fig1_attention_full_sample.png)
+
+*Figure 1. Conflict coverage as a share of each ecosystem's own daily output,
+2015-02-18 to 2026-05-20, thirty-day moving average. Shading marks the build-up,
+invasion and attrition regimes; the dashed line is 24 February 2022.*
+
+![Conflict tone by media ecosystem, 30-day mean, full
+sample](../outputs/figures/fig2_tone_full_sample.png)
+
+*Figure 2. Mean GDELT tone of each ecosystem's conflict articles, same window and
+smoothing. More negative is more negative coverage.*
+
+Three features of Figure 1 do most of the descriptive work. The ecosystems occupy
+two entirely separate bands for the whole eleven years: the Ukrainian and Russian
+series sit between roughly 55% and 95% throughout, while the Western and
+native-English series stay below 10% until 2022. The invasion is visible in only
+one of those bands — the Western and native-English lines spike sharply, while the
+local lines barely can, because they were already near their ceiling. And the
+spike is temporary where the shift is not: Western and native-English attention
+decays back toward its pre-war level within about two years, while Russian state
+coverage settles above the band it occupied before the war and stays there. This
+is the sense in which the two media environments are covering different worlds
+rather than the same war at different intensities.
+
+Figure 2 carries the result Section 5.3 quantifies. Before 2022 the five tone
+series interleave with no stable ordering. After 24 February 2022 the Ukrainian
+line separates downward and stays separated for the rest of the sample, while the
+Russian state line does not move out of the band it occupied before the war.
+
+## 5.2 Attention around the invasion
 
 Conflict coverage as a share of each ecosystem's own daily output rises sharply
 on 24 February 2022 for the ecosystems that had room to rise. Western media go
@@ -26,7 +67,7 @@ outlets'. The two media environments are not covering the same war at different
 intensities; they are covering different worlds, one of which is almost entirely
 this conflict.
 
-## 5.2 The tone response, and the ecosystem that did not have one
+## 5.3 The tone response, and the ecosystem that did not have one
 
 Mean tone of conflict coverage, comparing the pre-invasion build-up
 (1 November 2021 – 23 February 2022) with the period after
@@ -74,7 +115,7 @@ contrast, which is an order of magnitude larger and robust to the panel
 restriction; the state-versus-independent wedge is reported as directional and
 underpowered.
 
-## 5.3 Anticipation episodes
+## 5.4 Anticipation episodes
 
 The research design of Chapter 6 rests on distinguishing periods in which
 geopolitical risk is *anticipated* from periods in which it is *realized*. Rather
@@ -106,15 +147,53 @@ nearly the same variable in the later period and sharply separated in the
 earlier one — which is why a sample beginning after September 2022, as the
 previous version's did, cannot distinguish them.
 
-## 5.4 Correlations
+## 5.5 Correlations
 
-Across ecosystems, daily attention changes are close to independent: the largest
-pairwise correlation is 0.673, between Western and native-English media, which
-overlap by construction. Ukrainian against native-English is 0.05.
+The supervisor's review asked for the indicators' correlations, and they are
+reported here in full rather than summarised, because the pattern they show — high
+agreement in levels, almost none in daily changes — governs every specification
+choice in Chapters 6 and 7.
 
-Against the published GPR index, the perception series correlate at 0.87 in
-levels during the Ukraine-driven window and near zero in daily changes. The gap
-between those two numbers is the central measurement fact of this thesis: the
-series agree about *where* the conflict sits in the news over months, and agree
-about almost nothing day to day. Chapter 6 tests both frequencies for that
-reason, and Chapter 8 returns to what it implies.
+**Across ecosystems.** Pairwise correlations of daily attention changes, on the
+1,605 ingested days of the Gate 1–3 sample:
+
+| | UA | RU_STATE | RU_INDEP | WEST | EN_GLOBAL |
+|---|---|---|---|---|---|
+| **Ukrainian** | 1.00 | 0.44 | 0.13 | 0.18 | **0.05** |
+| **Russian state** | 0.44 | 1.00 | 0.29 | 0.16 | **0.05** |
+| **Russian independent** | 0.13 | 0.29 | 1.00 | 0.34 | 0.22 |
+| **Western** | 0.18 | 0.16 | 0.34 | 1.00 | **0.67** |
+| **native-English** | 0.05 | 0.05 | 0.22 | 0.67 | 1.00 |
+
+The largest entry is **0.673**, between Western and native-English media, two
+series that overlap by construction — a Western outlet publishing in English
+enters both. Every other pair is far lower, and the two extremes are the
+informative ones: Ukrainian against Russian state at 0.44, the highest genuinely
+cross-national pair, reflecting that both cover the same events on the same days;
+Ukrainian against native-English at **0.05**, which is the number that says the
+rebuilt indices are not the previous version's near-duplicates. The three local
+ecosystems are correlated with the two Western ones at between 0.05 and 0.34, so
+the joint F-test of Chapter 6 is not asking a collinear block to add explanatory
+power to itself.
+
+**Against the published GPR index.** The perception series are checked against
+Caldara–Iacoviello's index in levels, split by what that index is driven by:
+
+| window | Western | native-English | Ukrainian | Russian state |
+|---|---|---|---|---|
+| 2021-09 → 2022-06, GPR driven by Ukraine | **0.866** | **0.884** | 0.718 | 0.791 |
+| 2017–2019, GPR driven by Korea and Iran | 0.083 | 0.048 | 0.010 | −0.105 |
+
+That contrast is the external-validity check of Section 4.5 in its correlational
+form: the indices track a published measure of geopolitical risk almost perfectly
+when that measure is about their subject, and ignore it when it is not.
+
+**The frequency gap.** The same correlations computed on daily *changes* rather
+than levels are near zero throughout — about 0.03 against GPR. Two measures of
+the same conflict, agreeing at 0.87 over months, share almost nothing day to day.
+The gap between those two numbers is the central measurement fact of this thesis:
+the series agree about *where* the conflict sits in the news over months, and
+agree about almost nothing day to day. It is why Chapter 6 runs weekly as well as
+daily specifications, why Chapter 7's forecasting null is unsurprising once the
+power curve is read alongside it, and what Chapter 8 returns to in setting out
+what the design could and could not have seen.

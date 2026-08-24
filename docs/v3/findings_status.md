@@ -43,7 +43,7 @@ reporting rather than hiding.
 | No out-of-sample return predictability | 0 of 50 Clark–West rejections | `outputs/tables/forecast_null.csv` |
 | Power bound on that null | **R²_OS 1.0% detectable at 80% power**, 0.5% at 56% | `outputs/tables/forecast_power_curve.csv` |
 | Threat *is* priced market-wide in Europe | SXXP loads +0.474, p<0.0001 | [`gate1_gate2_results.md`](gate1_gate2_results.md) §6b |
-| Sample coverage | **2015-02-18 → 2026-05-20, 4,027 days, 98% of calendar** | ingest logs |
+| Sample coverage | **2015-02-18 → 2026-05-20, 4,027 days, 98% of calendar**; ~3× the reviewed version on matched units (2,837 trading days vs 931) | ingest logs |
 
 ## Provisional — cite with the caveat attached
 
