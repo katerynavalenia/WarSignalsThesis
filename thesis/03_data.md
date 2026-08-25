@@ -229,6 +229,6 @@ tries to catch elsewhere, and it did not survive being checked.
 The sample's size is what turns the null results of Chapter 7 into findings
 rather than silences. Simulated on the out-of-sample evaluation window, a true
 out-of-sample R² of **0.5% is detectable at 82% power and 0.2% at 43%**, against
-a best observed value of **0.11%**. Predictability across most of the range this
+a best observed value of **0.10%**. Predictability across most of the range this
 literature reports is ruled out by this sample; only the region below it is not, and
 Chapter 7 states the bound rather than claiming more than it can.

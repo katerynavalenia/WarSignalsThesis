@@ -251,11 +251,11 @@ local perception predicts *realized geopolitical escalation* — changes in the
 published act component — one and five days ahead. It too was pre-registered, and
 the data were ingested afterwards.
 
-On **651 held-out days** the local block returns **p = 0.16** at one day and
-**p = 0.30** at five. It does not survive twelve lags of the outcome's own
-dynamics (0.143 and 0.566). The shuffle placebo passes cleanly (0.557, 0.799),
+On **651 held-out days** the local block returns **p = 0.21** at one day and
+**p = 0.23** at five. It does not survive twelve lags of the outcome's own
+dynamics (0.208 and 0.580). The shuffle placebo passes cleanly (0.523, 0.801),
 confirming the design is not manufacturing significance, and the Western block is
-still detected in two cells, at p = 0.006 and p = 0.041. The exploratory evidence
+still detected in two cells, at p = 0.006 and p = 0.033. The exploratory evidence
 had been unusually strong — significant in both halves of the in-sample period
 independently, with the earlier half showing exactly the local-beats-Western
 asymmetry Bondarenko et al. report. It did not survive contact with days the
@@ -271,12 +271,19 @@ answer. Local perception is not priced in Western defence equities, is not price
 in European natural gas, and does not anticipate realized escalation out of
 sample.
 
-The weight of that statement rests on the positive control appearing in every one
-of the tests. The design detects the Western block at p = 0.0002 in the equity
-grid, at p = 0.001 in the gas window, and at p = 0.006 in the escalation test, in
-the same cells where the local block is flat. Chapter 7 supplies the
-complementary bound from the other direction: an out-of-sample R²_OS of 1.0% is
-detectable at 82% power and 0.2% at 43%, against a best observed value of 0.11%.
+The weight of that statement rests on the design being able to detect a media
+block when one is there, and §6.1 sets out exactly where that is demonstrated and
+where it is not. The Western block is detected at p = 0.00016 in the
+pre-registered equity grid — surviving correction — at p = 0.00005 in the gas
+window and at p = 0.006 in the escalation test, in cells where the local block is
+flat. In Gate 2 it is not detected at all after correction, and there the
+demonstration runs through the local block itself: seven surviving cells when the
+news is credited to the day it was published, one when it is lagged into an
+alignment a trader could have used.
+
+Chapter 7 supplies the complementary bound from the other direction, and it is
+the quantitative backbone of the whole chapter: an out-of-sample R²_OS of 0.5% is
+detectable at 82% power and 0.2% at 43%, against a best observed value of 0.10%.
 These are nulls with the reach to have been positives.
 
 Their direction is worth stating rather than apologising for. Bondarenko et al.

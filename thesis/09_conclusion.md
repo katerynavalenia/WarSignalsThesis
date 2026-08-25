@@ -29,7 +29,7 @@ Clark–West rejections, against roughly two and a half expected by chance alone
 
 A null is only a finding if the test could have found otherwise, and here it
 could. The best out-of-sample Campbell–Thompson R²_OS observed anywhere in the
-grid is 0.11%. Simulation on the 1,855 out-of-sample days shows the design detects
+grid is 0.10%. Simulation on the 1,855 out-of-sample days shows the design detects
 a true R²_OS of 0.5% with 82% power and 0.2% with 43% power, at a size of 0.02
 under the null. Predictability across most of the range this literature reports
 is therefore ruled out for these assets and this information set. At the lower

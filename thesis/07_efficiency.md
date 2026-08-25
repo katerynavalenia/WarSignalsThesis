@@ -103,7 +103,7 @@ Nothing forecasts.
 | surviving Benjamini–Hochberg at 5% FDR | **0** |
 
 Three features of that table are worth stating explicitly. The best out-of-sample
-R² across the whole grid is **0.11%**, and it is not significant. Only three of
+R² across the whole grid is **0.10%**, and it is not significant. Only three of
 fifty specifications improve on the historical mean at all; the other forty-seven
 forecast worse than a constant, which is the expected consequence of adding a
 noisy regressor to an already hard-to-beat benchmark. And the count of nominal
@@ -145,7 +145,7 @@ and five times in five, and it found it zero times in fifty.
 **What is not ruled out is the region below the literature's range.** At a true
 effect of 0.2% the test succeeds a little over two times in five, so an effect of
 a couple of tenths of a percent remains consistent with everything reported here.
-The best observed value, 0.11%, sits below even that and is not significant.
+The best observed value, 0.10%, sits below even that and is not significant.
 
 The distinction matters and it moved with the sample. On the shorter corpus this
 project first analysed, the 80%-power threshold sat at 1.0% and only the top of

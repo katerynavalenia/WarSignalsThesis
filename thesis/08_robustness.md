@@ -96,7 +96,7 @@ pre-registered test.** Pre-registration fixes the analysis and does nothing abou
 the data-collection boundary; when collection is incremental, that boundary is a
 researcher degree of freedom like any other.
 
-## 8.3 The register error: `dw.com` in the Russian independent ecosystem
+## 8.3 The register error: state broadcasters in the Russian independent ecosystem
 
 **What was found.** Contrasting Russian state media against Russian independent
 media across the invasion produced a wedge that widened materially, the
@@ -117,17 +117,36 @@ volume and carried its largest negative tone shift, **−0.73**. By the criterio
 this project exists to apply, publisher rather than language, it is a Western
 outlet, and it had been in the register from the first ingest.
 
-Two features matter. The error was found by a fixed-outlet-panel robustness run,
-**not** by validation: the hand-labelled precision audit that would have caught
-it was never carried out, so a classification error surfaced through an analysis
-whose purpose was something else. And it compounded a separate problem of the
+**And it was not alone.** Deutsche Welle was found by a fixed-outlet-panel
+robustness run rather than by validation — a classification error surfacing
+through an analysis whose purpose was something else. That is a bad way to find
+errors, because it finds only the ones that happen to move a result you are
+already looking at. Running the register against an independent source instead
+(§4.5) turned up a second instance of the same class immediately: `svoboda.org`,
+Radio Free Europe/Radio Liberty's Russian service, funded by the US Agency for
+Global Media and sitting in the same Russian-independent set. `currenttime.tv` is
+the same organisation and follows by rule. All three are now Western.
+
+The episode's lesson is not that one outlet was misfiled. It is that the register
+had **no stated rule** for outlets whose publisher, language and audience point
+to different countries, and without one, each case was decided on whichever
+attribute came to mind. The rule is now written where it is applied:
+state-funded external broadcasters classify to the state that funds them; exile
+newsrooms classify to their country of origin. The first clause moves Deutsche
+Welle and RFE/RL out of the Russian independent block. The second keeps Meduza,
+Novaya Gazeta Europe, TV Rain and The Moscow Times in it, against a Wikidata
+country-of-origin field that records Latvia and the Netherlands — legal domicile,
+not editorial perspective. A rule that only ever pointed one way would not be a
+rule.
+
+This compounded a separate problem of the
 same sign — as Chapter 5 sets out, the independent ecosystem is thin and its
 membership changes across the very event being measured, so on a fixed panel only
 four independent outlets qualify and the difference in shifts is not significant
 (Welch test, p = 0.561).
 
 Re-running the panel as the register was corrected is itself instructive, because
-it moved twice in the same direction. With Deutsche Welle counted as
+it moved twice, both times in the same direction. With Deutsche Welle counted as
 Russian-independent the comparison gave six outlets, a −0.31 shift and p = 0.151;
 removing Deutsche Welle left five outlets, −0.22 and p = 0.323; removing Radio
 Free Europe/Radio Liberty's two services as well leaves **four outlets, −0.17 and
@@ -256,7 +275,7 @@ test and the escalation test, but not in Gate 2, where sensitivity is shown by
 the local block's own same-day detections instead. Chapter 7's
 power calculation bounds what could have been missed. An out-of-sample R² of 0.5%
 would have been detected with 82% probability and 0.2% with 43%; the best figure
-observed anywhere in the fifty forecasting specifications is 0.11%. Predictability
+observed anywhere in the fifty forecasting specifications is 0.10%. Predictability
 across most of the range this literature reports is ruled out; only the region below it
 is not, and this chapter is why that distinction is drawn carefully.
 
@@ -358,11 +377,14 @@ downstream check, and was caught by a robustness run. Chapter 4's checks
 establish that the ecosystems are distinct populations and that the Western
 indices track a published index; only an audit establishes per-outlet precision.
 
-**The committed ecosystem tables predate the `dw.com` fix.** The register is
-corrected in the classifier; the aggregated files were not regenerated. This
-affects RU_INDEP only, and so does not touch the state-versus-Ukraine contrast
-the thesis claims — but any future use of the independent series must regenerate
-first.
+**The independent Russian block is thin, and thinner than it was.** Two rounds
+of register correction removed Deutsche Welle and RFE/RL's two services from it,
+which is right, but it leaves `RU_INDEP` at a median of 387 conflict articles a
+day against Ukraine's 4,988 and the Western block's 7,605. Every result resting
+specifically on that block should be read as underpowered, which is one of the
+reasons the state-versus-independent wedge is retracted rather than merely
+qualified. The state-versus-Ukraine contrast the thesis does claim rests on the
+two largest blocks in the corpus.
 
 **The conflict filter is coarse.** An article enters the sample if its version 1
 `Locations` field contains Ukraine or Russia, which admits coverage mentioning
@@ -378,13 +400,15 @@ wires — the most direct form of the thesis question — needs intraday prices 
 was never in scope. The convention that *is* testable was tested: lagging news one
 trading day rather than aligning it same-day relocates which cells look
 nominally significant, and neither alignment produces a surviving result. Gate
-2's two Benjamini–Hochberg survivors appear under the same-day convention and sit
-in the single thin 2025–26 weekly window, while its lagged primary specification
-leaves none; Gate 3's two survivors appear under the lagged primary and fail the
-target and sign conditions of its pre-registered pass rule, while its same-day
-run leaves none. Both gates fail under either alignment, and the fact that the
-nominally significant cells move when an innocuous convention changes is itself
-evidence they are noise.
+2's seven Benjamini–Hochberg survivors under the same-day convention fall to one
+under its lagged primary specification, and that one sits in a 2017–19 window
+predating the war; Gate 3's two survivors appear under the lagged primary, rest
+on 58 observations each, and fail the target and sign conditions of its
+pre-registered pass rule, while its same-day run leaves none. Both gates fail
+under either alignment. The seven-to-one collapse in Gate 2 is the most
+informative single number in Chapter 6: it separates same-day co-movement, which
+is real and strong, from next-day predictability, which is what an information
+advantage would have to mean.
 
 **Every held-out window in this dataset has now been used.** The 2017–19 window
 was consumed by Gate 3 and the coverage gaps by Gate 5. Coverage runs from

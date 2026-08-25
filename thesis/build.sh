@@ -5,10 +5,14 @@
 #   ./build.sh tex    -> thesis.tex   (needs pandoc only; upload this to Overleaf)
 #   ./build.sh docx   -> thesis.docx  (needs pandoc only)
 #
-# NOT TESTED ON THIS MACHINE. Neither pandoc nor a LaTeX engine is installed
-# here, so this script is written from the pandoc interface rather than verified
-# against a build. Expect to fix something on first run; the likely candidates
-# are noted at the bottom of this file.
+# VERIFIED with pandoc 3.1.11 on 2026-08-25: `tex` and `docx` both build clean
+# from a bare checkout of the chapters. The tex output carries 9 chapters, 3
+# figures, 54 tables and all 16 bibliography entries, so the citeproc and
+# resource-path settings below are known good rather than assumed.
+#
+# `pdf` is the one target still unverified here, because it needs a LaTeX engine
+# and none is installed on this machine. The tex target is the safe route: build
+# it and upload to Overleaf.
 #
 # Install on Debian/Ubuntu:
 #   sudo apt install pandoc texlive-xetex texlive-fonts-recommended
@@ -74,7 +78,9 @@ case "$TARGET" in
     ;;
 esac
 
-# Likely first-run problems, in order of probability:
+# Problems to expect only on the `pdf` target, which is the untested one. The
+# `tex` and `docx` targets were run and produced correct output; if one of these
+# bites you there, something in the tree has changed since:
 #
 # 1. Figure paths. The chapters reference ../outputs/figures/*.png, which is
 #    correct relative to this directory. --resource-path covers it; if a figure

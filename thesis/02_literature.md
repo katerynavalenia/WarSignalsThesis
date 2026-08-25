@@ -134,7 +134,7 @@ These tools are what turn the negative results of Chapters 6 and 7 into
 findings. Zero of fifty Clark–West rejections is uninformative on its own; it
 becomes informative when paired with the simulated power curve of Chapter 7,
 which shows that a true out-of-sample R² of 0.5% would have been detected 82% of
-the time and 0.2% 43% of the time, against a best observed value of 0.11%.
+the time and 0.2% 43% of the time, against a best observed value of 0.10%.
 Predictability across most of the range this literature reports is ruled out in
 this sample. That is a bounded claim, and bounding it required exactly the
 apparatus above.

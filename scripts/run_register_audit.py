@@ -26,15 +26,52 @@ from src.data.ecosystems import (  # noqa: E402
     UA_REGISTER,
     WEST_REGISTER,
 )
-from src.data.register_audit import audit_register, summarise  # noqa: E402
+from src.data.register_audit import (  # noqa: E402
+    audit_register,
+    lookup_outlet,
+    summarise,
+)
 
 OUT_DIR = Path("outputs/tables")
+
+
+def repin(register: dict[str, str], pause: float) -> None:
+    """Resolve every domain from scratch and rewrite the pinned map in place.
+
+    Slow and deliberately so: it examines every search candidate for every
+    domain rather than stopping at the first plausible one. It is meant to be run
+    when the register changes, not on every audit.
+    """
+    module = Path(__file__).resolve().parents[1] / "src" / "data" / "register_audit.py"
+    print(f"re-resolving {len(register)} outlets (this takes a while) ...")
+
+    pins: dict[str, str] = {}
+    for i, domain in enumerate(sorted(register), 1):
+        info = lookup_outlet(domain, pause=pause)
+        if info["qid"]:
+            pins[domain] = info["qid"]
+            print(f"  [{i:3d}/{len(register)}] {domain:24s} -> {info['qid']:12s} "
+                  f"{info['wd_label']}")
+        else:
+            print(f"  [{i:3d}/{len(register)}] {domain:24s} -> unresolved")
+
+    body = "\n".join(f'    "{d}": "{q}",' for d, q in sorted(pins.items()))
+    src = module.read_text()
+    start = src.index("PINNED_QIDS: dict[str, str] = {")
+    end = src.index("}", start) + 1
+    src = src[:start] + "PINNED_QIDS: dict[str, str] = {\n" + body + "\n}" + src[end:]
+    module.write_text(src)
+    print(f"\npinned {len(pins)} of {len(register)} outlets into {module}")
+    print("re-run without --repin to produce the audit tables.")
 
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--pause", type=float, default=0.15)
     ap.add_argument("--out-dir", type=Path, default=OUT_DIR)
+    ap.add_argument("--repin", action="store_true",
+                    help="re-resolve every domain from scratch and rewrite the "
+                         "pinned QID map in src/data/register_audit.py")
     args = ap.parse_args()
     args.out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -43,6 +80,10 @@ def main() -> None:
                          (RU_INDEPENDENT, "RU_INDEP"), (WEST_REGISTER, "WEST")):
         for d in group:
             register[d] = label
+
+    if args.repin:
+        repin(register, args.pause)
+        return
 
     print(f"auditing {len(register)} registered outlets against Wikidata ...\n")
     audit = audit_register(register, pause=args.pause)
