@@ -153,9 +153,46 @@ Chapter 6.
 19.0% to 40.9% for Western media and from 11.8% to 23.8% for native-English
 media. Ukrainian and Russian outlets, already above 84%, rise to 91–96%.
 
-**What was not done.** The hand-labelled precision audit specified in the
-research design — several hundred articles opened and classified by a reader —
-was not carried out. The validation above is therefore incomplete, and the
-classification is provisional. Section 8.3 reports a register error found by a
-robustness run rather than by validation, which is the concrete argument for
-completing the audit before these indices are used again.
+**Sensitivity to the classification rule.** The three checks above ask whether
+the indices measure something real. This one asks a different and sharper
+question: whether the answer in Chapter 6 depends on the classification choices
+that produced them. Every one of those choices was a judgement — which tier
+applies first, whether to infer a country from a top-level domain, whether to
+fall back on language at all, whether syndication platforms count as media — and
+a reader is entitled to ask what happens if they are made differently.
+
+Four alternative rules are run against the shipped one, and Gate 2's entire grid
+is re-estimated under each:
+
+| rule | what it changes | blocks it produces |
+|---|---|---|
+| baseline | — | UA, RU_STATE, RU_INDEP, WEST, EN_GLOBAL |
+| `register_only` | drops both inferred tiers; only registered domains classify | four (no EN_GLOBAL) |
+| `no_language_tier` | drops the language fallback, the weakest link | four (no EN_GLOBAL) |
+| `language_first` | assigns by language **before** country | four (no RU_INDEP) |
+| `with_aggregators` | puts msn.com and the other platforms back | five |
+
+Under the primary alignment, the number of cells surviving correction is **1
+under the baseline and between 1 and 2 under every alternative**, out of 31. The
+null does not depend on how outlets were classified.
+
+Two details in that table are worth reading rather than skipping. `register_only`
+produces no native-English block at all, because EN_GLOBAL *is* the language
+fallback — so that row is the null surviving even when the control block is cut
+from two ecosystems to one. And `language_first` produces no Russian-independent
+block, because Russian-language articles from independent outlets are claimed by
+the language tier before the register is ever consulted. That is the concrete
+cost of the rule §4.3 rejects: it does not merely misassign some outlets, it
+makes the state-versus-independent distinction unrepresentable. The rejection was
+a design decision made in advance; this is the measurement of what it bought.
+
+Running this the obvious way would have meant one full ingest per rule. It did
+not need to: the rules differ in how they label an article, not in which articles
+they read, so a single scan labels each article five ways. The whole analysis
+cost what one ingest costs.
+
+**What the precision audit does and does not establish.** The research design
+specified a hand-labelled audit — several hundred articles opened and classified
+by a reader in Russian and Ukrainian — and that was never carried out. What
+replaces it is described in §4.6, and it is neither a substitute for reading
+articles nor as weak as that framing suggests.

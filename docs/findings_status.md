@@ -39,24 +39,31 @@ reporting rather than hiding.
 | Ukrainian media's tone fell sharply | −1.66 | §5 |
 | Local perception is not priced in defence equities | Gates 2 and 3. Control survives BH in Gate 3 (2/31, min p=0.00016); in Gate 2 it does not survive anywhere, and sensitivity rests on the local block's own same-day detections (7/31) collapsing to 1/31 when lagged | `gate2`/`gate3_results.md` |
 | Local perception is not priced in European gas | Gate 4, all four conditions fail | [`gate4_results.md`](gate4_results.md) |
-| Local perception does not anticipate escalation out of sample | Gate 5, p=0.16 / 0.30 | [`gate5_results.md`](gate5_results.md) |
+| Local perception does not anticipate escalation out of sample | Gate 5, p=0.21 / 0.23 | [`gate5_results.md`](gate5_results.md) |
 | No out-of-sample return predictability | 0 of 50 Clark–West rejections | `outputs/tables/forecast_null.csv` |
 | Power bound on that null | **R²_OS 0.5% detectable at 82% power**, 0.2% at 43%, on 1,855 OOS days | `outputs/tables/forecast_power_curve.csv` |
 | Threat *is* priced market-wide in Europe | SXXP loads +0.474, p<0.0001 | [`gate1_gate2_results.md`](gate1_gate2_results.md) §6b |
 | Sample coverage | **2015-02-18 → 2026-05-20, 4,027 days, 98% of calendar**; ~3× the reviewed version on matched units (2,837 trading days vs 931) | ingest logs |
+| The null does not depend on the classification rule | Gate 2 survivors 1–2 of 31 under all five rules, primary alignment | `outputs/tables/classifier_sensitivity.csv` |
+| A language-first classifier cannot represent the state/independent split | `language_first` produces no RU_INDEP block at all | same |
+| No firm-level exposure gradient in any war window | 31 firms, 85,065 firm-days; nominal only pre-war and in a full sample 59% pre-war; 0 of 10 survive BH | `outputs/tables/exposure_gradient_bh.csv` |
 
 ## Provisional — cite with the caveat attached
 
 - **Ecosystem classification precision.** The hand-labelled audit was never run.
   `dw.com` was found misclassified by a robustness run rather than by validation,
   which is the concrete argument for completing it.
-- **One committed table predates the `dw.com` fix.**
-  `data/interim/gdelt_ecosystems_daily.parquet` was built with Deutsche Welle
-  still classified as Russian-independent. The threat/act and held-out tables
-  *were* rebuilt with the corrected register and reproduce Gates 3 and 5
-  identically, so the fix does not move any verdict. It affects RU_INDEP and
-  WEST only, and therefore does not touch the state-vs-Ukraine contrast the
-  thesis actually claims.
+- ~~**One committed table predates the `dw.com` fix.**~~ **Resolved, and the
+  earlier version of this entry was wrong in a way worth recording.** It said the
+  threat/act and held-out tables "*were* rebuilt with the corrected register".
+  They were not. The rebuild ran, scanned 454 GB, and was discarded by a merge
+  that kept the stale row on every collision, so the files came back
+  byte-identical and looked rebuilt. Gate 3 reported pre-fix numbers throughout.
+  All three tables are now genuinely rebuilt on the final register, verified by a
+  differential check: only RU_INDEP and WEST move, by identical and opposite
+  counts, and the Ukrainian and Russian-state series are byte-identical before
+  and after — which is what confirms the state-vs-Ukraine contrast was never
+  affected.
 
 ## Known-stale statements in otherwise-valid documents
 
