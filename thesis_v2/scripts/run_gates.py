@@ -63,6 +63,7 @@ def horse_race(
     freq: str = "D",
     use_tone: bool = True,
     min_obs_per_param: int = 4,
+    news_lag: int = 0,
 ) -> dict | None:
     """Joint test of the local ecosystems conditional on the Western ones.
 
@@ -83,9 +84,9 @@ def horse_race(
 
     X = pd.DataFrame(index=d.index)
     for e in CORE:
-        X[f"att_{e}"] = zscore(d[f"att_{e}"].diff())
+        X[f"att_{e}"] = zscore(d[f"att_{e}"].diff().shift(news_lag))
         if use_tone:
-            X[f"tone_{e}"] = zscore(d[f"tone_{e}"].diff())
+            X[f"tone_{e}"] = zscore(d[f"tone_{e}"].diff().shift(news_lag))
     X["mkt"] = d[bench]
     X["lvix"] = zscore(d["lvix"])
 

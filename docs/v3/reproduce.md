@@ -52,15 +52,39 @@ single query over the same span.
 
 ## 2. Analysis
 
+**Confirmatory** — the pre-registered gates and the headline results:
+
 ```bash
 python scripts/run_gates.py            # Gate 1 validation + Gate 2 horse race
 python scripts/run_gate3.py            # threat/act structure, pre-registered
 python scripts/run_gate4_gas.py        # European gas, pre-registered
 python scripts/run_gate5_escalation.py # escalation on held-out days, pre-registered
 python scripts/run_forecast_null.py    # 50 OOS specs + the simulated power curve
-python scripts/analyse_wedge.py        # censorship wedge, fixed outlet panel (needs BigQuery)
+python scripts/analyse_wedge.py        # censorship wedge, fixed panel (needs BigQuery)
 python scripts/plot_stylized_facts.py  # Figures 1 and 2
 ```
+
+**Diagnostic and exploratory** — the evidence behind Chapters 4, 5, 6 and 8.
+Chapter 8 is a retraction record, so the work that produced each retracted
+finding has to be runnable or the chapter cannot be checked:
+
+```bash
+python scripts/verify_corpus.py           # Ch 3-4: coverage, column costs, outlet register
+python scripts/run_episode_analysis.py    # Ch 5 §5.4: episode table + per-episode tests
+python scripts/compare_news_timing.py     # Ch 6: same-day vs lagged alignment
+python scripts/diagnose_market_control.py # Ch 8 §8.1: THE retraction evidence
+python scripts/audit_gate3.py             # Ch 8 §8.2: strict rule + OOS sign test
+python scripts/diagnose_gas.py            # Ch 8 §8.4: asset scan + adversarial tests
+python scripts/explore_escalation.py      # Ch 8 §8.5: split-half + persistence diagnostic
+```
+
+`diagnose_market_control.py` is the one to run first if you only run one. It
+reproduces the reversal that retracted the threat channel — the same regression
+under SP500 and STOXX 600 — and the mechanism behind it.
+
+Two of these need BigQuery (`verify_corpus.py`, `analyse_wedge.py`) because they
+query at article and outlet level, which the committed daily aggregates cannot
+answer. The rest run offline against the interim parquets.
 
 `run_forecast_null.py` is the slow one — the power curve simulates 150 paths per
 grid point, each re-running the expanding-window forecast. Reduce with
@@ -105,6 +129,32 @@ of the file.
 | `run_forecast_null.py` | `outputs/tables/forecast_null.csv`, `forecast_power_curve.csv` |
 | `analyse_wedge.py` | `outputs/tables/wedge_fixed_panel.csv`, `wedge_summary.csv` |
 | `plot_stylized_facts.py` | `outputs/figures/fig1_attention_full_sample.png`, `fig2_tone_full_sample.png` |
+| `verify_corpus.py` | `outputs/tables/corpus_span.csv`, `corpus_top_outlets.csv`, `corpus_column_costs.csv` |
+| `run_episode_analysis.py` | `outputs/tables/episodes.csv`, `episode_threat_act.csv`, `episode_pooled.csv` |
+| `compare_news_timing.py` | `outputs/tables/gate2_news_timing.csv` |
+| `diagnose_market_control.py` | `outputs/tables/market_control_{reversal,mechanism,survives}.csv` |
+| `audit_gate3.py` | `outputs/tables/gate3_oos_signs.csv`, `gate3_sign_consistency.csv` |
+| `diagnose_gas.py` | `outputs/tables/gas_{asset_scan,controls,placebos}.csv` |
+| `explore_escalation.py` | `outputs/tables/escalation_{levels_vs_changes,split_half}.csv` |
+
+## Where re-running gives different numbers, and why that is correct
+
+Two scripts will not reproduce the chapters exactly, because the corpus grew
+after those results were recorded:
+
+- **`compare_news_timing.py`** gives 3 same-day BH survivors where Chapter 6
+  reports 2. Gate 2 ran on the 1,605-day ingest; the corpus is now 4,027 days.
+  The lagged count is 0 either way, which is the specification the chapter
+  treats as primary.
+- **`analyse_wedge.py`** gives five independent outlets and p=0.323 where the
+  pre-correction run gave six and p=0.151, because `dw.com` has since been moved
+  out of the Russian-independent register. Chapters 5 and 8 quote the corrected
+  figures.
+
+Neither is a discrepancy to fix. A pre-registered result reports the data it was
+run on, not the data that exists later — re-estimating on later-arriving data is
+exactly the failure mode Gate 3 documents, where adding a held-out window turned
+seven survivors into two and a PASS into a FAIL.
 
 ## A caveat on re-running
 
