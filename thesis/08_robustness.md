@@ -123,15 +123,18 @@ it was never carried out, so a classification error surfaced through an analysis
 whose purpose was something else. And it compounded a separate problem of the
 same sign — as Chapter 5 sets out, the independent ecosystem is thin and its
 membership changes across the very event being measured, so on a fixed panel only
-five independent outlets qualify and the difference in shifts is not significant
-(Welch test, p = 0.323).
+four independent outlets qualify and the difference in shifts is not significant
+(Welch test, p = 0.561).
 
-Re-running the panel with the register corrected is itself instructive. Before the
-fix, with Deutsche Welle counted as Russian-independent, the comparison gave six
-outlets, a −0.31 shift and p = 0.151; afterwards it gives five outlets, −0.22 and
-p = 0.323. The misclassified outlet had been supplying that ecosystem's largest
-negative shift, so removing it moves the contrast further from significance. The
-retraction was correct and the corrected register makes it more so.
+Re-running the panel as the register was corrected is itself instructive, because
+it moved twice in the same direction. With Deutsche Welle counted as
+Russian-independent the comparison gave six outlets, a −0.31 shift and p = 0.151;
+removing Deutsche Welle left five outlets, −0.22 and p = 0.323; removing Radio
+Free Europe/Radio Liberty's two services as well leaves **four outlets, −0.17 and
+p = 0.561**. Every outlet the register was wrong about had been supplying that
+ecosystem's largest negative shifts, so each correction moves the contrast
+further from significance. The retraction was correct, and each pass at the
+register makes it more so.
 
 **What survives.** Russian state media's tone genuinely did not move when Russia
 invaded Ukraine: **+0.02** in aggregate, and **−0.05** on a fixed panel of 24
@@ -174,7 +177,7 @@ p-value is **0.100**, and all four conditions fail:
 Nothing changed but the amount of data. The placebo pattern is the second tell:
 in the later window the local block "explains" an unexposed consumer-staples
 equity about as readily as European gas, which is what a common factor looks
-like, not a supply channel. The Western block is detected at p = 0.001 in the
+like, not a supply channel. The Western block is detected at p = 0.00005 in the
 build-up window, so the positive control passes and this is a null with power.
 
 The retraction broadens the thesis rather than narrowing it: local-language
@@ -247,8 +250,10 @@ useful result for anyone building this kind of dataset, because the four checks
 that did the killing — the regional control, the sample boundary, the fixed
 outlet panel, the genuinely unseen window — are cheap and were not obviously
 necessary in advance. And it is why the thesis's null should be believed: it was
-not obtained by failing to look. Positive controls pass throughout, with the
-Western block detected where the local block is flatly absent, and Chapter 7's
+not obtained by failing to look — with one qualification stated in §6.1 rather
+than smoothed over: the Western control survives correction in Gate 3, the gas
+test and the escalation test, but not in Gate 2, where sensitivity is shown by
+the local block's own same-day detections instead. Chapter 7's
 power calculation bounds what could have been missed. An out-of-sample R² of 0.5%
 would have been detected with 82% probability and 0.2% with 43%; the best figure
 observed anywhere in the fifty forecasting specifications is 0.11%. Predictability

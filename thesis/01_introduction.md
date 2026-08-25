@@ -72,16 +72,24 @@ cause would have to work through three different channels to produce it.
 | Gate 4 | European natural gas (TTF) | all four pre-registered conditions fail |
 | Gate 5 | realized geopolitical escalation itself | p = 0.16 at h = 1, p = 0.30 at h = 5 |
 
-In the equity tests, 31 specifications are run per grid; the news-lagged
-specification and the same-day threat/act specification each return **zero**
-Benjamini–Hochberg survivors, and the two grids in which anything survives at
-all yield two cells apiece. What makes these nulls readable is that the positive
-control passes in every one of them. The Western block is detected in **2 to 3 of 31**
-equity cells in each gate, at a minimum p of 0.0002 in the pre-registered Gate-3
-grid and 0.0117 in Gate 2; in the gas test it is detected in the build-up
-window where the local block is not; in the escalation test it is detected while
-the local block fails. The design can see what is there. It does not see the
-local block.
+In the equity tests, 31 specifications are run per grid. The pre-registered
+Gate-3 grid yields two Benjamini–Hochberg survivors under its primary alignment
+and zero same-day; Gate 2 yields one survivor lagged, in a window predating the
+war, against seven when the news is credited to the day it was published — a day
+no trader could have traded on.
+
+What makes these nulls readable is that the design is demonstrably capable of
+detecting a media block, and the evidence for that is reported with its limits
+rather than asserted. In the pre-registered Gate-3 grid the **Western control
+survives correction** in 2 of 31 cells, at a minimum p of 0.00016; in the gas test
+it is detected in the build-up window where the local block is not; in the
+escalation test it is detected while the local block fails. In **Gate 2 the
+Western control does not survive correction anywhere**, which is stated here
+rather than buried: what demonstrates sensitivity in that gate is the local block
+itself, which survives in seven cells same-day — including the two largest in the
+grid — and loses all but one of them to a single day of lag. The design can see
+what is there. What it cannot find is local media telling the market something
+Western media had not already told it.
 
 Something is priced, and it is worth being precise about what. The STOXX 600
 itself loads on the threat component of geopolitical risk at **+0.474
@@ -90,7 +98,7 @@ in defence.
 
 The efficiency result has the same shape. Across 50 expanding-window
 one-day-ahead specifications, the best Campbell–Thompson out-of-sample R² is
-**+0.0011**, 3 of 50 are positive at all, and Clark–West rejects at the 5% level
+**+0.0010**, 3 of 50 are positive at all, and Clark–West rejects at the 5% level
 in **zero** cases against 2.5 expected by chance alone. That is a null, and its
 value depends entirely on what it can rule out. Simulated on 1,855 out-of-sample
 days:
@@ -118,8 +126,8 @@ cosmetic, since `24tv.ua` publishes 2,595 Ukrainian-language and 1,865
 Russian-language articles, and a language-first rule would file Ukrainian media
 as Russian and manufacture agreement between the two ecosystems it is supposed
 to separate. The ecosystems are demonstrably distinct — the largest pairwise
-correlation of daily attention changes is 0.673, and Ukrainian against
-native-English is **0.05** — and the Western series tracks published GPR at
+correlation of daily attention changes is 0.602, and Ukrainian against
+native-English is **0.02** — and the Western series tracks published GPR at
 **0.866** in levels when GPR is driven by Ukraine, falling to 0.083 in 2017–2019
 when it is driven by Korea and Iran. The dataset also yields facts worth having
 independently of any asset price: conflict coverage is 79.2% of Ukrainian

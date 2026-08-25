@@ -20,7 +20,7 @@ results that no longer hold. This page is the authority on which is which.
 | 3 | Local media's threat/act structure is priced (7 BH survivors) | [`gate3_results.md`](gate3_results.md) §"pass that evaporated" | adding the held-out window; 7 survivors → 2, verdict FAIL |
 | 4 | Local perception is priced in European gas (p=0.0005) | [`gate4_preregistration.md`](gate4_preregistration.md) §exploratory | pre-registered replication, n 81 → 222, p → 0.100 |
 | 5 | Local media anticipate realized escalation (both halves significant) | [`gate5_preregistration.md`](gate5_preregistration.md) §exploratory | pre-registered held-out sample, p → 0.16 |
-| 6 | The state-vs-**independent** censorship wedge | [`gate1_gate2_results.md`](gate1_gate2_results.md) §5 — **banner added** | fixed outlet panel. **p=0.323 with the corrected register** (five outlets, −0.22); p=0.151 before the `dw.com` fix (six outlets, −0.31). Correcting the register moves it *further* from significance |
+| 6 | The state-vs-**independent** censorship wedge | [`gate1_gate2_results.md`](gate1_gate2_results.md) §5 — **banner added** | fixed outlet panel. **p=0.561 with the fully corrected register** (four outlets, −0.17); p=0.323 after the `dw.com` fix alone (five, −0.22); p=0.151 before it (six, −0.31). Each register correction moves it *further* from significance |
 
 Each was significant at conventional levels when found. Each had a plausible
 mechanism. The failure modes are all different — two omitted-variable problems,
@@ -33,11 +33,11 @@ reporting rather than hiding.
 | claim | number | source |
 |---|---|---|
 | v1's indicators were English-only and topic-classified | 7 `.ru` / 21 `.ua` of 60,690; 88.6% by country mentioned | [`gdelt_measurement_diagnosis.md`](gdelt_measurement_diagnosis.md) |
-| Ecosystems are genuinely distinct | max pairwise ρ 0.673; UA↔EN_GLOBAL **0.05** | [`gate1_gate2_results.md`](gate1_gate2_results.md) §4 |
+| Ecosystems are genuinely distinct | max pairwise ρ 0.602; UA↔EN_GLOBAL **0.02** | [`gate1_gate2_results.md`](gate1_gate2_results.md) §4 |
 | Indices track published GPR when GPR is about Ukraine | 0.866 WEST / 0.884 EN_GLOBAL in levels; 0.08 in 2017-19 | §4 |
 | Russian **state** media's tone did not move at the invasion | +0.02 aggregate; **−0.05 on a fixed 24-outlet panel** | §5 + [`gate3_results.md`](gate3_results.md) addendum |
 | Ukrainian media's tone fell sharply | −1.66 | §5 |
-| Local perception is not priced in defence equities | Gates 2 and 3, positive controls pass | `gate2`/`gate3_results.md` |
+| Local perception is not priced in defence equities | Gates 2 and 3. Control survives BH in Gate 3 (2/31, min p=0.00016); in Gate 2 it does not survive anywhere, and sensitivity rests on the local block's own same-day detections (7/31) collapsing to 1/31 when lagged | `gate2`/`gate3_results.md` |
 | Local perception is not priced in European gas | Gate 4, all four conditions fail | [`gate4_results.md`](gate4_results.md) |
 | Local perception does not anticipate escalation out of sample | Gate 5, p=0.16 / 0.30 | [`gate5_results.md`](gate5_results.md) |
 | No out-of-sample return predictability | 0 of 50 Clark–West rejections | `outputs/tables/forecast_null.csv` |

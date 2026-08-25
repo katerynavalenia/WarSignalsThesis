@@ -100,11 +100,11 @@ direction is `1tv.ru` at −1.04.
 **A narrower claim that does not survive.** The natural next step is to contrast
 state media against Russian *independent* media, isolating ownership while
 holding language and country fixed — the press-freedom control that Bondarenko
-et al. (2024) apply. Directionally it holds: independent outlets shift −0.22
-against the state sector's −0.05. But on the fixed panel only **five**
+et al. (2024) apply. Directionally it holds: independent outlets shift −0.17
+against the state sector's −0.05. But on the fixed panel only **four**
 independent outlets survive, and the difference in shifts is not statistically
-significant (Welch test, **p = 0.323**). The independent ecosystem is thin because of
-what is being measured — `meduza.io`, `tvrain.ru`, `zona.media` and
+significant (Welch test, **p = 0.561**). The independent ecosystem is thin because of
+what is being measured — `meduza.io`, `tvrain.ru`, `zona.media`, `znak.com` and
 `themoscowtimes.com` drop out of the panel entirely, and `echo.msk.ru` falls from
 13,951 conflict articles before the invasion to 1,043 after its liquidation in
 March 2022.
@@ -219,7 +219,7 @@ choice in Chapters 6 and 7.
 | **Western** | 0.18 | 0.16 | 0.34 | 1.00 | **0.67** |
 | **native-English** | 0.05 | 0.05 | 0.22 | 0.67 | 1.00 |
 
-The largest entry is **0.673**, between Western and native-English media, two
+The largest entry is **0.602**, between Western and native-English media, two
 series that overlap by construction — a Western outlet publishing in English
 enters both. Every other pair is far lower, and the two extremes are the
 informative ones: Ukrainian against Russian state at 0.44, the highest genuinely

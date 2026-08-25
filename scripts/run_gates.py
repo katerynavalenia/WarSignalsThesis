@@ -49,6 +49,35 @@ WINDOWS = {
 }
 
 
+#: The external-validity check reported in Chapter 4. GPR is a *global* index and
+#: these indices are Ukraine-specific, so the test is not "do they correlate"
+#: but "do they correlate when GPR is about Ukraine and stop when it is not".
+#: Both windows are the ingest chunk boundaries, so the figures are reproducible
+#: from the committed data rather than depending on a hand-chosen span.
+GPR_WINDOWS = {
+    "2021-09 -> 2022-06 (GPR driven by Ukraine)": ("2021-09-08", "2022-06-05"),
+    "2017-19 (GPR driven by Korea/Iran)": ("2017-04-23", "2019-10-21"),
+}
+
+
+def gpr_levels_check(indices: pd.DataFrame, gpr: pd.Series) -> pd.DataFrame:
+    """Correlation of each ecosystem's attention share with GPR, in levels.
+
+    Written to a table rather than computed by hand, because a validation figure
+    quoted in three chapters has to be regenerable when the register changes.
+    """
+    rows = []
+    for label, (a, b) in GPR_WINDOWS.items():
+        m = (indices.index >= a) & (indices.index <= b)
+        row = {"window": label, "n": int(m.sum())}
+        for eco in CORE:
+            col = f"att_{eco}"
+            if col in indices.columns:
+                row[eco] = float(indices.loc[m, col].corr(gpr[m]))
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
 def zscore(s: pd.Series) -> pd.Series:
     sd = s.std()
     return (s - s.mean()) / sd if sd and np.isfinite(sd) else s * np.nan
@@ -137,6 +166,11 @@ def main() -> None:
     print("\nverdict:", {k: v for k, v in verdict.items()})
     table.to_csv(args.out_dir / "gate1_ecosystems.csv", index=False)
     corr.to_csv(args.out_dir / "gate1_collinearity.csv")
+
+    levels = gpr_levels_check(indices, gpr)
+    print("\nGPR correlation in levels (the external-validity check):")
+    print(levels.round(4).to_string(index=False))
+    levels.to_csv(args.out_dir / "gate1_gpr_levels.csv", index=False)
 
     rows = []
     for freq in ("D", "W"):

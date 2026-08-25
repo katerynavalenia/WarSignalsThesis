@@ -124,11 +124,11 @@ free tier**, 1,605 days across the six episode windows ±75 days, 7 ecosystems.
 | **RU_INDEP** | | | 1.00 | 0.35 | 0.22 |
 | **WEST** | | | | 1.00 | 0.67 |
 
-Max 0.673, and that pair (WEST/EN_GLOBAL) overlaps by construction. v1's three
+Max 0.602, and that pair (WEST/EN_GLOBAL) overlaps by construction. v1's three
 "national" series were near-duplicates drawn from one population; these are not.
 **The rebuild worked.**
 
-**Face validity passes.** Attention share on 2022-02-24: WEST 18.8% → 40.7%,
+**Face validity passes.** Attention share on 2022-02-24: WEST 19.0% → 40.9%,
 EN_GLOBAL 11.8% → 23.8%, RU_STATE 84.6% → 91.2%, UA 90.3% → 95.8%.
 
 **The external GPR check needed re-specifying.** In daily changes the

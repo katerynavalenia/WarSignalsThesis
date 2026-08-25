@@ -83,7 +83,7 @@ Russian and manufacture agreement between the two ecosystems.
 RU_OTHER 64.5%, RU_INDEP 63.6%, WEST 6.6%, EN_GLOBAL 5.4%.
 
 **Gate 1 validation.**
-- Non-collinearity: max pairwise 0.673 (WEST/EN_GLOBAL, overlapping by
+- Non-collinearity: max pairwise 0.602 (WEST/EN_GLOBAL, overlapping by
   construction); UA↔EN_GLOBAL **0.05**, RU_STATE↔EN_GLOBAL 0.05, UA↔WEST 0.18.
 - External validity, levels: WEST **0.866** and EN_GLOBAL **0.884** against
   published GPR in the Ukraine-driven window; 0.083 and 0.048 in 2017-19 when
@@ -118,7 +118,7 @@ the mean shift is **−0.05**, with several outlets turning *more positive*
 (regnum.ru +0.23, gazeta.ru +0.48, ren.tv +0.43, mskagency.ru +0.40).
 
 **Report the state-vs-Ukraine contrast, not state-vs-independent.** The latter
-does not survive the fixed panel (p=0.323 with the corrected register; p=0.151 before it), because most of the independent
+does not survive the fixed panel (p=0.561 with the fully corrected register; p=0.323 after the `dw.com` fix alone; p=0.151 before it), because most of the independent
 ecosystem is exiled or was shut down — echo.msk.ru falls from 13,951 articles to
 1,043 after liquidation — so the ecosystem-level version was measured partly on a
 change of membership across the event it claims to measure.
@@ -134,18 +134,25 @@ BH across the grid:
 
 | test | specs | nominal 5% | survive BH |
 |---|---|---|---|
-| Gate 2 — attention + tone | 31 | 8 | 3 (all in one thin window) |
-| Gate 2 — news lagged | 31 | 6 | **0** |
-| Gate 3 — threat/act, primary | 31 | 9 | 2 |
-| Gate 3 — threat/act, same-day | 31 | 6 | **0** |
+| Gate 2 — attention + tone, same-day | 31 | 13 | 7 |
+| **Gate 2 — news lagged (primary)** | 31 | 7 | **1** |
+| Gate 3 — threat/act, primary | 31 | 8 | 2 |
+| Gate 3 — threat/act, same-day | 31 | 4 | **0** |
 
-Russia buildup+invasion window, Gate 3 primary: p = 0.012 to 0.597, nothing
-surviving. **Positive control passes** — the Western block is detected in 2 of 31
-cells (2 of 31 on the full corpus), min p=0.0002 — so the design can see what is there.
+The same-day/lagged gap in Gate 2 is the chapter's result: seven survivors
+collapse to one when the news is moved to an alignment a trader could have used.
+Russia buildup+invasion window, Gate 3 primary: p = 0.018 to 0.720, nothing
+surviving.
 
-**Out-of-sample sign test.** The weekly cells showed a coherent structure
-(`act_RU_INDEP` 7/7 same sign, `act_UA` and `thr_UA` 6/7) reading as *buy the
-rumour, sell the fact*. Formed on 2021–2026 and tested on 2017-19, which had not
+**Positive control — split verdict, and reported as such.** In Gate 3 the Western
+block survives BH in 2 of 31 cells (min p=0.00016, adjusted 0.005). In **Gate 2
+it does not survive at all** — 7 of 31 nominal lagged, 2 of 31 same-day, smallest
+adjusted p 0.082. Gate 2's sensitivity is carried instead by the local block's own
+same-day detections, which include the deepest cell in the grid (n=2,104,
+adjusted p=0.014). Do not write "the control passes in every gate".
+
+**Out-of-sample sign test.** Across the two surviving weekly cells five of the six
+local terms carry the same sign, reading as *buy the rumour, sell the fact*. Formed on 2021–2026 and tested on 2017-19, which had not
 been ingested when the four signs were written down: **7 of 12 signs match,
 binomial p=0.387.** US targets partly replicate, the European target inverts.
 
@@ -153,7 +160,7 @@ binomial p=0.387.** US targets partly replicate, the European target inverts.
 50 specifications, expanding-window one-day-ahead, Campbell–Thompson R²_OS with
 Clark–West (nested, so DM is invalid):
 
-- best R²_OS **+0.0011**; 3 of 50 positive
+- best R²_OS **+0.0010**; 3 of 50 positive
 - Clark–West p<0.05: **0**, against 2.5 expected by chance
 - surviving BH: 0
 
@@ -202,7 +209,7 @@ perception adds nothing in volume, in tone, or in anticipation structure.
 
 ## Do not claim
 - Any threat/expectations channel specific to defence equities — retracted, Ch. 8.
-- The state-vs-independent censorship wedge — p=0.323 on a fixed panel with the corrected register.
+- The state-vs-independent censorship wedge — p=0.561 on a fixed panel with the corrected register.
 - Any Gate-3 pass — it exists only on the truncated sample.
 - Hand-validated ecosystem precision — the audit was not run.
 - Firm-level or SIPRI-exposure results — that data no longer exists anywhere.

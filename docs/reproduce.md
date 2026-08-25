@@ -146,7 +146,7 @@ after those results were recorded:
   reports 2. Gate 2 ran on the 1,605-day ingest; the corpus is now 4,027 days.
   The lagged count is 0 either way, which is the specification the chapter
   treats as primary.
-- **`analyse_wedge.py`** gives five independent outlets and p=0.323 where the
+- **`analyse_wedge.py`** gives four independent outlets and p=0.561 where the
   pre-correction run gave six and p=0.151, because `dw.com` has since been moved
   out of the Russian-independent register. Chapters 5 and 8 quote the corrected
   figures.
@@ -165,7 +165,8 @@ change RU_INDEP and WEST slightly. It does **not** touch the state-versus-Ukrain
 contrast the thesis actually claims, since neither ecosystem is involved.
 
 `analyse_wedge.py` already reflects the corrected register: it gives five
-independent outlets and p = 0.323, against six and p = 0.151 before the fix.
+independent outlets and p = 0.561, against five and p = 0.323 after the
+`dw.com` fix alone and six and p = 0.151 before any of it.
 Chapters 5 and 8 quote the corrected figures.
 
 ## Added after the first pass

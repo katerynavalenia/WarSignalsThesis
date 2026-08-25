@@ -128,9 +128,9 @@ The checks here are therefore deliberately external.
 
 **Mutual independence.** If the ecosystems were near-duplicates, as the previous
 series were, nothing downstream could distinguish them. Pairwise correlations of
-daily attention changes reach a maximum of 0.673, between WEST and EN_GLOBAL,
+daily attention changes reach a maximum of 0.602, between WEST and EN_GLOBAL,
 which overlap by construction. Every other pair is far lower: Ukrainian against
-native-English **0.05**, Russian state against native-English 0.05, Ukrainian
+native-English **0.02**, Russian state against native-English 0.06, Ukrainian
 against Western 0.18, Ukrainian against Russian state 0.44. These are distinct
 populations.
 
@@ -150,7 +150,7 @@ movements are dominated by noise, and it motivates the weekly specifications in
 Chapter 6.
 
 **Behaviour on a known date.** Attention share on 24 February 2022 rises from
-18.8% to 40.7% for Western media and from 11.8% to 23.8% for native-English
+19.0% to 40.9% for Western media and from 11.8% to 23.8% for native-English
 media. Ukrainian and Russian outlets, already above 84%, rise to 91–96%.
 
 **What was not done.** The hand-labelled precision audit specified in the

@@ -35,11 +35,16 @@ under the null. Predictability across most of the range this literature reports
 is therefore ruled out for these assets and this information set. At the lower
 end it is not, and the thesis says so.
 
-The positive controls carry the same weight as the nulls. The Western block is
-detected in two of thirty-one cells of the same grid, at a minimum p of 0.0002;
-the equivalent control passes in the gas window and in the escalation test. The
-apparatus sees what is there. It does not see local perception because local
-perception is not there to see.
+The positive controls carry the same weight as the nulls, and are reported with
+the same discipline. In the pre-registered Gate-3 grid the Western block survives
+correction in two of thirty-one cells, at a minimum p of 0.00016; the equivalent
+control fires in the gas window at p = 0.00005 and in the escalation test. In
+Gate 2 it does not survive correction at all, and §6.1 says so — there the
+demonstration that the apparatus is not blind comes from the local block itself,
+which survives correction in seven cells when the news is aligned same-day and in
+one when it is lagged by a day. The apparatus sees what is there. What it does
+not see is local perception carrying information the market had not already
+priced.
 
 ## 9.2 The mirror of Bondarenko et al.
 
@@ -75,15 +80,15 @@ series covering 18 February 2015 to 20 May 2026 — 4,027 days, 98% of the
 calendar — with six media ecosystems separated by the nationality and ownership
 of the outlet rather than by the topic of the article. The ecosystems are
 genuinely distinct: the largest pairwise correlation of daily attention changes
-is 0.673, between two series that overlap by construction, while Ukrainian
-against native-English is 0.05. They track an external benchmark when they
+is 0.602, between two series that overlap by construction, while Ukrainian
+against native-English is 0.02. They track an external benchmark when they
 should and not when they should not, correlating 0.866 (Western) and 0.884
 (native-English) with published GPR in the Ukraine-driven window and 0.083 and
 0.048 in 2017–2019, when that index is driven by Korea and Iran.
 
 **The bounded null.** Not "no effect was found", but no effect across three
 outcome classes — defence equities, European gas, realized escalation — with
-passing positive controls in each and an explicit power curve attached to the
+positive controls that fire in each and an explicit power curve attached to the
 forecasting result.
 
 **The methodological sequence.** Five plausible positives were produced and

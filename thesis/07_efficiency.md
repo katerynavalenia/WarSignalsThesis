@@ -98,7 +98,7 @@ Nothing forecasts.
 |---|---|
 | specifications | 50 |
 | positive R²_OS | 3 |
-| best R²_OS | **+0.0011** |
+| best R²_OS | **+0.0010** |
 | Clark–West p < 0.05 | **0** (2.5 expected by chance) |
 | surviving Benjamini–Hochberg at 5% FDR | **0** |
 
@@ -163,8 +163,9 @@ nothing about nonlinear structure, about conditioning on regime, or about lower
 frequencies. And it is a bound on predictability, not on pricing. Chapter 6's
 contemporaneous tests are the ones that ask whether perception is impounded in
 prices at all, and they too return a null for the local ecosystems while the
-positive control — the Western block, detected in 2 of 31 cells with a minimum p
-of 0.0002 — passes.
+positive control — the Western block, surviving correction in 2 of 31 cells of
+the pre-registered Gate-3 grid at a minimum p of 0.00016 — passes there, though
+§6.1 records that it does not survive correction in Gate 2.
 
 ## 7.5 The three remedies, tried
 
