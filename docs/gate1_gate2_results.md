@@ -1,5 +1,10 @@
 # Gate 1 and Gate 2 — results, and what they mean for the thesis
 
+> **Figures re-derived 2026-08-25** on the corrected outlet register (Deutsche
+> Welle and RFE/RL's two services moved to the Western block) and the full
+> 4,027-day corpus. Verdicts are unchanged. Where a figure here differs from an
+> earlier draft, the current tables under `outputs/tables/` are authoritative.
+
 **Date:** 2026-08-20 · **Status:** run end to end on real data; provisional where marked
 **Code:** `src/data/{equities,gdelt_bq,ecosystems}.py`,
 `src/features/{episodes,perception}.py`
@@ -228,11 +233,18 @@ controlling for SXXP kills the defence-specific threat coefficient: the effect
 is in the control. This is a considerably better sentence than "no effect," and
 it is consistent with the +0.26 residual correlation measured in §1.
 
-**The Gate-2 null is not a power failure.** The same design, same specifications,
-detects the *Western* block in 6 of 31 cells — strongest at p=0.0005 — including
-cells where the local block is flatly null (weekly r_bshieldt: p_west=0.011,
-p_local=0.320). The instrument finds Western media when Western media matter. It
-does not find local media anywhere robust.
+**The Gate-2 null is not a power failure — but the argument for that is not the
+Western control.** On the corrected register and the full corpus the Western
+block is nominally significant in 7 of 31 cells lagged and 2 of 31 same-day, and
+**none survives Benjamini–Hochberg** (smallest adjusted p 0.082). An earlier
+version of this section claimed the control passed here; it does not, and the
+thesis §6.1 states so.
+
+What does demonstrate the instrument is not blind is the local block's own
+behaviour. Same-day it survives correction in 7 of 31 cells, including the
+deepest cell in the grid (2,104 observations, adjusted p 0.014). The design finds
+local media easily. What it stops finding, once the news is lagged into an
+alignment a trader could have used, is any of it.
 
 **The null survives the timing convention.** GDELT days are full UTC days while
 European markets close ~16:30 UTC, so a same-day regression includes news
@@ -243,13 +255,15 @@ r_waerlst 0.324 → 0.042) while the 2025-26 survivors fade. But:
 
 | alignment | nominal 5% | survives BH |
 |---|---|---|
-| same-day | 8 of 31 | 2 |
-| news lagged 1 day | 6 of 31 | **0** |
+| same-day | 13 of 31 | 7 |
+| news lagged 1 day | 7 of 31 | **1** |
 
-Nothing survives correction under either convention, and the fact that the
-"significant" cells relocate when an innocuous convention changes is itself
-evidence they are noise. **Report the lagged specification as primary** — it is
-the defensible one — and note that it makes the null cleaner, not weaker.
+The collapse from seven survivors to one is the result, not a nuisance. Same-day
+co-movement between local coverage and defence returns is real and strong; it
+does not survive being moved to the only alignment in which the regressor was
+available to trade on. **Report the lagged specification as primary** — it is the
+defensible one — and the single survivor it leaves sits in a 2017–19 window
+predating the war, where the hypothesised mechanism does not apply.
 
 ## 7. What this is worth
 

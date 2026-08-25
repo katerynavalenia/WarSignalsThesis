@@ -1,5 +1,10 @@
 # Gate 4 — result: FAIL. And the null is now stronger for it.
 
+> **Figures re-derived 2026-08-25** on the corrected outlet register (Deutsche
+> Welle and RFE/RL's two services moved to the Western block) and the full
+> 4,027-day corpus. Verdicts are unchanged. Where a figure here differs from an
+> earlier draft, the current tables under `outputs/tables/` are authoritative.
+
 **Date:** 2026-08-22 · **Pre-registration:** [`gate4_preregistration.md`](gate4_preregistration.md)
 **Code:** `scripts/run_gate4_gas.py` · **Data:** 944 continuous days of
 gas-crisis coverage, ingested after the pre-registration was written (57 GB)

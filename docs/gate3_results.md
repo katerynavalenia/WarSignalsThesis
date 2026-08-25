@@ -1,5 +1,10 @@
 # Gate 3 — result: FAIL. The Gate-2 null is final.
 
+> **Figures re-derived 2026-08-25** on the corrected outlet register (Deutsche
+> Welle and RFE/RL's two services moved to the Western block) and the full
+> 4,027-day corpus. Verdicts are unchanged. Where a figure here differs from an
+> earlier draft, the current tables under `outputs/tables/` are authoritative.
+
 > **Coverage closed, 2026-08-25.** This gate was first run on 1,605 days, because
 > the threat/act split reads GDELT's `Themes` field at roughly four times the scan
 > cost of the `Locations` field the other tests use. That left it testing on about
@@ -27,13 +32,16 @@ conventions, on the complete sample.
 
 | specification | specs | nominal 5% | survive BH | verdict |
 |---|---|---|---|---|
-| primary (news lagged 1 day) | 31 | 9 | 2 | **FAIL** |
-| secondary (same-day) | 31 | 3 | 0 | **FAIL** |
+| primary (news lagged 1 day) | 31 | 8 | 2 | **FAIL** |
+| secondary (same-day) | 31 | 4 | 0 | **FAIL** |
 
-Positive control passes — on the full corpus the Western block is detected in 2 of 31 cells
-(min p=0.0002) — so this is a real null, not a power failure. The design finds
-Western media where Western media matter, and does not find local media
-anywhere that survives.
+Positive control passes here, and this is the only gate in which it does. The
+Western block survives Benjamini–Hochberg in 2 of 31 cells (nominal p=0.00016 and
+0.0011, adjusted 0.005 and 0.016), so this is a real null rather than a power
+failure. Two caveats belong with it: both surviving control cells are the weekly
+2025–26 cells resting on 58 observations — the same thin corner this gate argues
+not to trust for local survivors — and in Gate 2 the same control does not
+survive correction anywhere. Thesis §6.1 states both.
 
 **The asset-pricing headline is now closed.** Attention share, tone, and
 anticipation structure have each been tested; local-language perception adds

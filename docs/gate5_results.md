@@ -1,5 +1,10 @@
 # Gate 5 — result: FAIL. Five for five, and that is the finding.
 
+> **Figures re-derived 2026-08-25** on the corrected outlet register (Deutsche
+> Welle and RFE/RL's two services moved to the Western block) and the full
+> 4,027-day corpus. Verdicts are unchanged. Where a figure here differs from an
+> earlier draft, the current tables under `outputs/tables/` are authoritative.
+
 **Date:** 2026-08-23 · **Pre-registration:** [`gate5_preregistration.md`](gate5_preregistration.md)
 **Code:** `scripts/run_gate5_escalation.py`
 **Data:** 651 usable days from 954 ingested *after* the hypothesis was written
@@ -26,7 +31,7 @@ time-shuffle placebo. In the earlier half the Western block was null while the
 local block was not, which is precisely the asymmetry Bondarenko et al. (2024)
 report.
 
-On 651 days the hypothesis had never seen, it is p=0.16.
+On 651 days the hypothesis had never seen, it is p=0.21.
 
 **Split-half replication inside a sample is not out-of-sample replication.** Both
 halves shared the same eleven-year construction, the same outlet register, the
