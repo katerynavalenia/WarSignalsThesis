@@ -8,6 +8,28 @@
 Each comment is reproduced verbatim, then answered with: what it implies, what we
 will do, where it lands in the paper, and what it costs.
 
+> **Delivery status, 2026-08-26.** This is a plan written before the work; what
+> follows is what became of each commitment.
+>
+> | commitment | status |
+> |---|---|
+> | #1 sample start, 2015 not 2022 | **done** — 4,027 days, 2,837 trading days |
+> | #2 descriptive chapter before forecasting | **done** — Chapter 5 |
+> | #3 publisher-based classifier, country before language | **done** — §4.3 |
+> | #3(a) hand-labelled precision audit | **substituted** — automated against Wikidata, §4.6; article-level reading still not done |
+> | #3(b) external check against published GPR | **done** — §4.5, WEST 0.866 in levels |
+> | #3(c) face validity on known events | **done** — §4.5 |
+> | #3(d) sensitivity across classification rules | **done** — §4.5, five rules, one scan |
+> | #4 R²_OS, Clark–West, MCS, multiple-testing control | **done** — Chapter 7, plus combination and economic value |
+> | #4 HAR-RV-X volatility arm | **not done** — volatility dropped as an outcome; §8.8 records why |
+> | #5 cite Bondarenko et al. (2024) | **done** — the methodological anchor throughout |
+>
+> Two items in the design that this plan did not list were also closed: the
+> firm-level exposure gradient (SQ5), recovered from public SIPRI data in §8.7
+> after being recorded as untestable; and the merge defect that had been
+> silently discarding re-ingested data, which is why the anticipation gate had
+> been running on a superseded outlet register.
+
 ---
 
 ## Comment 1 — sample start
