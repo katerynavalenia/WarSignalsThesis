@@ -146,6 +146,74 @@ def build_case_sql(domain: str = "SourceCommonName", srclc_expr: str = "srclc") 
     """
 
 
+def build_variant_case_sql(variant: str, domain: str = "SourceCommonName",
+                           srclc_expr: str = "srclc") -> str:
+    """The classifier under an alternative rule, for the sensitivity analysis.
+
+    The research design promised a sensitivity analysis across classification
+    rules, and this is the machinery for it. Each variant removes or reverses one
+    decision in :func:`build_case_sql`, so the question "does the answer depend on
+    how outlets were classified" can be answered by re-running the gates rather
+    than argued.
+
+    ``baseline``
+        The shipped classifier, unchanged.
+    ``register_only``
+        Tier 1 only. Everything not explicitly registered becomes ``OTHER``,
+        which tests whether the ccTLD and language tiers carry any result.
+    ``no_language_tier``
+        Tiers 0-2. Drops the language fallback for generic TLDs, the weakest
+        inference in the chain.
+    ``language_first``
+        Language *before* country — the rule this module exists to reject. If
+        the answer changes here and nowhere else, the rejected rule is doing the
+        work, which is exactly what a reader should want to know.
+    ``with_aggregators``
+        Puts msn.com and friends back in, by country of TLD. Tests whether
+        excluding syndication platforms changes anything.
+    """
+
+    def lit(items) -> str:
+        return ", ".join(f"'{d}'" for d in sorted(items))
+
+    agg = f"WHEN {domain} IN ({lit(AGGREGATORS)}) THEN 'AGGREGATOR'"
+    register = f"""
+      WHEN {domain} IN ({lit(UA_REGISTER)}) THEN 'UA'
+      WHEN {domain} IN ({lit(RU_STATE)}) THEN 'RU_STATE'
+      WHEN {domain} IN ({lit(RU_INDEPENDENT)}) THEN 'RU_INDEP'
+      WHEN {domain} IN ({lit(WEST_REGISTER)}) THEN 'WEST'"""
+    cctld = f"""
+      WHEN ENDS_WITH({domain}, '.ua') THEN 'UA'
+      WHEN ENDS_WITH({domain}, '.ru') THEN 'RU_OTHER'
+      WHEN REGEXP_EXTRACT({domain}, r'\\.([a-z]+)$') IN ({lit(WEST_TLDS)}) THEN 'WEST'"""
+    language = f"""
+      WHEN {srclc_expr} IS NULL THEN 'EN_GLOBAL'
+      WHEN {srclc_expr} = 'ukr' THEN 'UA'
+      WHEN {srclc_expr} = 'rus' THEN 'RU_OTHER'"""
+
+    if variant == "baseline":
+        body = agg + register + cctld + language
+    elif variant == "register_only":
+        body = agg + register
+    elif variant == "no_language_tier":
+        body = agg + register + cctld
+    elif variant == "language_first":
+        body = agg + language + register + cctld
+    elif variant == "with_aggregators":
+        body = register + cctld + language
+    else:
+        raise ValueError(f"unknown variant: {variant}")
+
+    return f"CASE\n      {body}\n      ELSE 'OTHER'\n    END"
+
+
+#: The rules the sensitivity analysis compares. ``baseline`` must stay first.
+CLASSIFIER_VARIANTS = (
+    "baseline", "register_only", "no_language_tier", "language_first",
+    "with_aggregators",
+)
+
+
 #: Ecosystems carried into the analysis. RU_OTHER is Russian media outside the
 #: register — kept separate so the state/independent split stays clean, and
 #: reported so unclassified Russian volume is visible rather than hidden.

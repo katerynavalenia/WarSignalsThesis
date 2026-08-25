@@ -93,6 +93,7 @@ def horse_race(
     use_tone: bool = True,
     min_obs_per_param: int = 4,
     news_lag: int = 0,
+    ecosystems: tuple[str, ...] | None = None,
 ) -> dict | None:
     """Joint test of the local ecosystems conditional on the Western ones.
 
@@ -106,13 +107,19 @@ def horse_race(
     if target not in d or d[target].notna().sum() < 40:
         return None
 
+    # Normally the production block list. The classifier-sensitivity run passes
+    # its own, because a rule that drops the language tier produces no
+    # EN_GLOBAL series at all -- there is nothing to put in the column.
+    blocks = tuple(ecosystems) if ecosystems is not None else CORE
+
     if freq == "W":
-        agg = {f"att_{e}": "mean" for e in CORE} | {f"tone_{e}": "mean" for e in CORE}
+        agg = ({f"att_{e}": "mean" for e in blocks}
+               | {f"tone_{e}": "mean" for e in blocks})
         agg |= {target: "sum", bench: "sum", "lvix": "last"}
         d = d[list(agg)].resample("W-FRI").agg(agg)
 
     X = pd.DataFrame(index=d.index)
-    for e in CORE:
+    for e in blocks:
         X[f"att_{e}"] = zscore(d[f"att_{e}"].diff().shift(news_lag))
         if use_tone:
             X[f"tone_{e}"] = zscore(d[f"tone_{e}"].diff().shift(news_lag))
@@ -128,6 +135,8 @@ def horse_race(
     m = sm.OLS(y, sm.add_constant(X)).fit(cov_type="HAC", cov_kwds={"maxlags": 5})
     loc = [c for c in X.columns if any(c.endswith(e) for e in LOCAL)]
     west = [c for c in X.columns if any(c.endswith(e) for e in WESTERN)]
+    if not loc or not west:
+        return None
     p_local = float(np.squeeze(m.f_test(" = 0, ".join(loc) + " = 0").pvalue))
     p_west = float(np.squeeze(m.f_test(" = 0, ".join(west) + " = 0").pvalue))
     if not np.isfinite(p_local):

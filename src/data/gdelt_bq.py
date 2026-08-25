@@ -150,6 +150,61 @@ def daily_ecosystem_sql(windows: list[tuple[str, str]]) -> str:
     """
 
 
+def variant_ecosystem_sql(windows: list[tuple[str, str]]) -> str:
+    """Daily per-ecosystem aggregates under **every** classification rule at once.
+
+    The design promised a sensitivity analysis across classification rules. Run
+    naively that is one full ingest per rule — five rules, roughly 1.9 TB — for a
+    robustness check. It does not need to be: the rules differ only in how they
+    label an article, not in which articles they read, so one scan can label each
+    article five ways and aggregate all five.
+
+    Every variant is emitted as a STRUCT per row and then unnested, so BigQuery
+    scans the corpus once and returns one row per (day, variant, ecosystem). Cost
+    is that of a single ingest; the output is five.
+
+    Aggregators are dropped from every variant except ``with_aggregators``, whose
+    whole point is to put them back.
+    """
+    from src.data.ecosystems import CLASSIFIER_VARIANTS, build_variant_case_sql
+
+    clauses = " OR ".join(
+        f"(_PARTITIONTIME BETWEEN TIMESTAMP('{a}') AND TIMESTAMP('{b}'))"
+        for a, b in windows
+    )
+    structs = ",\n        ".join(
+        f"STRUCT('{v}' AS variant, "
+        f"{build_variant_case_sql(v, srclc_expr=SRCLC)} AS eco)"
+        for v in CLASSIFIER_VARIANTS
+    )
+    return f"""
+    WITH tagged AS (
+      SELECT
+        DATE(_PARTITIONTIME) AS day,
+        {CONFLICT} AS is_conflict,
+        SAFE_CAST(SPLIT(V2Tone, ',')[SAFE_OFFSET(0)] AS FLOAT64) AS tone,
+        [
+        {structs}
+        ] AS variants
+      FROM {TABLE}
+      WHERE ({clauses}) AND SourceCommonName IS NOT NULL
+    )
+    SELECT
+      day,
+      v.variant AS variant,
+      v.eco AS ecosystem,
+      COUNT(*) AS n_total,
+      COUNTIF(is_conflict) AS n_conflict,
+      SAFE_DIVIDE(COUNTIF(is_conflict), COUNT(*)) AS share,
+      AVG(IF(is_conflict, tone, NULL)) AS tone_conflict,
+      AVG(tone) AS tone_all
+    FROM tagged, UNNEST(variants) AS v
+    WHERE v.eco != 'AGGREGATOR'
+    GROUP BY day, variant, ecosystem
+    ORDER BY day, variant, ecosystem
+    """
+
+
 #: Realized violence. Fixed in docs/v3/gate3_preregistration.md before the test.
 ACT_THEMES = (
     "KILL", "WOUND", "CRISISLEX_T03_DEAD", "CRISISLEX_T02_INJURED",
