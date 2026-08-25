@@ -11,21 +11,33 @@ Western narrative, and that local coverage — however much earlier, more
 voluminous or better informed it may be — adds nothing once the Western signal
 is in the regression.
 
-The answer is the second. Conditional on Western and native-English perception,
-the local ecosystems add no explanatory power to defence-equity returns, in
-attention or in tone, at daily or weekly frequency, and in either of the two
-gates that tested it. Neither timing convention rescues them: changing the
-alignment moves which cells are nominally significant, but under both
-conventions both gates fail — at most two Benjamini–Hochberg survivors remain in
-either gate, Gate 2's pair confined to a single thin 2025–26 weekly window and
-Gate 3's pair failing the target and sign conditions of its pre-registered pass
-rule. Extending the same design to a second asset class and then to a non-financial
-outcome does not change it: local perception is not priced in European gas,
-where all four pre-registered conditions fail, and it does not
-anticipate realized escalation out of sample, where the pre-registered test
-returns p = 0.21 at one day and p = 0.23 at five. Out-of-sample return
-predictability is likewise absent: across fifty specifications there are zero
-Clark–West rejections, against roughly two and a half expected by chance alone.
+The answer is the second, with one qualification that turns out to carry the
+argument rather than weaken it.
+
+Conditional on Western and native-English perception, the local ecosystems add no
+explanatory power to defence-equity returns **at the horizon a trader could have
+used** — in attention or in tone, at daily or weekly frequency, and in both gates
+that tested it. Gate 2's primary specification leaves one Benjamini–Hochberg
+survivor of thirty-one, in a 2017–19 window predating the war; Gate 3's leaves
+two, both resting on 58 observations and both failing the target and sign
+conditions of its pre-registered pass rule.
+
+The qualification is that the same-day specification is not empty. Credit the
+news to the day it was published rather than the day after, and seven of
+thirty-one cells survive correction, including the two largest in the grid. That
+gap is the thesis's central observation. Local coverage and defence returns move
+together within the session; one trading day of lag removes almost all of it.
+Since GDELT days are full UTC days and the lag removes only what was published
+after the market closed, an effect that was genuinely informational should have
+survived. What survives instead is the pattern efficiency predicts.
+
+Extending the same design to a second asset class and then to a non-financial
+outcome does not change it: local perception is not priced in European gas, where
+all four pre-registered conditions fail, and it does not anticipate realized
+escalation out of sample, where the pre-registered test returns p = 0.21 at one
+day and p = 0.23 at five. Out-of-sample return predictability is likewise absent:
+across fifty specifications there are zero Clark–West rejections, against roughly
+two and a half expected by chance alone.
 
 A null is only a finding if the test could have found otherwise, and here it
 could. The best out-of-sample Campbell–Thompson R²_OS observed anywhere in the
