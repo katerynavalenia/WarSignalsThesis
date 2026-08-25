@@ -76,9 +76,9 @@ In the equity tests, 31 specifications are run per grid; the news-lagged
 specification and the same-day threat/act specification each return **zero**
 Benjamini–Hochberg survivors, and the two grids in which anything survives at
 all yield two cells apiece. What makes these nulls readable is that the positive
-control passes in every one of them. The Western block is detected in **6 of 31**
-equity cells in each gate, at a minimum p of 0.0028 in the pre-registered Gate-3
-grid and 0.0005 in Gate 2; in the gas test it is detected in the build-up
+control passes in every one of them. The Western block is detected in **2 to 3 of 31**
+equity cells in each gate, at a minimum p of 0.0002 in the pre-registered Gate-3
+grid and 0.0117 in Gate 2; in the gas test it is detected in the build-up
 window where the local block is not; in the escalation test it is detected while
 the local block fails. The design can see what is there. It does not see the
 local block.

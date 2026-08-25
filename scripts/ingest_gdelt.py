@@ -81,6 +81,23 @@ PRESETS: dict[str, dict] = {
             ("2025-03-07", "2026-05-20"),
         ],
     },
+    # The threat/act split reads GDELT's Themes field, which scans at roughly
+    # four times the cost of the Locations field the other queries use (0.88 TB
+    # against 0.24 TB across the full archive). It was therefore first collected
+    # only for the episode windows, 1,605 days, which left Gate 3 testing on
+    # about 40% of the corpus while every other test used all of it. This preset
+    # fills the remaining 2,422 days -- about 706 GB -- so the anticipation
+    # regressions run on the same 4,027 days as everything else.
+    "threat-act-fill": {
+        "out": THREAT_ACT_OUT,
+        "kind": "threat_act",
+        "chunks": [
+            ("2015-02-18", "2015-12-31"), ("2016-01-01", "2016-08-31"),
+            ("2016-09-01", "2017-04-22"), ("2019-10-22", "2020-08-31"),
+            ("2020-09-01", "2021-09-07"), ("2022-06-06", "2023-06-30"),
+            ("2023-07-01", "2024-12-31"),
+        ],
+    },
 }
 
 ECOSYSTEM_INTS = ("n_total", "n_conflict")

@@ -59,19 +59,23 @@ it:
 | test | days available to it | note |
 |---|---|---|
 | Gates 1–2 | 3,073 in-sample | ~2,104 trading-day observations pooled |
-| Gate 3 | 1,605 | see below |
+| Gate 3 | **4,027** | 2,754 daily observations in the pooled cell |
 | Gate 4 | continuous 2021-06 → 2023-12 | the gas crisis, ingested continuously |
 | Gate 5 | 954 held out | never used in-sample; 651 usable after lags |
 | Chapter 7 | 1,855 out-of-sample days | after a 250-day initial training window |
 
-**Gate 3 is the one exception, and the reason is cost rather than choice.** The
-threat/act split reads GDELT's `Themes` field, which is roughly four times more
-expensive to scan than the `Locations` field the other tests use — 0.88 TB
-against 0.24 TB across the full archive. It was therefore ingested only for the
-episode windows, 1,605 days. That is a real limitation of Gate 3 specifically and
-is recorded as one in Chapter 8; it does not affect any other result. Gates 4
-and 5 drew their own continuous ingests — 944 days of gas-crisis coverage and 954
-days for the escalation test — each collected
+**Gate 3's coverage was closed deliberately.** The threat/act split reads GDELT's
+`Themes` field, which scans at roughly four times the cost of the `Locations`
+field the other tests use — 0.88 TB against 0.24 TB across the full archive — so
+it was first collected only for the six episode windows, 1,605 days. That left
+the anticipation test running on about 40% of the corpus while everything else
+used all of it, which is not a defensible asymmetry in a thesis whose argument
+rests on the *absence* of an effect. The remaining 2,422 days were ingested at a
+further 706 GB, and the test re-run on the full 4,027. The verdict did not change
+— it fails under both timing conventions either way — but the pooled cell now
+rests on **2,754 daily observations rather than 1,097**, which is what makes the
+null worth stating. Gates 4 and 5 drew their own continuous ingests — 944 days of
+gas-crisis coverage and 954 days for the escalation test — each collected
 *after* its pre-registration was written. Between those and subsequent fill
 collection, cumulative coverage ultimately reached the 4,027 days reported above.
 A test's sample is the sample it ran on, and the gate results report theirs.

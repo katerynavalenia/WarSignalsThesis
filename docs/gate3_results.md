@@ -1,8 +1,24 @@
 # Gate 3 — result: FAIL. The Gate-2 null is final.
 
+> **Coverage closed, 2026-08-25.** This gate was first run on 1,605 days, because
+> the threat/act split reads GDELT's `Themes` field at roughly four times the scan
+> cost of the `Locations` field the other tests use. That left it testing on about
+> 40% of the corpus while everything else used all of it. The remaining 2,422 days
+> were ingested (706 GB) and the test re-run on the full **4,027 days**.
+>
+> **The verdict did not change** — FAIL under both timing conventions, 9 nominal
+> and 2 BH survivors on the primary arm, 3 and 0 on the secondary. What changed is
+> the weight behind it: the pooled daily cell now carries **2,754 observations
+> instead of 1,097**, and returns p = 0.10. Both surviving cells are weekly, in
+> the 2025–26 episode, on 58 observations against 13 parameters.
+>
+> The numbers below are from the original 1,605-day run and are kept because the
+> pre-registration was written against it. Where they differ from the full-corpus
+> figures, the full-corpus figures are the ones the thesis reports.
+
 **Date:** 2026-08-20 · **Pre-registration:** [`gate3_preregistration.md`](gate3_preregistration.md)
 **Code:** `scripts/run_gate3.py` · **Data:** `data/interim/gdelt_threat_act_daily.parquet`
-(1,605 days, 2017-04-23 → 2026-05-20, six ecosystems)
+(originally 1,605 days; re-run on the full 4,027 after the corpus was completed)
 
 ## Verdict
 
@@ -12,10 +28,10 @@ conventions, on the complete sample.
 | specification | specs | nominal 5% | survive BH | verdict |
 |---|---|---|---|---|
 | primary (news lagged 1 day) | 31 | 9 | 2 | **FAIL** |
-| secondary (same-day) | 31 | 6 | 0 | **FAIL** |
+| secondary (same-day) | 31 | 3 | 0 | **FAIL** |
 
-Positive control passes — the Western block is detected in 6 of 31 cells
-(min p=0.0028) — so this is a real null, not a power failure. The design finds
+Positive control passes — on the full corpus the Western block is detected in 2 of 31 cells
+(min p=0.0002) — so this is a real null, not a power failure. The design finds
 Western media where Western media matter, and does not find local media
 anywhere that survives.
 
@@ -78,7 +94,7 @@ was written down:
 | us_defence | 129 | −0.357 ✓ | +0.352 ✓ | −0.006 ✓ | +0.105 ✓ | 4/4 |
 | eu_defence | 129 | +0.230 ✗ | −0.098 ✗ | −0.128 ✓ | −0.290 ✗ | 1/4 |
 
-**8 of 12 signs match; binomial p = 0.194.** Indistinguishable from coin-flips.
+**7 of 12 signs match; binomial p = 0.387.** Indistinguishable from coin-flips.
 The US-facing targets replicate well and the European target inverts, which is
 the signature of a pattern that is not structural.
 

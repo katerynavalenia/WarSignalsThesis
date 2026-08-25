@@ -36,7 +36,7 @@ is therefore ruled out for these assets and this information set. At the lower
 end it is not, and the thesis says so.
 
 The positive controls carry the same weight as the nulls. The Western block is
-detected in six of thirty-one cells of the same grid, at a minimum p of 0.0028;
+detected in two of thirty-one cells of the same grid, at a minimum p of 0.0002;
 the equivalent control passes in the gas window and in the escalation test. The
 apparatus sees what is there. It does not see local perception because local
 perception is not there to see.

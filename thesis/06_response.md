@@ -34,14 +34,25 @@ survive the minimum-observation rule.
 
 The null is only worth reporting because the same design carries a **positive
 control**. The Western block enters in exactly the same functional form, in
-exactly the same cells, and is detected in **6 of 31** cells in each of Gates 2
-and 3, with a minimum p-value of **0.0028** in the pre-registered Gate-3 grid and
-0.0005 in Gate 2.
-In several cells the two verdicts sit side by side: weekly European defence
-returns load on the Western block at p = 0.011 while the local block returns
-p = 0.320. The instrument finds Western media where Western media matter. When it
-reports nothing for local media, that is a measurement rather than a failure to
-measure.
+exactly the same cells. Across the full sample it is detected in **3 of 31** cells
+in Gate 2 (minimum p = 0.0117) and **2 of 31** in Gate 3 (minimum p = 0.0002).
+The instrument finds Western media where Western media matter; when it reports
+nothing for local media, that is a measurement rather than a failure to measure.
+
+Two honest qualifications belong with that. The control is **weaker on the full
+sample than on the war window** — on the episode-restricted corpus the Western
+block cleared in 6 of 31 cells in both gates. That is not a defect: roughly
+two-thirds of the 4,027 days precede the invasion, and in a quiet period Western
+coverage of Russia and Ukraine has little reason to move defence equities either.
+Both blocks fade together outside the conflict, which is what one would expect and
+is itself a small piece of evidence that the indices track the conflict rather
+than general news volume.
+
+The second qualification is that a control passing in 2 or 3 cells is a weaker
+warrant than one passing in ten. The claim it supports is correspondingly
+bounded: the design demonstrably *can* detect a media block in this data, and it
+does not detect the local one anywhere that survives correction. Chapter 7's
+power curve is what carries the quantitative version of that argument.
 
 ## 6.2 Gate 2 — attention and tone
 
@@ -91,13 +102,21 @@ writing before the test was built.
 
 The threat/act series are built for all six ecosystems, including the residual
 Russian group that is reported but never tested; the joint F-test uses the same
-five blocks as Gate 2, in the same conditional form. Run on **1,605 days spanning
-April 2017 to May 2026**, it fails under both timing conventions:
+five blocks as Gate 2, in the same conditional form. Run on the full **4,027 days
+from February 2015 to May 2026**, it fails under both timing conventions:
 
 | specification | specs | nominal 5% | survive BH | verdict |
 |---|---|---|---|---|
 | primary (news lagged one day) | 31 | 9 | 2 | **FAIL** |
-| secondary (same-day) | 31 | 6 | 0 | **FAIL** |
+| secondary (same-day) | 31 | 3 | 0 | **FAIL** |
+
+The two surviving cells are worth locating precisely, because where they sit is
+the argument. Both are weekly, both fall in the 2025–26 episode, and both rest on
+**58 observations supporting thirteen parameters**. The cell with the most data
+in the entire grid — pooled daily, **2,754 observations** — returns p = 0.10.
+A local-information effect that appears only in the thinnest corner of a grid and
+vanishes where the data is deepest is the signature of noise, not of a small
+effect that needs more power to see.
 
 Applied strictly, neither pre-registered arm clears. Arm 1 required a survivor in
 the Russia window on a Bloomberg target or the ITA proxy; the only Russia-window
@@ -107,7 +126,7 @@ the *same sign*; two windows do carry survivors, and the Russia daily cell has
 the opposite sign to all six weekly cells on every local term. In the build-up
 and invasion the primary local-block p-values run from 0.012 to 0.597, with
 nothing surviving correction. The positive control passes here as it does in Gate
-2 — the Western block in 6 of 31 cells, minimum p = 0.0028.
+2, though less strongly on the full sample — the Western block in 2 of 31 cells, minimum p = 0.0002.
 
 One pattern inside those cells deserves reporting precisely because it is
 seductive. Among the weekly survivors the coefficient signs were strikingly
@@ -118,7 +137,7 @@ rumour, sell the fact* in Ukrainian media — a shift toward anticipation raises
 defence returns, a shift toward realization lowers them. It is exactly the
 mechanism this project set out to find. Those four signs were written down and
 tested on the 2017–19 window, which had not been ingested when the hypothesis was
-formed: **8 of 12 signs match, binomial p = 0.194.** Indistinguishable from coin
+formed: **7 of 12 signs match, binomial p = 0.387.** Indistinguishable from coin
 flips. The US-facing targets replicate and the European target inverts, which is
 the signature of a pattern that is not structural. Chapter 8 returns to an
 earlier, truncated version of this same test, and to what it reported before the
@@ -194,7 +213,7 @@ in European natural gas, and does not anticipate realized escalation out of
 sample.
 
 The weight of that statement rests on the positive control appearing in every one
-of the tests. The design detects the Western block at p = 0.0028 in the equity
+of the tests. The design detects the Western block at p = 0.0002 in the equity
 grid, at p = 0.001 in the gas window, and at p = 0.006 in the escalation test, in
 the same cells where the local block is flat. Chapter 7 supplies the
 complementary bound from the other direction: an out-of-sample R²_OS of 1.0% is

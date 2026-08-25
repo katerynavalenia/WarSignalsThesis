@@ -57,7 +57,7 @@ counterparty's equities and finds the opposite asymmetry. Campbell & Thompson
 | Perception-index coverage | **2015-02-18 → 2026-05-20, 4,027 days, 98% of calendar**; ~3× the reviewed version on matched units (2,837 trading days vs 931, or 4,027 calendar days vs 1,370). **Do not write "4.4×"** — that divides calendar days by trading days | ingest logs |
 | In-sample corpus (Gates 1-2, 4, Ch7) | 3,073 days, 2015-02-18 -> 2026-05-20 | ingest logs |
 | Held-out block (Gate 5 only) | 954 days, never used in-sample | ingest logs |
-| Gate 3 threat/act | 1,605 days — Themes column costs 4x Locations | `gate3_results.md` |
+| Gate 3 threat/act | **4,027 days** (2,422 filled at 706 GB after the initial 1,605) | `gate3_results.md` |
 | Equity spine | 2015-02-18 → 2026-06-29, 2,837 trading days, 19 tickers | `data_sources.md` |
 | Regimes | pre_war 1,678 / buildup 79 / invasion 149 / attrition 931 | spine build log |
 | Bloomberg | WAERLST, BSHIELDT, 2020-01 → 2026-06, 1,698 days | `bloomberg.py` |
@@ -140,14 +140,14 @@ BH across the grid:
 | Gate 3 — threat/act, same-day | 31 | 6 | **0** |
 
 Russia buildup+invasion window, Gate 3 primary: p = 0.012 to 0.597, nothing
-surviving. **Positive control passes** — the Western block is detected in 6 of 31
-cells, min p=0.0028 — so the design can see what is there.
+surviving. **Positive control passes** — the Western block is detected in 2 of 31
+cells (2 of 31 on the full corpus), min p=0.0002 — so the design can see what is there.
 
 **Out-of-sample sign test.** The weekly cells showed a coherent structure
 (`act_RU_INDEP` 7/7 same sign, `act_UA` and `thr_UA` 6/7) reading as *buy the
 rumour, sell the fact*. Formed on 2021–2026 and tested on 2017-19, which had not
-been ingested when the four signs were written down: **8 of 12 signs match,
-binomial p=0.194.** US targets replicate, the European target inverts.
+been ingested when the four signs were written down: **7 of 12 signs match,
+binomial p=0.387.** US targets partly replicate, the European target inverts.
 
 ### Ch. 7 — Efficiency (answers supervisor comment #4)
 50 specifications, expanding-window one-day-ahead, Campbell–Thompson R²_OS with
@@ -210,7 +210,7 @@ perception adds nothing in volume, in tone, or in anticipation structure.
 ## Open limitations to state in Ch. 8
 - Precision audit not run; Gate 1 provisional.
 - Ecosystem tables predate the `dw.com` fix.
-- 1,605 of 4,151 available days ingested (episode windows ±75 days).
+- Coverage is 4,027 of 4,151 calendar days; the shortfall is gaps in GDELT itself.
 - Conflict filter is coarse: V1 `Locations` containing Ukraine or Russia.
 - 2017-19 is now used and is no longer a held-out window.
 - Daily equity data against 15-minute news; no intraday lead-lag test.

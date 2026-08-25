@@ -163,8 +163,8 @@ nothing about nonlinear structure, about conditioning on regime, or about lower
 frequencies. And it is a bound on predictability, not on pricing. Chapter 6's
 contemporaneous tests are the ones that ask whether perception is impounded in
 prices at all, and they too return a null for the local ecosystems while the
-positive control — the Western block, detected in 6 of 31 cells with a minimum p
-of 0.0028 — passes.
+positive control — the Western block, detected in 2 of 31 cells with a minimum p
+of 0.0002 — passes.
 
 ## 7.5 What it means for efficiency
 
