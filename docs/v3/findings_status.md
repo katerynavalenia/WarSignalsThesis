@@ -20,7 +20,7 @@ results that no longer hold. This page is the authority on which is which.
 | 3 | Local media's threat/act structure is priced (7 BH survivors) | [`gate3_results.md`](gate3_results.md) §"pass that evaporated" | adding the held-out window; 7 survivors → 2, verdict FAIL |
 | 4 | Local perception is priced in European gas (p=0.0005) | [`gate4_preregistration.md`](gate4_preregistration.md) §exploratory | pre-registered replication, n 81 → 222, p → 0.100 |
 | 5 | Local media anticipate realized escalation (both halves significant) | [`gate5_preregistration.md`](gate5_preregistration.md) §exploratory | pre-registered held-out sample, p → 0.16 |
-| 6 | The state-vs-**independent** censorship wedge | [`gate1_gate2_results.md`](gate1_gate2_results.md) §5 — **banner added** | fixed outlet panel, p=0.151; plus a register error (`dw.com`) |
+| 6 | The state-vs-**independent** censorship wedge | [`gate1_gate2_results.md`](gate1_gate2_results.md) §5 — **banner added** | fixed outlet panel. **p=0.323 with the corrected register** (five outlets, −0.22); p=0.151 before the `dw.com` fix (six outlets, −0.31). Correcting the register moves it *further* from significance |
 
 Each was significant at conventional levels when found. Each had a plausible
 mechanism. The failure modes are all different — two omitted-variable problems,

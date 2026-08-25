@@ -116,7 +116,7 @@ the mean shift is **−0.05**, with several outlets turning *more positive*
 (regnum.ru +0.23, gazeta.ru +0.48, ren.tv +0.43, mskagency.ru +0.40).
 
 **Report the state-vs-Ukraine contrast, not state-vs-independent.** The latter
-does not survive the fixed panel (p=0.151), because most of the independent
+does not survive the fixed panel (p=0.323 with the corrected register; p=0.151 before it), because most of the independent
 ecosystem is exiled or was shut down — echo.msk.ru falls from 13,951 articles to
 1,043 after liquidation — so the ecosystem-level version was measured partly on a
 change of membership across the event it claims to measure.
@@ -200,7 +200,7 @@ perception adds nothing in volume, in tone, or in anticipation structure.
 
 ## Do not claim
 - Any threat/expectations channel specific to defence equities — retracted, Ch. 8.
-- The state-vs-independent censorship wedge — p=0.151 on a fixed panel.
+- The state-vs-independent censorship wedge — p=0.323 on a fixed panel with the corrected register.
 - Any Gate-3 pass — it exists only on the truncated sample.
 - Hand-validated ecosystem precision — the audit was not run.
 - Firm-level or SIPRI-exposure results — that data no longer exists anywhere.

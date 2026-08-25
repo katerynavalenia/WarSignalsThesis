@@ -123,8 +123,15 @@ it was never carried out, so a classification error surfaced through an analysis
 whose purpose was something else. And it compounded a separate problem of the
 same sign — as Chapter 5 sets out, the independent ecosystem is thin and its
 membership changes across the very event being measured, so on a fixed panel only
-six independent outlets qualify and the difference in shifts is not significant
-(Welch test, p = 0.151).
+five independent outlets qualify and the difference in shifts is not significant
+(Welch test, p = 0.323).
+
+Re-running the panel with the register corrected is itself instructive. Before the
+fix, with Deutsche Welle counted as Russian-independent, the comparison gave six
+outlets, a −0.31 shift and p = 0.151; afterwards it gives five outlets, −0.22 and
+p = 0.323. The misclassified outlet had been supplying that ecosystem's largest
+negative shift, so removing it moves the contrast further from significance. The
+retraction was correct and the corrected register makes it more so.
 
 **What survives.** Russian state media's tone genuinely did not move when Russia
 invaded Ukraine: **+0.02** in aggregate, and **−0.05** on a fixed panel of 24

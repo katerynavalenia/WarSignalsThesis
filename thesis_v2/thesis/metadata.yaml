@@ -1,0 +1,62 @@
+---
+title: |
+  Whose Perception of Geopolitical Risk Is Priced in Defence Equities?
+subtitle: Evidence from the Russia–Ukraine War
+author: Kateryna Valenia
+date: August 2026
+lang: en-GB
+documentclass: report
+classoption:
+  - 12pt
+  - a4paper
+  - oneside
+geometry:
+  - margin=3cm
+fontsize: 12pt
+linestretch: 1.4
+toc: true
+toc-depth: 2
+numbersections: true
+secnumdepth: 2
+colorlinks: true
+linkcolor: black
+citecolor: black
+urlcolor: blue
+bibliography: references.bib
+
+# The chapters cite in prose ("Bondarenko et al. (2024)") rather than with
+# pandoc keys, so nothing would enter the reference list automatically. This
+# forces every entry in references.bib to appear. If the prose citations are
+# later converted to [@key] form, delete this line and the list will build from
+# the citations themselves.
+nocite: |
+  @*
+
+abstract: |
+  Do defence equities price the perception of geopolitical risk held by
+  Ukrainian and Russian media, or only the perception carried by Western
+  coverage? This thesis rebuilds the measurement from GDELT's translingual
+  archive, classifying 4,027 days of conflict coverage by the country, language
+  and ownership of the *publisher* rather than by the country an article
+  mentions — a correction that matters, because the previous approach drew all
+  three national series from one English-language population.
+
+  The answer is that Western defence equities price the Western narrative.
+  Local-language perception adds nothing beyond it, in coverage volume, in tone,
+  or in the anticipation-versus-realization structure of that coverage. The null
+  is established across two asset classes — defence equities and European
+  natural gas, the asset through which the conflict physically transmitted — and
+  one non-market outcome, realized escalation, each against a positive control
+  confirming the design detects Western media where Western media matter. A
+  simulated power curve bounds the forecasting result: out-of-sample R² of 1.0%
+  is detectable at 80% power and 0.5% at 56%, against a best observed 0.45%.
+
+  Two further results survive. Russian state media's tone did not move when
+  Russia invaded Ukraine — a shift of +0.02, and −0.05 on a fixed panel of
+  twenty-four outlets present on both sides of the invasion — while Ukrainian
+  media's fell by 1.66 points. And five apparently significant findings were
+  produced and retracted over the course of the work, by five distinct
+  mechanisms: two omitted-variable problems, a truncated sample, a small sample,
+  and an in-sample split that did not generalise. That sequence is reported
+  rather than removed, and is the thesis's methodological contribution.
+---
