@@ -42,7 +42,7 @@ reporting rather than hiding.
 | Local perception does not anticipate escalation out of sample | Gate 5, p=0.21 / 0.23 | [`gate5_results.md`](gate5_results.md) |
 | No out-of-sample return predictability | 0 of 50 Clark–West rejections | `outputs/tables/forecast_null.csv` |
 | Power bound on that null | **R²_OS 0.5% detectable at 82% power**, 0.2% at 43%, on 1,855 OOS days | `outputs/tables/forecast_power_curve.csv` |
-| Threat *is* priced market-wide in Europe | SXXP loads +0.474, p<0.0001 | [`gate1_gate2_results.md`](gate1_gate2_results.md) §6b |
+| Threat *is* priced market-wide in Europe **during the build-up and invasion** | SXXP loads +0.474, p<0.0001 on that window; +0.028, p=0.15 on the full sample | [`gate1_gate2_results.md`](gate1_gate2_results.md) §6b |
 | Sample coverage | **2015-02-18 → 2026-05-20, 4,027 days, 98% of calendar**; ~3× the reviewed version on matched units (2,837 trading days vs 931) | ingest logs |
 | The null does not depend on the classification rule | Gate 2 survivors 1–2 of 31 under all five rules, primary alignment | `outputs/tables/classifier_sensitivity.csv` |
 | A language-first classifier cannot represent the state/independent split | `language_first` produces no RU_INDEP block at all | same |

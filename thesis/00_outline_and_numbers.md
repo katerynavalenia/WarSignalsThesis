@@ -184,7 +184,8 @@ appeared and dissolved:
    **0.409** in that window, so SP500 leaves nearly all European market variation
    in the residual, and that residual correlates 0.26 with the threat shock. This
    retracts v2's headline and an intermediate result of this thesis.
-   **What survives is better:** SXXP *itself* loads on threat at **+0.474
+   **What survives is better:** over the build-up and invasion (NOT the full
+   sample, where it is +0.028 / p=0.15) SXXP *itself* loads on threat at **+0.474
    (p<0.0001)** — threat is priced market-wide in Europe, not differentially in
    defence.
 2. **The truncated sample.** On a partial ingest of 694 days the pre-registered

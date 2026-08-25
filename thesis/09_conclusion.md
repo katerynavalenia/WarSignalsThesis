@@ -67,7 +67,7 @@ studies are consistent, and their consistency is the point.
 
 That is not a claim that geopolitical risk is unpriced. Threat is priced
 market-wide in Europe: the STOXX 600 itself loads on the threat component at
-+0.474 with p < 0.0001. What fails is the narrower proposition that defence
++0.474 with p < 0.0001 across the build-up and invasion, though not outside it. What fails is the narrower proposition that defence
 equities respond differentially, and the narrower proposition still that they
 respond to *local* perception of the risk.
 

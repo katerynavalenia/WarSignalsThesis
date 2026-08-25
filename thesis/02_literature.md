@@ -60,7 +60,7 @@ carrying different noise. Caldara and Iacoviello's split, and the analogous
 split built from GDELT's theme taxonomy in Section 4.4, keep both sides on the
 same measurement footing. Chapter 8 reports the one place in this sample where a
 threat component is clearly priced: European equities as a whole load on threat
-at +0.474 with p<0.0001 — market-wide, not differentially in defence names.
+at +0.474 with p<0.0001 over the build-up and invasion — market-wide, not differentially in defence names, and not outside that window.
 
 ## 2.2 Whose newspapers
 

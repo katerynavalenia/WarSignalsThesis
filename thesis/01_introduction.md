@@ -93,8 +93,9 @@ Western media had not already told it.
 
 Something is priced, and it is worth being precise about what. The STOXX 600
 itself loads on the threat component of geopolitical risk at **+0.474
-(p < 0.0001)**. Threat is priced across the European market, not differentially
-in defence.
+(p < 0.0001)** across the build-up and invasion. Threat is priced by the European
+market, not differentially in defence. The result is windowed and §8.1 says so:
+over the full sample the same coefficient is +0.028 and insignificant.
 
 The efficiency result has the same shape. Across 50 expanding-window
 one-day-ahead specifications, the best Campbell–Thompson out-of-sample R² is

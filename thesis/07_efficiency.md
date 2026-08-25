@@ -234,7 +234,7 @@ both, which is the joint-hypothesis problem in its ordinary form. The
 contemporaneous evidence is what breaks the tie, and it points the same way:
 local perception is not detected in defence returns on the day either, while
 European market-wide threat pricing is — the STOXX 600 itself loads on threat at
-**+0.474 (p < 0.0001)**, reported in Chapter 8. Information that is priced in
+**+0.474 (p < 0.0001)** across the build-up and invasion, reported in Chapter 8. Information that is priced in
 this sample is priced immediately and broadly, not with a day's delay in one
 sector.
 

@@ -65,11 +65,21 @@ adjudicates why they differ.
 
 **What survives is better than what was lost.** Regressing the European market
 index itself on the two channels, with no market control, threat loads at
-**+0.474 (p < 0.0001)**, while the same regression on the US market gives
-nothing. Geopolitical threat *is* priced — market-wide in Europe, not
-differentially in defence. That is why controlling for the STOXX 600 removes the
-defence-specific coefficient: the effect is in the control. The retraction turns
-a fragile claim about one sector into a robust claim about a market.
+**+0.474 (p < 0.0001)** over the build-up and invasion, while the same regression
+on the US market gives nothing (−0.085, p = 0.42). Geopolitical threat *is*
+priced — market-wide in Europe, not differentially in defence. That is why
+controlling for the STOXX 600 removes the defence-specific coefficient: the
+effect is in the control. The retraction turns a fragile claim about one sector
+into a claim about a market.
+
+The scope of that claim needs stating precisely, because it is the one positive
+result in this thesis and it would be easy to inflate. It is a **windowed** result:
+over the full 2,780-day sample the same regression gives +0.028 at p = 0.15,
+which is nothing. The finding is not that European equities always price
+geopolitical threat; it is that they did so, strongly, across the months in which
+a European land war was being anticipated and then began. That is the period in
+which a threat index and a European market index should have had something to say
+to each other, and it is the only period in which they do.
 
 ## 8.2 The truncated sample: a pre-registered pass that was not one
 
