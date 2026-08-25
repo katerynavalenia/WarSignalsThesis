@@ -29,11 +29,11 @@ VPY="$VENV/bin/python"
 # 2. Dependencies. v1 and v2 requirements are identical; install once.
 echo "==> Installing dependencies (a few minutes on a cold container)"
 "$VPY" -m pip install --quiet --upgrade pip
-"$VPY" -m pip install --quiet -r thesis_v2/requirements.txt
+"$VPY" -m pip install --quiet -r requirements.txt
 
 # 3. Local path config. Gitignored, so every fresh checkout lacks it, and
 #    modules raise a pointed error when it is missing.
-for v in thesis_v1 thesis_v2; do
+for v in .; do
   if [ ! -f "$v/config/paths.yaml" ]; then
     cp "$v/config/paths.yaml.example" "$v/config/paths.yaml"
     echo "==> Wrote $v/config/paths.yaml from example"
@@ -41,7 +41,7 @@ for v in thesis_v1 thesis_v2; do
 done
 
 # 4. Git LFS pointers, if the tool is available. Only ~10 small CSVs under
-#    thesis_v1/outputs/ are LFS-tracked, so this is cheap.
+#    outputs/ are LFS-tracked, so this is cheap.
 if command -v git-lfs >/dev/null 2>&1; then
   git lfs install --local >/dev/null 2>&1 || true
   git lfs pull >/dev/null 2>&1 || echo "==> git lfs pull failed (non-fatal)"
@@ -52,7 +52,7 @@ cat <<'DONE'
 ==> Ready.
 
     source .venv/bin/activate
-    cd thesis_v1 && python -m pytest -q
+    python -m pytest tests/ -q
 
 Expected on a dataless checkout: 426 passed, 4 failed, 33 skipped.
 All 4 failures are missing-data (test_phase5_merge.py::TestLoaders), not code.

@@ -23,7 +23,7 @@ cd "${CLAUDE_PROJECT_DIR:-.}" || exit 0
 # 1. Local path config. Gitignored, so a fresh clone never has it, and the
 #    config loader raises a pointed error when it is missing — which is what
 #    made 1 of the 5 dataless test failures.
-for v in thesis_v1 thesis_v2; do
+for v in .; do
   if [ -f "$v/config/paths.yaml.example" ] && [ ! -f "$v/config/paths.yaml" ]; then
     cp "$v/config/paths.yaml.example" "$v/config/paths.yaml"
     echo "cloud_setup: wrote $v/config/paths.yaml"
@@ -36,17 +36,17 @@ done
 if ! python3 -c "import pandas, statsmodels, arch, xgboost, shap" 2>/dev/null; then
   echo "cloud_setup: installing Python dependencies (cold environment)"
   if command -v uv >/dev/null 2>&1; then
-    uv pip install --system -q -r thesis_v2/requirements.txt || \
-      pip install -q -r thesis_v2/requirements.txt || \
+    uv pip install --system -q -r requirements.txt || \
+      pip install -q -r requirements.txt || \
       echo "cloud_setup: dependency install failed — ask Claude to retry"
   else
-    pip install -q -r thesis_v2/requirements.txt || \
+    pip install -q -r requirements.txt || \
       echo "cloud_setup: dependency install failed — ask Claude to retry"
   fi
 fi
 
 # 3. Git LFS. Not pre-installed on the session VM, and ~10 small CSVs under
-#    thesis_v1/outputs/ are LFS-tracked — without it they are pointer stubs.
+#    outputs/ are LFS-tracked — without it they are pointer stubs.
 if command -v git-lfs >/dev/null 2>&1; then
   git lfs install --local >/dev/null 2>&1
   git lfs pull >/dev/null 2>&1 || echo "cloud_setup: git lfs pull failed (non-fatal)"

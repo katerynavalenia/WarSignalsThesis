@@ -31,8 +31,8 @@ build/
 .DS_Store
 
 # ── Configuration (local copies) ────────
-# Patterns are prefixed with **/ so they match under both thesis_v1/ and
-# thesis_v2/ (this .gitignore lives at the shared project root).
+# Patterns use **/ so they match wherever a data or config tree sits.
+
 **/config/paths.yaml
 **/config/*.local.yaml
 
@@ -58,26 +58,26 @@ build/
 # GDELT one cost 182 GB of BigQuery quota to build — regenerating it needs
 # credentials and a day of the daily quota, so it is versioned rather than
 # treated as scratch.
-!thesis_v2/data/interim/spine_full.parquet
-!thesis_v2/data/interim/gdelt_ecosystems_daily.parquet
-!thesis_v2/data/interim/perception_indices.parquet
+!data/interim/spine_full.parquet
+!data/interim/gdelt_ecosystems_daily.parquet
+!data/interim/perception_indices.parquet
 # These two were omitted from the list above, so git treated them as scratch and
 # they were destroyed when a worktree holding them was removed. They are the
 # inputs to Gates 3 and 5 and cost roughly 400 GB of BigQuery to rebuild. Any
 # new interim artefact that is expensive to regenerate belongs on this list
 # BEFORE it is created, not after.
-!thesis_v2/data/interim/gdelt_threat_act_daily.parquet
-!thesis_v2/data/interim/gdelt_ecosystems_holdout.parquet
+!data/interim/gdelt_threat_act_daily.parquet
+!data/interim/gdelt_ecosystems_holdout.parquet
 
 # Processed data
 **/data/processed/**/*.csv
 **/data/processed/**/*.parquet
 # Exception: Phase 3 GDELT news outputs (tracked via LFS) — v1 only
-!thesis_v1/data/processed/news/news_daily.csv
-!thesis_v1/data/processed/news/news_daily.parquet
-!thesis_v1/data/processed/news/gdelt_articles_dedup.parquet
-!thesis_v1/data/processed/news/gdelt_articles_classified.parquet
-!thesis_v1/data/processed/news/manual_precision_audit.csv
+
+
+
+
+
 
 # External data
 **/data/external/**/*.csv

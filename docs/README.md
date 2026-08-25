@@ -1,86 +1,58 @@
-# Documentation Index
+# Research documentation
 
-This `docs/` folder is shared context for all research iterations. It sits
-alongside `thesis_v1/` (archived draft) and `thesis_v2/` (active code) at the
-project root, so either version's code can reference the same history.
+Everything here belongs to the final study. There is one version; earlier
+iterations are in [`../archive/`](../archive/).
 
-```text
-WarSignalsThesis/
-├── docs/
-│   ├── v1/   ← historical record of the reviewed draft (read-only)
-│   ├── v2/   ← the contemporaneous-response pivot (superseded, kept for its evidence)
-│   └── v3/   ← ACTIVE plan, after the supervisor review (edit here)
-├── thesis_v1/  ← archived code, data, outputs (draft) — still reused wholesale
-└── thesis_v2/  ← code skeleton; new v3 work goes here
-```
+> ## ⚠ Read [`findings_status.md`](findings_status.md) first
+>
+> Five plausible positives were produced and retracted during this work, plus one
+> narrower claim. The documents that reported them are kept **unedited**, because
+> the sequence of retractions is the thesis's methodological contribution — which
+> means several files below state, in their own voice, results that no longer
+> hold. `findings_status.md` is the authority on which results are live. Nothing
+> here should be cited without checking it.
 
 ## Start here
 
-- **Working on the thesis now?** Read [`v3/README.md`](v3/README.md), then
-  [`v3/gdelt_measurement_diagnosis.md`](v3/gdelt_measurement_diagnosis.md),
-  [`v3/research_plan_v3.md`](v3/research_plan_v3.md), and
-  [`v3/supervisor_response_matrix.md`](v3/supervisor_response_matrix.md).
-- **Need v1 history or data to reuse?** See [`v1/README.md`](v1/README.md) and
-  [`v1/supervisor_audit.md`](v1/supervisor_audit.md).
-- **Want v2's preliminary regression evidence?** It is real and still useful —
-  see [`v2/research_plan.md`](v2/research_plan.md) §6.
-- **Setting up, or working without the laptop?**
-  [`cloud_sessions.md`](cloud_sessions.md) covers GitHub connection and what is
-  possible from a dataless checkout; [`v3/environment_setup.md`](v3/environment_setup.md)
-  covers the BigQuery route that makes the GDELT rebuild possible from a cloud
-  session.
+| file | what it is |
+|---|---|
+| [`findings_status.md`](findings_status.md) | live vs retracted, with what killed each |
+| [`reproduce.md`](reproduce.md) | run order, BigQuery costs, what each script writes |
+| [`research_plan.md`](research_plan.md) | the plan the work executed |
+| [`supervisor_response_matrix.md`](supervisor_response_matrix.md) | the five review comments, verbatim, each answered |
+| [`supervisor_note.md`](supervisor_note.md) | draft note to send with the thesis |
 
-## Why there are three versions
+## The measurement
 
-**v1 (reviewed by the supervisor).** Asked whether physical attack intensity and
-multilingual news narratives *forecast* defence-equity returns and volatility
-out-of-sample, on 2022-09 → 2026-06. Both arms came out null. See
-[`v1/supervisor_audit.md`](v1/supervisor_audit.md).
+| file | what it is |
+|---|---|
+| [`gdelt_measurement_diagnosis.md`](gdelt_measurement_diagnosis.md) | why the previous indicators measured article *topic* rather than publisher perspective — the finding that drove the rebuild |
+| [`data_sources.md`](data_sources.md) | what is reachable without credentials, and what is not |
+| [`equity_validation.md`](equity_validation.md) | the free-basket test, pre-registered, and its result |
 
-**v2 (superseded).** Reframed from forecasting to contemporaneous *response*, at
-the firm-panel level, adding GPR and SIPRI. Its intended centrepiece — that the
-response scales with a firm's defence-revenue exposure — was falsified on the
-attrition-only sample. Its surviving evidence (defence volatility loads on
-GPR_THREAT more than GPR_ACT, especially in Europe) is folded into v3.
+## The gates
 
-**v3 (active).** After the supervisor's five-point review. Keeps the topic and
-every pipeline, and fixes the three things that actually caused the nulls: the
-sample was too short and contained no regime variation; the national sentiment
-indicators measured article *topic* rather than publisher *perspective*; and
-forecast accuracy was judged on metrics too blunt to detect the effect sizes this
-literature deals in. New question: **whose perception of geopolitical risk is
-priced in defence equities?** See [`v3/README.md`](v3/README.md).
+Each pre-registration was committed **before** the data to test it existed, so
+the order is verifiable in git history.
 
-## Phase numbers do not carry across versions
+| pre-registration | result |
+|---|---|
+| — (criteria fixed in `equity_validation.md`) | [`gate1_gate2_results.md`](gate1_gate2_results.md) |
+| [`gate3_preregistration.md`](gate3_preregistration.md) | [`gate3_results.md`](gate3_results.md) — FAIL |
+| [`gate4_preregistration.md`](gate4_preregistration.md) | [`gate4_results.md`](gate4_results.md) — FAIL |
+| [`gate5_preregistration.md`](gate5_preregistration.md) | [`gate5_results.md`](gate5_results.md) — FAIL |
 
-Each iteration numbered its phases independently, so a bare "Phase 5" is
-ambiguous — and v1's numbers are still live in filenames (`phase5_build_master.py`,
-`test_phase6_baselines.py`) while v3's exist only in prose.
+## Retracted, kept deliberately
 
-| # | v1 — *in filenames* | v2 | v3 — *in the plan* |
-|---|---|---|---|
-| 1 | Financial-data audit | Data assembly | Long-sample data spine |
-| 2 | Physical attack dataset | Panel construction | **Perception indices — the gate** |
-| 3 | GDELT extraction & classification | Main response analysis | Stylized facts |
-| 4 | GDELT tone | Heterogeneity | Dynamic response |
-| 5 | Merge & feature engineering | Predictability check | Forecasting repair |
-| 6 | Econometric baselines | Robustness | Cross-section & events |
-| 7 | Machine-learning models | Writing | Robustness |
-| 8 | — | Final validation | Writing |
-| 9 | — | — | Final validation |
+[`gpr_regime_preview.md`](gpr_regime_preview.md) reports a result that is wrong.
+It opens with a retraction banner giving the correct number and the mechanism.
+It is here because Chapter 8 documents the retraction, and a retraction whose
+subject has been deleted cannot be checked.
 
-**Conventions, to stop this recurring:**
+## Operational
 
-- **Always qualify in prose**: "v3 Phase 5", never a bare "Phase 5".
-- **Never put a phase number in a new filename.** The numbering has been
-  rewritten twice in two months; files outlive it. Name by content instead —
-  `build_spine.py`, `gpr_regime_preview.py`, `gpr_race_returns_bshieldt.csv`.
-- **v1's phase-numbered filenames are frozen**, not a precedent. Roughly 78
-  references across `docs/v1/` cite them, and that trail is the point of keeping
-  v1 at all.
-
-## Rules
-
-- Do not edit `docs/v1/*` or `docs/v2/*` — they are the historical record of what
-  was tried and found.
-- All new planning, status, and decision documents go in `docs/v3/`.
+| file | what it is |
+|---|---|
+| [`environment_setup.md`](environment_setup.md) | BigQuery service account, credentials, what an agent session can and cannot do |
+| [`decision_log.md`](decision_log.md) | decisions, with reasons and revisit conditions |
+| [`finding_the_submitted_draft.md`](finding_the_submitted_draft.md) | which version the supervisor reviewed, and how to tell |
