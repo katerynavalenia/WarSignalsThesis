@@ -249,3 +249,84 @@ class TestIngestMerge:
         out = self._merge([stale, fresh])
         assert out.set_index("ecosystem").n_conflict.to_dict() == {
             "RU_INDEP": 800, "UA": 5000}
+
+
+class TestBatchFailureHandling:
+    """A dropped request must not be recorded as an answer.
+
+    This is the same defect class as the ingest merge: a failure that looks
+    exactly like a result. A batched Wikidata request that fails returns nothing
+    for every id in it, which is indistinguishable from a batch of items that
+    genuinely have no matching website -- so the audit would report outlets as
+    unknown to Wikidata when the truth is that a request did not come back.
+    """
+
+    def test_chunks_covers_every_item_exactly_once(self):
+        from src.data.register_audit import _chunks
+
+        items = [{"id": f"Q{i}"} for i in range(45)]
+        batches = list(_chunks(items, 20))
+        assert [len(b) for b in batches] == [20, 20, 5]
+        assert [c["id"] for b in batches for c in b] == [c["id"] for c in items]
+
+    def test_chunks_handles_empty_and_exact_multiples(self):
+        from src.data.register_audit import _chunks
+
+        assert list(_chunks([], 20)) == []
+        assert len(list(_chunks([{"id": "Q1"}] * 40, 20))) == 2
+
+    def test_missing_entity_is_retried_individually(self, monkeypatch):
+        """The batch drops Q2; the per-item fallback recovers it."""
+        import src.data.register_audit as ra
+
+        calls = []
+
+        def fake_get(url, **kw):
+            calls.append(url)
+            if "Q1%7CQ2" in url:            # batched request, Q2 missing
+                return {"entities": {"Q1": {"claims": {}}}}
+            if "ids=Q2&" in url:            # individual retry
+                return {"entities": {"Q2": {"claims": {"P856": []}}}}
+            return None
+
+        monkeypatch.setattr(ra, "_get", fake_get)
+        monkeypatch.setattr(ra.time, "sleep", lambda *_: None)
+        out = ra._fetch_entities([{"id": "Q1"}, {"id": "Q2"}], pause=0)
+        assert set(out) == {"Q1", "Q2"}, "the fallback did not recover Q2"
+        assert any("ids=Q2&" in u for u in calls)
+
+    def test_entity_that_truly_fails_stays_absent(self, monkeypatch):
+        import src.data.register_audit as ra
+
+        monkeypatch.setattr(ra, "_get", lambda url, **kw: None)
+        monkeypatch.setattr(ra.time, "sleep", lambda *_: None)
+        assert ra._fetch_entities([{"id": "Q1"}], pause=0) == {}
+
+
+class TestPinsAreAuthoritative:
+    """With a pin map present, unpinned domains are not searched live.
+
+    Searching them would reintroduce the instability the pin exists to remove:
+    Wikidata's ranking varies between calls, so coverage would drift without
+    anything having changed.
+    """
+
+    def test_unpinned_domain_is_unverified_without_a_network_call(self, monkeypatch):
+        import src.data.register_audit as ra
+
+        monkeypatch.setattr(ra, "PINNED_QIDS", {"pinned.example": "Q1"})
+        called = []
+
+        def fake_lookup(domain, **kw):
+            called.append(domain)
+            return {"domain": domain, "qid": "Q1", "wd_label": "x",
+                    "wd_country_qid": "Q159", "wd_country_eco": "RU",
+                    "state_owned": None, "identity": "website-confirmed"}
+
+        monkeypatch.setattr(ra, "lookup_outlet", fake_lookup)
+        out = ra.audit_register({"pinned.example": "RU_STATE",
+                                 "unpinned.example": "RU_STATE"}, pause=0)
+        assert called == ["pinned.example"], "an unpinned domain was searched"
+        verdicts = dict(zip(out.domain, out.verdict))
+        assert verdicts["unpinned.example"] == "unverified"
+        assert verdicts["pinned.example"] == "match"

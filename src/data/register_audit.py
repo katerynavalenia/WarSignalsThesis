@@ -97,7 +97,46 @@ ECOSYSTEM_TO_COUNTRY = {
 #: without it, coverage moves between runs because Wikidata's search ranking
 #: does, and a precision figure that changes when nothing changed is not a
 #: measurement. Regenerate with ``scripts/run_register_audit.py --repin``.
-PINNED_QIDS: dict[str, str] = {}
+PINNED_QIDS: dict[str, str] = {
+    "1tv.ru": "Q330067",
+    "7x7-journal.ru": "Q104538016",
+    "apnews.com": "Q40469",
+    "axios.com": "Q28230873",
+    "bbc.co.uk": "Q687427",
+    "bbc.com": "Q747860",
+    "bloomberg.com": "Q13975",
+    "cnbc.com": "Q1023912",
+    "cnn.com": "Q48340",
+    "echo.msk.ru": "Q749928",
+    "faz.net": "Q10184",
+    "forbes.com": "Q956568",
+    "ft.com": "Q183399",
+    "handelsblatt.com": "Q819697",
+    "kommersant.ru": "Q1780134",
+    "kyivpost.com": "Q1795015",
+    "lemonde.fr": "Q12461",
+    "life.ru": "Q4042868",
+    "mediazona.ca": "Q28135463",
+    "meduza.io": "Q18340732",
+    "novayagazeta.eu": "Q111654428",
+    "novayagazeta.ru": "Q170135",
+    "obozrevatel.com": "Q4329488",
+    "pravda.com.ua": "Q904463",
+    "rbc.ru": "Q629733",
+    "regnum.ru": "Q1977770",
+    "reuters.com": "Q130879",
+    "ria.ru": "Q821172",
+    "spiegel.de": "Q131478",
+    "tass.ru": "Q223799",
+    "telegraph.co.uk": "Q192621",
+    "theguardian.com": "Q5614018",
+    "tvrain.ru": "Q155172",
+    "tvzvezda.ru": "Q7274874",
+    "vedomosti.ru": "Q2304119",
+    "washingtonpost.com": "Q166032",
+    "znak.com": "Q28666321",
+    "zona.media": "Q28135463",
+}
 
 
 def _get(url: str, timeout: int = 45, retries: int = 3) -> dict | None:
@@ -109,6 +148,12 @@ def _get(url: str, timeout: int = 45, retries: int = 3) -> dict | None:
         except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
             time.sleep(1.5 * (attempt + 1))
     return None
+
+
+def _chunks(seq, n):
+    """Successive n-sized slices — the Wikidata API takes 50 ids per request."""
+    for i in range(0, len(seq), n):
+        yield seq[i:i + n]
 
 
 def _host(url: str) -> str:
@@ -139,6 +184,30 @@ def _website_matches(claims: dict, domain: str) -> bool:
     return False
 
 
+def _fetch_entities(batch: list[dict], pause: float) -> dict:
+    """Claims and labels for a batch of items, falling back to one at a time.
+
+    A batched request that fails returns nothing for *every* item in it, and the
+    caller cannot distinguish that from a batch of items with no matching
+    website. Rather than let a dropped request look like an answer, whatever the
+    batch omits is retried individually and only genuinely missing items stay
+    missing.
+    """
+    ids = "%7C".join(c["id"] for c in batch)
+    e = _get(f"{API}?action=wbgetentities&ids={ids}"
+             f"&props=claims%7Clabels&languages=en&format=json")
+    time.sleep(pause)
+    entities = (e or {}).get("entities", {})
+    for cand in [c for c in batch if c["id"] not in entities]:
+        one = _get(f"{API}?action=wbgetentities&ids={cand['id']}"
+                   f"&props=claims%7Clabels&languages=en&format=json")
+        time.sleep(pause)
+        got = (one or {}).get("entities", {}).get(cand["id"])
+        if got is not None:
+            entities[cand["id"]] = got
+    return entities
+
+
 def lookup_outlet(domain: str, pause: float = 0.15,
                   qid_hint: str | None = None) -> dict:
     """Find a domain's Wikidata item and read its country and ownership.
@@ -160,8 +229,14 @@ def lookup_outlet(domain: str, pause: float = 0.15,
     if qid_hint:
         candidates = [{"id": qid_hint, "label": None}]
     else:
-        # Several query forms, because Wikidata's ranking is unstable and the
-        # right item is often outside the top few hits for any single one.
+        # Two different searches, because they fail differently.
+        # ``wbsearchentities`` matches labels and aliases only, so it misses an
+        # outlet whose Wikidata item is titled unlike its domain. The full-text
+        # ``list=search`` indexes statement values, so it finds items *by their
+        # website* -- which is precisely the property being checked, and it
+        # recovers outlets the label search cannot see. Ranking in both is
+        # unstable, which is why every hit is treated as a candidate and none is
+        # trusted until the website confirms it.
         terms = [domain, stem, stem.replace("-", " ")]
         candidates, seen = [], set()
         for term in dict.fromkeys(terms):
@@ -174,26 +249,66 @@ def lookup_outlet(domain: str, pause: float = 0.15,
                     seen.add(h["id"])
                     candidates.append(h)
 
+        r = _get(f"{API}?action=query&list=search"
+                 f"&srsearch={urllib.parse.quote(domain)}"
+                 f"&format=json&srlimit=20")
+        time.sleep(pause)
+        for h in (r or {}).get("query", {}).get("search", []):
+            qid = h.get("title", "")
+            if qid.startswith("Q") and qid not in seen:
+                seen.add(qid)
+                candidates.append({"id": qid, "label": None})
+
     # Every candidate is checked, not just until the first hit, and the winner is
     # the lowest QID among those the website confirms. Stopping early would make
     # the answer depend on search order, which is the instability this function
     # exists to remove.
+    #
+    # Checking them one at a time is what makes that unaffordable: a hundred
+    # candidates is a hundred round trips. ``wbgetentities`` takes fifty ids per
+    # call, so the same exhaustive check costs two.
     confirmed = []
-    for cand in candidates:
-        e = _get(f"{API}?action=wbgetentities&ids={cand['id']}"
-                 f"&props=claims|labels&languages=en&format=json")
-        time.sleep(pause)
-        ent = (e or {}).get("entities", {}).get(cand["id"], {})
-        c = ent.get("claims", {})
-        if qid_hint or _website_matches(c, domain):
-            label = cand.get("label") or ent.get("labels", {}).get(
-                "en", {}).get("value")
-            confirmed.append((int(cand["id"][1:]), cand["id"], label, c))
+    # Twenty, not the API's documented fifty: a fifty-item request carrying full
+    # claims returns megabytes, and the ones that fail fail silently -- _get
+    # swallows the error and the outlet is recorded as unknown to Wikidata rather
+    # than as a request that did not come back.
+    for batch in _chunks(candidates, 20):
+        entities = _fetch_entities(batch, pause)
+        for cand in batch:
+            ent = entities.get(cand["id"])
+            if ent is None:
+                # The request for this id did not come back. Recording it as
+                # "no match" would file a network failure as evidence that
+                # Wikidata does not know the outlet -- the silent-failure class
+                # this module exists to avoid. Say so instead.
+                result["identity"] = "lookup-failed"
+                continue
+            c = ent.get("claims", {})
+            if qid_hint or _website_matches(c, domain):
+                label = cand.get("label") or ent.get("labels", {}).get(
+                    "en", {}).get("value")
+                confirmed.append((int(cand["id"][1:]), cand["id"], label, c))
 
     if not confirmed:
         return result
 
-    confirmed.sort()
+    # Deterministic, but not blindly so. Several items can legitimately carry the
+    # same website -- an organisation, its website, a former name -- and the
+    # lowest QID among them is often the least informative. Prefer a confirmed
+    # candidate that actually records a country, then fall back on the lowest id
+    # so the choice never depends on search order.
+    def _has_country(claims: dict) -> bool:
+        for prop in ("P17", "P495"):
+            for c in claims.get(prop, []):
+                try:
+                    if COUNTRY_TO_ECOSYSTEM.get(
+                            c["mainsnak"]["datavalue"]["value"]["id"]):
+                        return True
+                except (KeyError, TypeError):
+                    continue
+        return False
+
+    confirmed.sort(key=lambda t: (not _has_country(t[3]), t[0]))
     _, qid, label, claims = confirmed[0]
     hit = {"id": qid, "label": label}
 
@@ -248,11 +363,28 @@ def audit_register(register: dict[str, str], pause: float = 0.15) -> pd.DataFram
     ``register`` maps domain -> ecosystem label. Returns one row per domain with
     the register's claim, Wikidata's answer, and a verdict of ``match``,
     ``mismatch`` or ``unverified``.
+
+    When :data:`PINNED_QIDS` is populated it is authoritative: pinned domains are
+    read directly and unpinned ones are reported unverifiable without a search.
+    That makes the audit deterministic and quick. On an empty map every domain is
+    resolved from scratch, which is what ``--repin`` does.
     """
+    # Once a pin map exists it is the *whole* record, and unpinned domains are
+    # reported unverifiable rather than searched live. Searching them would
+    # reintroduce exactly the instability the pin removes: Wikidata's ranking
+    # changes between calls, so a domain that resolves today and not tomorrow
+    # would move measured coverage without anything having changed. Re-run with
+    # ``--repin`` to fold newly resolvable outlets in deliberately.
+    pinned_only = bool(PINNED_QIDS)
     rows = []
     for domain, eco in sorted(register.items()):
-        info = lookup_outlet(domain, pause=pause,
-                             qid_hint=PINNED_QIDS.get(domain))
+        qid = PINNED_QIDS.get(domain)
+        if pinned_only and qid is None:
+            info = {"domain": domain, "qid": None, "wd_label": None,
+                    "wd_country_qid": None, "wd_country_eco": None,
+                    "state_owned": None, "identity": "unresolved"}
+        else:
+            info = lookup_outlet(domain, pause=pause, qid_hint=qid)
         claimed = ECOSYSTEM_TO_COUNTRY.get(eco, eco)
         found = info["wd_country_eco"]
         verdict = "unverified" if found is None else (
