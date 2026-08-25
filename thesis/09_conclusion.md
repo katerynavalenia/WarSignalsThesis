@@ -153,12 +153,23 @@ days — does not show one.
 
 ## 9.5 Where this goes next
 
-Three extensions follow directly. The first is the hand-labelled precision
-audit, which would convert a provisional classification into a validated one and
-is the prerequisite for reusing these indices. The second is an intraday
-lead-lag test, matching the fifteen-minute GDELT stream against intraday prices,
-which is the one place a local-information advantage could still be hiding. The
-third is a fresh test set — a different conflict, or a different asset class —
+Three extensions follow directly. The first is a **hand-labelled read of the
+articles themselves**. §4.6 validates the outlet register against an independent
+source, exactly and for every outlet that source can speak to, which is a
+stronger position than this project was in for most of its life — but it takes
+GDELT's attribution of an article to a domain on trust, and only a reader with
+Russian and Ukrainian can check that. That is the remaining hole, and it is
+narrower and better specified than the one the design started with.
+
+The second is an intraday lead-lag test, matching the fifteen-minute GDELT stream
+against intraday prices, and it is now the most promising of the three rather
+than merely the most technical. The central result of Chapter 6 is that local
+coverage moves with defence returns within the trading day and not across it. A
+daily design cannot say whether that within-day association has any lead at all,
+or whether coverage simply follows the tape. Intraday data would settle it, and
+it is the one place a local-information advantage could still be hiding.
+
+The third is a fresh test set — a different conflict, or a different asset class —
 because every held-out window inside this dataset has now been spent: the
 2017–2019 period by Gate 3, and the last remaining coverage gaps by Gate 5. A
 hypothesis tested against data it has already seen is not tested at all. That

@@ -385,14 +385,23 @@ reduction in scope relative to the plan and is recorded here rather than left to
 be noticed — the thesis makes no claim about volatility in either direction, and
 the HAR-RV-X specification remains unimplemented.
 
-**The precision audit was not run.** The hand-labelled validation specified in
-the research design — several hundred articles opened and classified by a reader
-in Russian and Ukrainian — was never carried out, so the ecosystem classification
-is provisional. Section 8.3 is the concrete argument for completing it: an
-audit-class error sat in the register from the first ingest, passed every
-downstream check, and was caught by a robustness run. Chapter 4's checks
-establish that the ecosystems are distinct populations and that the Western
-indices track a published index; only an audit establishes per-outlet precision.
+**No article was read.** The hand-labelled validation specified in the research
+design — several hundred articles opened and classified by a reader in Russian
+and Ukrainian — was never carried out. What replaces it (§4.6) audits the
+*register* against Wikidata rather than the articles against a reader, and the
+substitution is defensible because the classifier is a deterministic function of
+the domain: article-level precision is domain-level precision weighted by
+volume. The residual gap is precise and worth naming rather than blurring. The
+automated audit validates that each registered domain belongs to the country the
+register assigns it. It cannot validate that GDELT filed a given article under
+the right domain in the first place. If `SourceCommonName` is wrong for some
+fraction of articles, every check in this thesis inherits that error and none of
+them would see it. A reader with the languages would.
+
+The audit also cannot speak for the outlets Wikidata cannot speak for, which is
+about half the register — the requirement that an item's own website confirm the
+domain buys correctness at the cost of coverage, and small and regional outlets
+pay it. Those are reported as unverifiable rather than counted either way.
 
 **The independent Russian block is thin, and thinner than it was.** Two rounds
 of register correction removed Deutsche Welle and RFE/RL's two services from it,
