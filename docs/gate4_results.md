@@ -16,19 +16,19 @@ All four pre-registered conditions fail.
 | condition | result |
 |---|---|
 | 1. BH survivor in both windows (a) and (b) | **FAIL** — no survivors in either |
-| 2. all placebos p > 0.10 | **FAIL** — Brent 0.041, Unilever 0.084, US gas 0.095 in window (b) |
-| 3. survives dropping 10 largest TTF moves | **FAIL** — 0.100 → 0.322 |
+| 2. all placebos p > 0.10 | **FAIL** — Brent 0.0014 in window (a), Unilever 0.087 in window (b) |
+| 3. survives dropping 10 largest TTF moves | **FAIL** — 0.399 → 0.840 |
 | 4. RU_STATE leads the local block | **FAIL** — RU_INDEP leads in two of four cells |
 
 ## What happened, precisely
 
 The exploratory run gave p=0.0005 on **81 days** in the build-up window. The
 confirmatory run, same asset, same specification, same controls, on **222 days**
-of continuous coverage of the same period, gives **p=0.100**.
+of continuous coverage of the same period, gives **p=0.399**.
 
 | window | n | p_local | p_west |
 |---|---|---|---|
-| (a) build-up and invasion, 2021-06 → 2022-06 | 222 | 0.100 | 0.001 |
+| (a) build-up and invasion, 2021-06 → 2022-06 | 222 | 0.399 | 0.00005 |
 | (b) shutdown and aftermath, 2022-06 → 2023-06 | 231 | 0.573 | 0.197 |
 | (c) full crisis, 2021-06 → 2023-12 | 563 | 0.352 | 0.081 |
 

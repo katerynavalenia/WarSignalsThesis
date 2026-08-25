@@ -18,7 +18,7 @@ results that no longer hold. This page is the authority on which is which.
 | 1 | GPR_THREAT raises European defence volatility (p<0.001) | [`v2 §6.4`](../archive/v2_response_pivot/research_plan.md) | the correct regional market control |
 | 2 | Threat shocks move defence returns in the build-up (p=0.0001) | [`gpr_regime_preview.md`](gpr_regime_preview.md) — **banner added** | SPX → SXXP; p becomes 0.843 |
 | 3 | Local media's threat/act structure is priced (7 BH survivors) | [`gate3_results.md`](gate3_results.md) §"pass that evaporated" | adding the held-out window; 7 survivors → 2, verdict FAIL |
-| 4 | Local perception is priced in European gas (p=0.0005) | [`gate4_preregistration.md`](gate4_preregistration.md) §exploratory | pre-registered replication, n 81 → 222, p → 0.100 |
+| 4 | Local perception is priced in European gas (p=0.0005) | [`gate4_preregistration.md`](gate4_preregistration.md) §exploratory | pre-registered replication, n 81 → 222, p → 0.399 |
 | 5 | Local media anticipate realized escalation (both halves significant) | [`gate5_preregistration.md`](gate5_preregistration.md) §exploratory | pre-registered held-out sample, p → 0.16 |
 | 6 | The state-vs-**independent** censorship wedge | [`gate1_gate2_results.md`](gate1_gate2_results.md) §5 — **banner added** | fixed outlet panel. **p=0.561 with the fully corrected register** (four outlets, −0.17); p=0.323 after the `dw.com` fix alone (five, −0.22); p=0.151 before it (six, −0.31). Each register correction moves it *further* from significance |
 

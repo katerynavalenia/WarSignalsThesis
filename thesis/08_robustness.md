@@ -184,19 +184,26 @@ correlation.
 controls, windows, statistic, correction, placebos and a four-condition pass rule
 — *before* the continuous 2021–2023 coverage was collected. On **222 days** of
 continuous coverage of the same period, same asset and same specification, the
-p-value is **0.100**, and all four conditions fail:
+p-value is **0.399**, and all four conditions fail:
 
 | condition | result |
 |---|---|
 | BH survivor in both non-overlapping windows | **FAIL** — none in either |
-| all placebos p > 0.10 | **FAIL** — Brent 0.041, Unilever 0.084, US gas 0.095 |
-| survives dropping the ten largest TTF moves | **FAIL** — 0.100 → 0.322 |
+| all placebos p > 0.10 | **FAIL** — Brent 0.0014 |
+| survives dropping the ten largest TTF moves | **FAIL** — 0.399 → 0.840 |
 | RU_STATE leads the local block | **FAIL** — RU_INDEP leads in two of four cells |
 
-Nothing changed but the amount of data. The placebo pattern is the second tell:
-in the later window the local block "explains" an unexposed consumer-staples
-equity about as readily as European gas, which is what a common factor looks
-like, not a supply channel. The Western block is detected at p = 0.00005 in the
+Nothing changed but the amount of data. The exploratory window held 81 days; the
+pre-registered one holds 222 of the same period, and the effect is gone.
+
+The placebo pattern is the second tell, and it is sharper than the headline. On
+the pre-registered sample the local block explains **Brent crude at p = 0.0014**
+while explaining European gas at 0.399. A supply channel running from Russian and
+Ukrainian coverage to European gas prices does not predict crude oil an order of
+magnitude better than gas. A common factor — conflict news moving energy
+complexes together — predicts exactly that, and it is what the third condition
+confirms: dropping the ten largest TTF moves takes the gas p-value from 0.399 to
+0.840, so what little was there lived in a handful of days. The Western block is detected at p = 0.00005 in the
 build-up window, so the positive control passes and this is a null with power.
 
 The retraction broadens the thesis rather than narrowing it: local-language
@@ -254,7 +261,7 @@ a convincing artefact:
 | 2 | Local threat/act structure is priced | 7 BH survivors, PASS | held-out window added | truncated sample |
 | 3 | State-versus-independent censorship wedge | large, clean contrast | fixed panel, plus `dw.com` | classification and composition |
 | 4 | Local perception priced in European gas | p = 0.0005, clean placebos | replication, n 81 → 222 | small sample |
-| 5 | Local media anticipate escalation | both halves significant | held-out sample, p = 0.16 | non-generalising split |
+| 5 | Local media anticipate escalation | both halves significant | held-out sample, p = 0.21 | non-generalising split |
 
 Each was significant at conventional levels. Each had a plausible mechanism. Each
 survived at least one robustness check. **None survived the check designed to

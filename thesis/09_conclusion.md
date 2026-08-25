@@ -23,7 +23,7 @@ rule. Extending the same design to a second asset class and then to a non-financ
 outcome does not change it: local perception is not priced in European gas,
 where all four pre-registered conditions fail, and it does not
 anticipate realized escalation out of sample, where the pre-registered test
-returns p = 0.16 at one day and p = 0.30 at five. Out-of-sample return
+returns p = 0.21 at one day and p = 0.23 at five. Out-of-sample return
 predictability is likewise absent: across fifty specifications there are zero
 Clark–West rejections, against roughly two and a half expected by chance alone.
 

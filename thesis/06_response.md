@@ -221,26 +221,30 @@ All four conditions fail.
 
 | window | n | p (local block) | p (Western block) |
 |---|---|---|---|
-| (a) build-up and invasion, 2021-06 → 2022-06 | 222 | 0.100 | **0.001** |
-| (b) shutdown and aftermath, 2022-06 → 2023-06 | 231 | 0.573 | 0.197 |
-| (c) full crisis, 2021-06 → 2023-12 | 563 | 0.352 | 0.081 |
+| (a) build-up and invasion, 2021-06 → 2022-06 | 222 | 0.399 | **0.00005** |
+| (b) shutdown and aftermath, 2022-06 → 2023-06 | 231 | 0.533 | 0.193 |
+| (c) full crisis, 2021-06 → 2023-12 | 563 | 0.250 | 0.066 |
 
-There is no BH survivor in either required window. The placebos fail in window
-(b), where Brent (0.041), an unexposed consumer-staples equity (0.084) and US
-natural gas (0.095) all show local-block p-values at or below 0.10 — what is
-being picked up there is a common factor, not a supply channel. The build-up
-p-value of 0.100 degrades to 0.322
-when the ten largest TTF moves are dropped. And the ordering condition inverts:
-Russian *independent* media lead the local block in two of four cells, where the
+There is no BH survivor in either required window. The placebo condition fails,
+and the way it fails is more informative than the headline: in the build-up
+window the local block explains **Brent crude at p = 0.0014** while explaining
+European gas at 0.399. A supply channel running from Russian and Ukrainian
+coverage to European gas does not predict crude oil three hundred times better
+than gas. A common factor moving the whole energy complex with conflict news
+predicts precisely that. The third condition agrees — dropping the ten largest
+TTF moves takes the build-up p-value from 0.399 to 0.840, so whatever was there
+lived in a handful of days. And the ordering condition inverts: Russian
+*independent* media lead the local block in two of four cells, where the
 supply-signalling mechanism requires state media to lead. The Western block,
-meanwhile, is detected at p = 0.001 in the window that matters. Again a null with
-power.
+meanwhile, is detected at p = 0.00005 in the window that matters. Again a null
+with power.
 
-The provenance of that 0.100 is the point of the exercise. The exploratory run
-that motivated Gate 4 returned **p = 0.0005 on 81 days** of the build-up window.
-The confirmatory run — same asset, same specification, same controls, on **222
-days** of continuous coverage of the same period — returns 0.100. Nothing changed
-but the quantity of data.
+The provenance of that 0.399 is the point of the exercise. The exploratory run
+that motivated Gate 4 returned **p = 0.0028 on 81 days** of the build-up window —
+and, on the register as it stood when the exploration was done, p = 0.0005. The
+confirmatory run — same asset, same specification, same controls, on **222 days**
+of continuous coverage of the same period — returns 0.399. Nothing changed but
+the quantity of data.
 
 ## 6.5 Gate 5 — anticipating escalation, with no price involved
 

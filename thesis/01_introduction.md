@@ -68,9 +68,9 @@ cause would have to work through three different channels to produce it.
 
 | test | outcome | result |
 |---|---|---|
-| Gates 2 and 3 | defence-equity returns | not priced; at most two surviving specifications in any grid, and zero in Gate 2's lagged primary and Gate 3's same-day arm |
+| Gates 2 and 3 | defence-equity returns | not priced ahead of the market: one surviving specification of 31 in Gate 2's lagged primary, two in Gate 3's, none in Gate 3's same-day arm |
 | Gate 4 | European natural gas (TTF) | all four pre-registered conditions fail |
-| Gate 5 | realized geopolitical escalation itself | p = 0.16 at h = 1, p = 0.30 at h = 5 |
+| Gate 5 | realized geopolitical escalation itself | p = 0.21 at h = 1, p = 0.23 at h = 5 |
 
 In the equity tests, 31 specifications are run per grid. The pre-registered
 Gate-3 grid yields two Benjamini–Hochberg survivors under its primary alignment
