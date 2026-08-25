@@ -72,6 +72,10 @@ build/
 # to build_equity_spine.py, so without it the pipeline cannot be run from a fresh
 # clone in the documented order. 60 KB to spare a reader that discovery.
 !data/interim/spine_macro.parquet
+# The classifier-sensitivity scan: five labellings of the corpus from one 380 GB
+# query. Listed here BEFORE it was committed, which is the rule the paragraph
+# above was written to enforce after the last two were lost.
+!data/interim/gdelt_ecosystems_variants.parquet
 
 # Processed data
 **/data/processed/**/*.csv
