@@ -181,11 +181,12 @@ overturned.
 
 | combination | n | R²_OS | Clark–West p |
 |---|---|---|---|
-| equal-weighted mean | 1,855 | −0.0008 | 0.924 |
-| median | 1,855 | −0.0006 | 0.977 |
+| equal-weighted mean | 1,855 | −0.0006 | 0.84 |
+| median | 1,855 | −0.0005 | 0.97 |
 
-Both combinations forecast **worse than the historical mean**, and the
-Clark–West p-values sit above 0.9. The remedy does not apply because there is
+Both combinations forecast **worse than the historical mean**, with Clark–West
+statistics that are *negative* — the combined forecast is further from the
+benchmark than chance would put it. The remedy does not apply because there is
 nothing to combine.
 
 **Economic value.** Statistical and economic significance are different
@@ -230,13 +231,27 @@ contained almost no non-English media.
 
 What the exercise cannot do alone is separate "the information is worthless" from
 "the information is already in the price". A forecasting null is consistent with
-both, which is the joint-hypothesis problem in its ordinary form. The
-contemporaneous evidence is what breaks the tie, and it points the same way:
-local perception is not detected in defence returns on the day either, while
-European market-wide threat pricing is — the STOXX 600 itself loads on threat at
-**+0.474 (p < 0.0001)** across the build-up and invasion, reported in Chapter 8. Information that is priced in
-this sample is priced immediately and broadly, not with a day's delay in one
-sector.
+both, which is the joint-hypothesis problem in its ordinary form. **The
+contemporaneous evidence breaks the tie, and it breaks it toward the second.**
+
+Local perception is *not* absent from defence returns on the day. Chapter 6's
+same-day specification detects it in seven of thirty-one cells after correction,
+including the two with the most data in the grid. What disappears is the next-day
+version: one cell of thirty-one, in a window predating the war. The pair of
+results is the shape efficiency predicts. If local coverage carried information
+the market had not yet used, lagging it by a day would preserve the signal and
+might sharpen it, since lagging removes only what was published after the close.
+Instead the signal is present exactly when prices and coverage are responding to
+the same events within the same session, and gone by the following morning.
+
+That is what "already in the price" looks like from the outside. It is a
+different and better answer than "the information is worthless", and the design
+can distinguish them only because it ran both alignments rather than picking one.
+
+The pricing that does show up in this sample shows up the same way: broadly and
+immediately. The STOXX 600 itself loads on threat at **+0.474 (p < 0.0001)**
+across the build-up and invasion, reported in Chapter 8 — market-wide, not with
+a day's delay in one sector.
 
 Chapter 4's measurement result supplies the mechanism that makes this
 unsurprising rather than puzzling. The perception series agree with the published
