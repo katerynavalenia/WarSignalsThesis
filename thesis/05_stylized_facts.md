@@ -8,8 +8,8 @@ result harder to trust than it needed to be.
 
 The review asked for three specific things, and this chapter is organised around
 them: every indicator plotted over the full sample period (Figures 1 and 2,
-Section 5.1); their correlations reported (Section 5.5); and what happens around
-February 2022 highlighted (Sections 5.1–5.3, and the marked invasion date in
+Section 5.1); their correlations reported (Section 5.6); and what happens around
+February 2022 highlighted (Sections 5.1–5.4, which add formal break tests, and the marked invasion date in
 both figures). Two further things are established along the way. One ecosystem
 barely reacted to the invasion at all, and periods of anticipation without
 realization can be identified from published data alone — which is what sets up
@@ -115,7 +115,61 @@ contrast, which is an order of magnitude larger and robust to the panel
 restriction; the state-versus-independent wedge is reported as directional and
 underpowered.
 
-## 5.4 Anticipation episodes
+## 5.4 Formal break tests
+
+Sections 5.2 and 5.3 describe what happens at the invasion. The review asked for
+that description; a reader is entitled to a test as well, and two are reported
+here. They ask different questions and the second is much the stronger.
+
+**Is there a break on 24 February 2022?** A Chow test, with the date fixed by the
+event rather than chosen from the data. Every one of the ten series rejects at
+p < 0.001. That is expected and, on its own, not very informative: a test at a
+date the analyst supplies can only confirm what the plots already show.
+
+**Where is the largest break if nobody says?** A supremum-Wald scan over every
+candidate date in the interior 70% of the sample, with the p-value bootstrapped
+under the null of no break. This is the test that can embarrass the narrative,
+because nothing points it at February 2022.
+
+| series | largest break | days from the invasion |
+|---|---|---|
+| **tone_UA** | **2022-02-24** | **0** |
+| att_WEST | 2022-02-11 | 13 |
+| att_RU_STATE | 2022-01-26 | 29 |
+| att_EN_GLOBAL | 2022-01-20 | 35 |
+| tone_EN_GLOBAL | 2022-01-06 | 49 |
+| tone_WEST | 2022-01-05 | 50 |
+| tone_RU_STATE | 2023-03-24 | 393 |
+| att_UA | 2023-10-07 | 590 |
+| tone_RU_INDEP | 2018-06-07 | 1,358 |
+| att_RU_INDEP | 2017-04-23 | 1,768 |
+
+**Six of ten series locate their largest break within sixty days of the invasion
+without being told the date**, and Ukrainian conflict tone locates it on the day
+itself. The Western and native-English attention series break a fortnight to five
+weeks *before* the invasion, which is the build-up becoming newsworthy rather
+than the invasion itself — the same anticipation window Section 5.5 identifies
+from an entirely separate index (Section 5.5).
+
+The two rows that matter most are the ones that do *not* break at the invasion.
+
+**`tone_RU_STATE` places its largest break 393 days later.** Russian state media's
+conflict tone did not shift when Russia invaded Ukraine; its biggest single
+change comes more than a year afterwards. That is the formal counterpart of the
++0.02 in Section 5.3, arrived at by a procedure that was free to choose any date
+in eleven years and did not choose this one. Set against `tone_UA` breaking on
+24 February exactly, the contrast is as sharp as the descriptive table suggests
+and does not depend on the pre/post window being drawn where it was.
+
+**`att_UA` places its largest break in October 2023**, which is the ceiling effect
+of Section 5.2 showing up in a test: Ukrainian outlets were already devoting more
+than 80% of their output to the conflict before the invasion, so their attention
+series had almost no room to break upward and its largest movement happens
+elsewhere. The two Russian-independent series break early in the sample, where
+that ecosystem is thinnest and its composition least stable — the same fragility
+that Section 5.3 reports for the state-versus-independent contrast.
+
+## 5.5 Anticipation episodes
 
 The research design of Chapter 6 rests on distinguishing periods in which
 geopolitical risk is *anticipated* from periods in which it is *realized*. Rather
@@ -147,7 +201,7 @@ nearly the same variable in the later period and sharply separated in the
 earlier one — which is why a sample beginning after September 2022, as the
 previous version's did, cannot distinguish them.
 
-## 5.5 Correlations
+## 5.6 Correlations
 
 The supervisor's review asked for the indicators' correlations, and they are
 reported here in full rather than summarised, because the pattern they show — high

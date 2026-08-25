@@ -257,6 +257,17 @@ is not, and this chapter is why that distinction is drawn carefully.
 
 ## 8.7 Limitations
 
+**Volatility was dropped as an outcome.** The design originally specified a
+volatility arm with a HAR-RV-X model, on the strength of a result showing
+geopolitical threat raising European defence volatility. Section 8.1 retracts
+that result: it was an artefact of the market control, and with the correct
+European benchmark it disappears. Since the only volatility finding the project
+produced was the one that did not survive, and since Gates 2 and 3 test returns
+rather than volatility, the volatility arm was not built. This is a genuine
+reduction in scope relative to the plan and is recorded here rather than left to
+be noticed — the thesis makes no claim about volatility in either direction, and
+the HAR-RV-X specification remains unimplemented.
+
 **The precision audit was not run.** The hand-labelled validation specified in
 the research design — several hundred articles opened and classified by a reader
 in Russian and Ukrainian — was never carried out, so the ecosystem classification

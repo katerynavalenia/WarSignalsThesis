@@ -167,3 +167,26 @@ contrast the thesis actually claims, since neither ecosystem is involved.
 `analyse_wedge.py` already reflects the corrected register: it gives five
 independent outlets and p = 0.323, against six and p = 0.151 before the fix.
 Chapters 5 and 8 quote the corrected figures.
+
+## Added after the first pass
+
+Two scripts close gaps against commitments in
+[`supervisor_response_matrix.md`](supervisor_response_matrix.md) that the first
+pass left unimplemented:
+
+```bash
+python scripts/run_break_tests.py      # Ch 5 §5.4: Chow + supremum-Wald breaks
+python scripts/run_forecast_null.py    # Ch 7 §7.5 now also runs combination,
+                                       # economic value and the Model Confidence Set
+```
+
+`run_break_tests.py` bootstraps the supremum statistic, so it is the slowest
+offline script — about a minute at 500 draws. The scan uses a closed form for the
+intercept-only case; supplying a regressor falls back to refitting and is
+markedly slower.
+
+One item promised in the response matrix remains unimplemented: **HAR-RV-X**.
+Volatility was dropped as an outcome when the only volatility result in the
+project was retracted (Chapter 8 §8.1), so there is no volatility arm for it to
+serve. Chapter 8 records this as a scope reduction rather than leaving the
+promise silently unmet.

@@ -166,7 +166,57 @@ prices at all, and they too return a null for the local ecosystems while the
 positive control — the Western block, detected in 2 of 31 cells with a minimum p
 of 0.0002 — passes.
 
-## 7.5 What it means for efficiency
+## 7.5 The three remedies, tried
+
+A forecasting null that never attempts the standard rescues is incomplete,
+because each of them exists precisely for the case where individual predictors
+are weak — which is the case here. All three were run on the longest target.
+
+**Forecast combination.** Rapach, Strauss and Zhou show that an equal-weighted
+average of individually poor forecasts often beats every one of them, and beats
+the kitchen-sink model, because averaging cancels the estimation noise that sinks
+each one alone. It is the single most likely way for a result like this to be
+overturned.
+
+| combination | n | R²_OS | Clark–West p |
+|---|---|---|---|
+| equal-weighted mean | 1,855 | −0.0008 | 0.924 |
+| median | 1,855 | −0.0006 | 0.977 |
+
+Both combinations forecast **worse than the historical mean**, and the
+Clark–West p-values sit above 0.9. The remedy does not apply because there is
+nothing to combine.
+
+**Economic value.** Statistical and economic significance are different
+questions, and an investor asks the second. A mean–variance investor with risk
+aversion of three allocates to defence equities in proportion to the forecast
+divided by trailing variance, with the weight capped at 1.5.
+
+| forecast | round-trip cost | CER gain, % p.a. | Sharpe | benchmark Sharpe |
+|---|---|---|---|---|
+| best single predictor | 0 bp | **−0.05** | 0.54 | 0.83 |
+| best single predictor | 10 bp | **−0.37** | −0.49 | 0.77 |
+| equal-weighted combination | 0 bp | **−0.04** | 0.69 | 0.83 |
+| equal-weighted combination | 10 bp | **−0.15** | 0.21 | 0.77 |
+
+Every certainty-equivalent gain is **negative**: an investor would pay a fee to
+*avoid* timing on these signals rather than to use them. Even before transaction
+costs the timing strategy earns a lower Sharpe ratio than simply holding, and at
+ten basis points of round-trip cost the best single predictor turns the Sharpe
+negative. This is the strongest form of the result, because it does not depend on
+a significance threshold at all.
+
+**Model Confidence Set.** Hansen, Lunde and Nason's procedure asks which models
+cannot be distinguished from the best, rather than whether one beats another. At
+90% confidence it retains **11 of 11** models, benchmark included.
+
+That result is easy to misread, so it is worth stating plainly: a large surviving
+set is *not* evidence that the models are all good. It means the data cannot tell
+them apart — which is the same thing the zero Clark–West rejections say, in a
+form that makes the benchmark's membership explicit. Nothing here is
+distinguishable from a constant.
+
+## 7.6 What it means for efficiency
 
 The narrow reading is the defensible one. Publicly available multilingual news
 perception, measured at daily frequency, does not forecast next-day returns on
