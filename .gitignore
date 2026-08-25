@@ -61,6 +61,13 @@ build/
 !thesis_v2/data/interim/spine_full.parquet
 !thesis_v2/data/interim/gdelt_ecosystems_daily.parquet
 !thesis_v2/data/interim/perception_indices.parquet
+# These two were omitted from the list above, so git treated them as scratch and
+# they were destroyed when a worktree holding them was removed. They are the
+# inputs to Gates 3 and 5 and cost roughly 400 GB of BigQuery to rebuild. Any
+# new interim artefact that is expensive to regenerate belongs on this list
+# BEFORE it is created, not after.
+!thesis_v2/data/interim/gdelt_threat_act_daily.parquet
+!thesis_v2/data/interim/gdelt_ecosystems_holdout.parquet
 
 # Processed data
 **/data/processed/**/*.csv
