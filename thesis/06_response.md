@@ -34,8 +34,8 @@ survive the minimum-observation rule.
 
 The null is only worth reporting because the same design carries a **positive
 control**. The Western block enters in exactly the same functional form, in
-exactly the same cells. Across the full sample it is detected in **3 of 31** cells
-in Gate 2 (minimum p = 0.0117) and **2 of 31** in Gate 3 (minimum p = 0.0002).
+exactly the same cells. Across the full sample it is detected in **2 of 31** cells
+in Gate 2 (minimum p = 0.0170) and **2 of 31** in Gate 3 (minimum p = 0.0002).
 The instrument finds Western media where Western media matter; when it reports
 nothing for local media, that is a measurement rather than a failure to measure.
 
@@ -48,7 +48,7 @@ Both blocks fade together outside the conflict, which is what one would expect a
 is itself a small piece of evidence that the indices track the conflict rather
 than general news volume.
 
-The second qualification is that a control passing in 2 or 3 cells is a weaker
+The second qualification is that a control passing in two cells is a weaker
 warrant than one passing in ten. The claim it supports is correspondingly
 bounded: the design demonstrably *can* detect a media block in this data, and it
 does not detect the local one anywhere that survives correction. Chapter 7's
@@ -61,32 +61,50 @@ conflict-attention share and its mean conflict tone, both in daily changes.
 
 | specification | specs | nominal 5% | survive BH |
 |---|---|---|---|
-| same-day alignment | 31 | 8 | 3 |
-| **news lagged one day (primary)** | **31** | **7** | **0** |
+| same-day alignment | 31 | 13 | 10 |
+| **news lagged one day (primary)** | **31** | **8** | **1** |
 
-Eight nominal rejections against 1.6 expected by chance looks, at first glance,
-like something. It is not. All three BH survivors are **weekly**, and two of the
-three fall in the *same* window — the 2025–26 episode, sixty observations
-supporting thirteen parameters — with the third resting on 438. Dropping tone to
-halve the parameter count thins them further.
-A result that lives in one thin corner of a grid, and thins further when the
-corner is de-crowded, is a result about the corner.
+**The gap between those two rows is the result of this section.** Ten survivors
+under one alignment and one under the other, from the same data, the same grid
+and the same correction, differing only in whether the news is credited to the
+day it was published or the day after.
 
-The timing convention settles it. GDELT days are full UTC days while European
-markets close around 16:30 UTC, so a same-day regression credits the market with
-news published after it shut. Lagging the news one day is the defensible
-alignment and is reported as primary. It roughly doubles the raw correlations —
-European defence moves from −0.013 to +0.094 — and it changes *which* cells look
-significant: the Russia-window cells improve markedly, the ITA proxy from 0.090
-to 0.014 and the global A&D index from 0.324 to 0.042, while the 2025–26
-survivors fade. Under correction, **nothing survives at all.** That the nominally
-significant cells relocate when an innocuous convention changes is itself the
-diagnosis: they are noise with a p-value attached.
+The alignment is not a matter of taste. GDELT days are full UTC days; European
+markets close around 16:30 UTC. A same-day regression therefore credits the
+market with news published **after it shut** — information no trader could have
+acted on. Lagging one day is the only alignment in which the regressor is
+genuinely available, and it is reported as primary throughout.
+
+An effect that is real information should survive that correction, or strengthen
+under it, since lagging removes only the impossible part. Instead it collapses by
+an order of magnitude. The natural reading is that the same-day cells are picking
+up *contemporaneous* co-movement — coverage responding to the day's market news
+as much as the reverse — rather than information the market later used. That is
+reporting, not prediction.
+
+**One cell does survive correction under the defensible alignment**, and it is
+reported rather than rounded away: weekly ITA returns in the 2017–19 episode
+window, p = 0.0011, BH-adjusted 0.035, on 129 observations. It is one of
+thirty-one tests, which is roughly what a false-discovery-rate procedure is
+designed to tolerate, and it sits where the hypothesised mechanism does not
+apply — a window predating the escalation, on a US-focused aerospace ETF, driven
+by Ukrainian and Russian coverage during a frozen conflict. A local-information
+advantage that shows up there and nowhere in the Russian build-up is not the
+mechanism the thesis set out to test.
+
+These figures changed late in the project, and the reason is instructive rather
+than incidental. Correcting a single misclassified outlet — Deutsche Welle,
+removed from the Russian-independent register — moved 124,219 articles, reduced
+the maximum collinearity between the ecosystem blocks from 0.673 to 0.602, and
+took the same-day survivor count from three to ten. Section 8.3 sets out why a
+measurement error of that kind is capable of moving a result in either direction,
+and why it makes the unrun precision audit the thesis's most consequential
+omission rather than a procedural one.
 
 The window the thesis is about is the emptiest of all. In the Russian build-up
 and invasion — a European land war, covered first, closest and most intensively
 by Ukrainian and Russian outlets, where any local-information advantage should be
-at its maximum — the same-day local-block p-values run from 0.090 to 0.619 across
+at its maximum — the local-block p-values under the primary alignment run from 0.021 to 0.62 across
 the five targets. Nothing is close to correction on any of them.
 
 ## 6.3 Gate 3 — the anticipation structure

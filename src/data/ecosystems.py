@@ -40,11 +40,28 @@ RU_STATE = {
 #: sample rather than switching on a single date.
 RU_INDEPENDENT = {
     "meduza.io", "novayagazeta.eu", "novayagazeta.ru", "theins.ru",
-    "zona.media", "mediazona.ca", "svoboda.org", "currenttime.tv",
+    "zona.media", "mediazona.ca",
     "moscowtimes.ru", "themoscowtimes.com", "republic.ru", "tvrain.ru",
     "echo.msk.ru", "kommersant.ru", "vedomosti.ru", "rbc.ru", "znak.com",
     "7x7-journal.ru",
 }
+# NOTE: ``svoboda.org`` and ``currenttime.tv`` were also in this set and have
+# been moved to :data:`WEST_REGISTER` for the same reason as ``dw.com`` below.
+# Both are Radio Free Europe/Radio Liberty services, funded by the US Agency for
+# Global Media. A state-funded external broadcaster classifies to the state that
+# funds it, whatever language it publishes in; that is the single rule that puts
+# Deutsche Welle in Germany and RFE/RL in the United States. ``svoboda.org`` was
+# flagged independently by the Wikidata audit (country of origin: Q30, United
+# States); ``currenttime.tv`` was not resolvable there and follows by the same
+# rule rather than by evidence.
+#
+# The rule cuts the other way for **exile newsrooms**, which stay with their
+# country of origin: Meduza, Novaya Gazeta Europe, TV Rain and The Moscow Times
+# are Russian newsrooms reporting for a Russian audience from abroad, and
+# Wikidata's country of origin for them records legal domicile (Latvia,
+# Netherlands) rather than editorial perspective. The audit's Meduza flag is
+# therefore adjudicated and dismissed, not acted on.
+#
 # NOTE: ``dw.com`` was in this set for the 2026-08-20 ingest and should not have
 # been. Deutsche Welle is a German public broadcaster with a Russian-language
 # service — a Western outlet by publisher, which is the criterion this module
@@ -72,7 +89,7 @@ WEST_REGISTER = {
     "telegraph.co.uk", "economist.com", "apnews.com", "cnbc.com", "politico.eu",
     "spiegel.de", "lemonde.fr", "faz.net", "handelsblatt.com", "marketwatch.com",
     "barrons.com", "forbes.com", "businessinsider.com", "axios.com", "npr.org",
-    "dw.com",
+    "dw.com", "svoboda.org", "currenttime.tv",
 }
 
 #: Excluded from every ecosystem: syndication platforms with no newsroom.

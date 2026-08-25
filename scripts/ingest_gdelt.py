@@ -162,9 +162,15 @@ def ingest(chunks: list[tuple[str, str]], kind: str, out_path: Path,
     if dry_run or not frames:
         return None
 
+    # Existing rows go in first and freshly-queried rows after, so ``keep="last"``
+    # is what makes a re-ingest actually re-ingest. With the default ``"first"``
+    # the stale row wins every collision and a re-query is a silent no-op that
+    # still scans -- and bills for -- the full partition. That is not
+    # hypothetical: it is why the threat/act table survived a 454 GB re-run
+    # byte-identical after the register was corrected.
     merged = (
         pd.concat(frames, ignore_index=True)
-        .drop_duplicates(["day", "ecosystem"])
+        .drop_duplicates(["day", "ecosystem"], keep="last")
         .sort_values(["day", "ecosystem"])
         .reset_index(drop=True)
     )
