@@ -55,15 +55,30 @@ reason it should be believed.
 > counterparty's assets and finds the reverse asymmetry: Western defence equities
 > price the Western narrative, and local-language perception adds nothing beyond
 > it — in coverage volume, in tone, or in the anticipation-versus-realization
-> structure of that coverage.
+> structure of that coverage — at the horizon a trader could have acted on.
+>
+> **The result underneath that null is the one I would draw your attention to.**
+> Local coverage *does* move with defence returns contemporaneously, and strongly:
+> seven of thirty-one specifications survive correction when the news is credited
+> to the day it was published. Credit it to the following trading day instead —
+> the only alignment in which the regressor was actually available, since GDELT
+> days are full UTC days and European markets close at 16:30 UTC — and that falls
+> to one. Lagging removes only the part published after the close, so information
+> the market had not yet used should have survived it. What survives instead is
+> the pattern efficient pricing predicts, and I would not have been able to
+> distinguish the two had I run only one alignment.
 >
 > **What I should flag.** The headline result is a null, and I have tried hard to
 > break it. It holds for defence equities, for European natural gas — which I
 > added precisely because defence equities are a weak testbed, since the link
 > from Russian reporting to a US contractor runs entirely through Western
-> investors — and for realized escalation as a non-market outcome. In each case
-> a positive control confirms the design detects Western media where Western
-> media matter.
+> investors — and for realized escalation as a non-market outcome. The Western
+> block serves as a positive control throughout, and I report its verdict test by
+> test rather than in summary: it survives multiple-testing correction in the
+> pre-registered anticipation gate, in the gas test and in the escalation test,
+> and it does *not* survive in the attention-and-tone gate. What demonstrates
+> sensitivity there is the local block's own behaviour, which is the more
+> interesting finding of the two and is described below.
 >
 > Along the way five apparently significant results did not survive: two to an
 > omitted European market control, one to adding a held-out window to a truncated

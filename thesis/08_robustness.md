@@ -132,7 +132,7 @@ robustness run rather than by validation — a classification error surfacing
 through an analysis whose purpose was something else. That is a bad way to find
 errors, because it finds only the ones that happen to move a result you are
 already looking at. Running the register against an independent source instead
-(§4.5) turned up a second instance of the same class immediately: `svoboda.org`,
+(§4.6) turned up a second instance of the same class immediately: `svoboda.org`,
 Radio Free Europe/Radio Liberty's Russian service, funded by the US Agency for
 Global Media and sitting in the same Russian-independent set. `currenttime.tv` is
 the same organisation and follows by rule. All three are now Western.
