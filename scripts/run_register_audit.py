@@ -27,6 +27,7 @@ from src.data.ecosystems import (  # noqa: E402
     WEST_REGISTER,
 )
 from src.data.register_audit import (  # noqa: E402
+    PINNED_QIDS,
     audit_register,
     lookup_outlet,
     summarise,
@@ -35,25 +36,37 @@ from src.data.register_audit import (  # noqa: E402
 OUT_DIR = Path("outputs/tables")
 
 
-def repin(register: dict[str, str], pause: float) -> None:
+def repin(register: dict[str, str], pause: float,
+          only_missing: bool = False) -> None:
     """Resolve every domain from scratch and rewrite the pinned map in place.
 
     Slow and deliberately so: it examines every search candidate for every
     domain rather than stopping at the first plausible one. It is meant to be run
     when the register changes, not on every audit.
+
+    ``only_missing`` retries just the unpinned domains and keeps the rest. That
+    matters because a request that fails during a long run leaves an outlet
+    unpinned *permanently* — indistinguishable, in the map, from an outlet
+    Wikidata has never heard of. Retrying the gap recovers the transient ones
+    without disturbing what already resolved.
     """
     module = Path(__file__).resolve().parents[1] / "src" / "data" / "register_audit.py"
-    print(f"re-resolving {len(register)} outlets (this takes a while) ...")
 
-    pins: dict[str, str] = {}
-    for i, domain in enumerate(sorted(register), 1):
+    pins: dict[str, str] = dict(PINNED_QIDS) if only_missing else {}
+    todo = sorted(d for d in register if not (only_missing and d in pins))
+    print(f"re-resolving {len(todo)} outlets"
+          f"{' (keeping %d already pinned)' % len(pins) if only_missing else ''}"
+          " — this takes a while ...")
+
+    for i, domain in enumerate(todo, 1):
         info = lookup_outlet(domain, pause=pause)
         if info["qid"]:
             pins[domain] = info["qid"]
-            print(f"  [{i:3d}/{len(register)}] {domain:24s} -> {info['qid']:12s} "
-                  f"{info['wd_label']}")
+            print(f"  [{i:3d}/{len(todo)}] {domain:24s} -> {info['qid']:12s} "
+                  f"{info['wd_label']}", flush=True)
         else:
-            print(f"  [{i:3d}/{len(register)}] {domain:24s} -> unresolved")
+            print(f"  [{i:3d}/{len(todo)}] {domain:24s} -> {info['identity']}",
+                  flush=True)
 
     body = "\n".join(f'    "{d}": "{q}",' for d, q in sorted(pins.items()))
     src = module.read_text()
@@ -72,6 +85,9 @@ def main() -> None:
     ap.add_argument("--repin", action="store_true",
                     help="re-resolve every domain from scratch and rewrite the "
                          "pinned QID map in src/data/register_audit.py")
+    ap.add_argument("--only-missing", action="store_true",
+                    help="with --repin, retry only the domains that are not yet "
+                         "pinned and keep the existing ones")
     args = ap.parse_args()
     args.out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -82,7 +98,7 @@ def main() -> None:
             register[d] = label
 
     if args.repin:
-        repin(register, args.pause)
+        repin(register, args.pause, only_missing=args.only_missing)
         return
 
     print(f"auditing {len(register)} registered outlets against Wikidata ...\n")
@@ -111,6 +127,27 @@ def main() -> None:
     print("  " + ", ".join(sorted(unv.domain)[:25]))
     print("  These are neither successes nor failures. Counting them as either")
     print("  would misstate the audit.")
+
+    # Why an outlet is unverified matters, and the three reasons are different
+    # claims about the world. Collapsing them would hide the one that is a
+    # defect rather than a limit.
+    if "identity" in audit.columns:
+        print("\n  why, exactly:")
+        REASON = {
+            "website-confirmed": "item found and confirmed by its own website "
+                                 "(no usable country on it)",
+            "unresolved": "no candidate item's website matches the domain",
+            "lookup-failed": "a request did not come back — NOT evidence of absence",
+        }
+        for state, n in audit.identity.value_counts().items():
+            n_unv = int((unv.identity == state).sum()) if len(unv) else 0
+            print(f"    {state:20s} {n:3d} outlets ({n_unv} of them unverified)"
+                  f"  — {REASON.get(state, '')}")
+        failed = audit[audit.identity == "lookup-failed"]
+        if len(failed):
+            print(f"\n    {len(failed)} lookup failure(s): "
+                  f"{', '.join(sorted(failed.domain))}")
+            print("    Re-run to resolve these; they are network failures, not findings.")
 
     print("\n=== ownership check (state vs independent) ===")
     ru = audit[audit.register_ecosystem.isin(["RU_STATE", "RU_INDEP"])]

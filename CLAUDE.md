@@ -31,9 +31,9 @@ thesis/    9 chapters + references.bib, metadata.yaml, build.sh
 docs/      pre-registrations, gate results, measurement diagnosis, reproduce.md
 src/       data/ features/ models/ — loaders, index construction, estimators
 scripts/   the pipeline: ingest -> gates -> figures
-tests/     85 tests, all offline
-data/      interim/ holds 5 tracked parquets; raw/ is gitignored
-outputs/   tables/ (40 CSVs) and figures/ (2 PNGs)
+tests/     130 tests, all offline
+data/      interim/ holds 7 tracked parquets; raw/ is gitignored
+outputs/   tables/ (53 CSVs) and figures/ (2 PNGs)
 archive/   superseded iterations, kept because the thesis cites them
 ```
 
@@ -44,7 +44,7 @@ resolve `src/` via `sys.path.insert(0, parents[1])`.
 
 ```bash
 bash bootstrap.sh && source .venv/bin/activate
-python -m pytest tests/ -q        # 85 pass, no network, no credentials
+python -m pytest tests/ -q        # 130 pass, no network, no credentials
 ```
 
 Full run order, BigQuery costs and per-script outputs:
@@ -59,7 +59,15 @@ Full run order, BigQuery costs and per-script outputs:
   show that drift as a trend in every ecosystem at once.
 - **Country dominates language** in ecosystem assignment. Ukrainian outlets
   publish heavily in Russian, so a language-first rule would file them as Russian
-  media and manufacture agreement between the two ecosystems.
+  media and manufacture agreement between the two ecosystems. The classification
+  sensitivity analysis measures the cost of getting this wrong: under a
+  language-first rule the Russian-independent block cannot exist at all, because
+  the language tier claims those articles before the register is consulted.
+- **State-funded external broadcasters classify to the funding state; exile
+  newsrooms to their country of origin.** This is what puts Deutsche Welle and
+  RFE/RL in the Western block and keeps Meduza in the Russian independent one.
+  Both halves matter — a rule that only ever pointed one way would not be a rule.
+  Three outlets were misfiled under it before it was written down.
 - **Changes, not levels**, for regressors. Levels are persistent and produce
   significance that first-differencing removes — this killed one published claim
   already (`docs/gate1_gate2_results.md` §1).
@@ -67,6 +75,15 @@ Full run order, BigQuery costs and per-script outputs:
   is not valid under nesting; `src/models/evaluation.py` keeps them as separate
   functions so the distinction cannot be flagged away.
 - **Parsing is split from fetching** everywhere, so tests never touch the network.
+
+## Re-ingesting actually re-ingests — but check
+
+`ingest_gdelt.py` merges fresh rows over existing ones with ``keep="last"``. It
+used to keep the *first* row, and since existing data is concatenated first,
+every re-query was silently resolved in favour of the stale copy — a 454 GB scan
+ran, was billed, and was discarded, leaving Gate 3 on a superseded register for
+weeks. After any re-ingest, confirm the file actually changed (`git diff --stat`)
+and that only the ecosystems you expected moved.
 
 ## Before adding an expensive interim artefact
 
