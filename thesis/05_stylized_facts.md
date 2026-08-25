@@ -78,12 +78,22 @@ negative coverage.
 |---|---|---|---|
 | Ukrainian | −1.77 | −3.43 | **−1.66** |
 | Native-English | −1.87 | −2.51 | −0.64 |
-| Western | −1.88 | −2.25 | −0.38 |
-| Russian independent | −2.23 | −2.49 | −0.26 |
+| Western | −1.90 | −2.27 | −0.36 |
+| Russian independent | −2.09 | −2.01 | +0.09 |
 | **Russian state** | **−1.81** | **−1.79** | **+0.02** |
 
-**Russian state media's tone did not move when Russia invaded Ukraine.** Every
-other ecosystem's did, Ukraine's by more than a point and a half.
+**Russian state media's tone did not move when Russia invaded Ukraine.** The
+contrast that carries this is with **Ukraine**, whose coverage fell by more than a
+point and a half over the same weeks, and with the Western and native-English
+ecosystems, which moved by a third and two thirds of a point.
+
+The Russian *independent* row is the one to read carefully, because it does not
+support the reading a reader might expect. In aggregate that ecosystem does not
+move either — it drifts slightly positive. That is not evidence that independent
+outlets reported the invasion as their state broadcasters did; it is what happens
+when the ecosystem's composition changes underneath the average, which is the
+precise thing the fixed panel below exists to detect and the reason the
+state-versus-independent contrast is retracted rather than reported.
 
 Because ecosystem membership can change — outlets are founded, exiled, or shut
 down — the comparison is repeated on a fixed panel: outlets present on both sides
