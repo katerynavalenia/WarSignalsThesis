@@ -206,16 +206,23 @@ firms — and the **SIPRI arms-revenue shares** used to construct firm-level war
 exposure did not survive the project's data attrition. The Bloomberg index levels
 survived; the panels underneath them did not.
 
-The consequence is specific. The exposure-gradient question — whether firms with
-larger arms-revenue shares respond more strongly to geopolitical risk, and
-whether that gradient differs across the February-2022 break — is **untestable
-here**. There is no cross-section left to estimate it on, so this thesis makes no
-firm-level claim at all and reports no exposure interaction. The project's own
-planning documents still list both sources as available; that listing is stale,
-and this is the correction.
+The consequence is narrower than it first appeared, and the narrowing is worth
+stating precisely because an earlier draft of this section got it wrong.
 
-Everything reported in Chapters 5 through 8 is therefore an index-level or
-ecosystem-level result on a single time-series sample.
+The **constituent-level index panels** are genuinely gone. No public source
+reconstructs which 118 firms Bloomberg weighted into WAERLST on a given day, so
+no decomposition of the index into its members is possible here, and every index
+result in Chapters 5 through 8 is an index-level result for that reason.
+
+The **exposure gradient is not lost with them.** What went missing was one copy
+of the SIPRI shares, not the shares themselves: SIPRI publishes arms and total
+revenue per firm annually and openly, and prices for the listed producers come
+from the same endpoint as the rest of the equity data. The question is therefore
+testable, was tested, and is reported in Section 8.7 — on 31 listed producers,
+85,065 firm-days and a sample that puts the February-2022 re-rating inside it,
+which the project's earlier firm-level attempt did not. The inference from *our
+copy is gone* to *this cannot be tested* is exactly the kind of step this thesis
+tries to catch elsewhere, and it did not survive being checked.
 
 ## 3.8 What this sample can rule out
 

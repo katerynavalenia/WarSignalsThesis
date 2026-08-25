@@ -32,27 +32,45 @@ proxy and the two hand-built baskets. Benjamini–Hochberg correction is applied
 across the whole grid rather than within any slice of it. Thirty-one cells
 survive the minimum-observation rule.
 
-The null is only worth reporting because the same design carries a **positive
-control**. The Western block enters in exactly the same functional form, in
-exactly the same cells. Across the full sample it is detected in **2 of 31** cells
-in Gate 2 (minimum p = 0.0170) and **2 of 31** in Gate 3 (minimum p = 0.0002).
-The instrument finds Western media where Western media matter; when it reports
-nothing for local media, that is a measurement rather than a failure to measure.
+The null is only worth reporting if the design is capable of detecting a media
+block at all, and the chapter is built so that a reader can check this rather
+than take it on trust. The **Western block** enters in exactly the same
+functional form, in exactly the same cells, and is available as a positive
+control throughout.
 
-Two honest qualifications belong with that. The control is **weaker on the full
-sample than on the war window** — on the episode-restricted corpus the Western
-block cleared in 6 of 31 cells in both gates. That is not a defect: roughly
-two-thirds of the 4,027 days precede the invasion, and in a quiet period Western
-coverage of Russia and Ukraine has little reason to move defence equities either.
-Both blocks fade together outside the conflict, which is what one would expect and
-is itself a small piece of evidence that the indices track the conflict rather
-than general news volume.
+That control gives a split verdict, and the split is reported rather than
+averaged away.
 
-The second qualification is that a control passing in two cells is a weaker
-warrant than one passing in ten. The claim it supports is correspondingly
-bounded: the design demonstrably *can* detect a media block in this data, and it
-does not detect the local one anywhere that survives correction. Chapter 7's
-power curve is what carries the quantitative version of that argument.
+In **Gate 3** it passes. The Western block survives Benjamini–Hochberg in 2 of
+31 cells, at adjusted p = 0.005 and 0.016 (nominal 0.00016 and 0.0011). The
+instrument detects a media block in this data, with the same correction applied
+to it that kills the local one.
+
+In **Gate 2** it does not. The Western block is nominally significant in 7 of 31
+cells under the primary alignment and 2 of 31 same-day, and **none of them
+survives correction** — the smallest adjusted p is 0.082. A reader entitled to
+demand consistency should note this: on attention and tone, the design does not
+demonstrate sensitivity to Western media either, and any claim that it *reliably*
+finds Western media where it fails to find local media would overstate what these
+tables support.
+
+What carries Gate 2's sensitivity instead is the local block's own behaviour.
+Under the same-day alignment it survives correction in 7 of 31 cells — including
+the deepest cell in the entire grid, 2,104 daily observations, at adjusted
+p = 0.014. Whatever else is true, the instrument is not blind to local media: it
+detects them, strongly and in the cells with the most data. Section 6.2 is about
+what happens when that same signal is shifted by one day into an alignment a
+trader could actually have used.
+
+One further qualification belongs here, because it limits the control rather than
+supporting it. Gate 3's two surviving Western cells are both **weekly cells in
+the 2025–26 window, resting on 58 observations** — the same thin corner of the
+grid in which the local survivors sit, and which §6.3 argues is the reason not to
+believe them. The control therefore establishes that a block *can* be detected
+here, but in precisely the region where this chapter is least willing to trust a
+detection. It is a real check and a weak one, and the quantitative version of the
+argument — how large an effect would have had to be to show up — is Chapter 7's
+power curve, not this control.
 
 ## 6.2 Gate 2 — attention and tone
 
@@ -61,30 +79,40 @@ conflict-attention share and its mean conflict tone, both in daily changes.
 
 | specification | specs | nominal 5% | survive BH |
 |---|---|---|---|
-| same-day alignment | 31 | 13 | 10 |
-| **news lagged one day (primary)** | **31** | **8** | **1** |
+| same-day alignment | 31 | 13 | 7 |
+| **news lagged one day (primary)** | **31** | **7** | **1** |
 
-**The gap between those two rows is the result of this section.** Ten survivors
-under one alignment and one under the other, from the same data, the same grid
-and the same correction, differing only in whether the news is credited to the
-day it was published or the day after.
+**The gap between those two rows is the result of this section.** Seven
+survivors under one alignment and one under the other, from the same data, the
+same grid and the same correction, differing only in whether the news is credited
+to the day it was published or the day after.
 
 The alignment is not a matter of taste. GDELT days are full UTC days; European
-markets close around 16:30 UTC. A same-day regression therefore credits the
-market with news published **after it shut** — information no trader could have
-acted on. Lagging one day is the only alignment in which the regressor is
-genuinely available, and it is reported as primary throughout.
+markets close around 16:30 UTC and US markets at 21:00. A same-day regression
+therefore credits the market with news published **after it shut** — information
+no trader could have acted on. Lagging one day is the only alignment in which the
+regressor is genuinely available, and it is reported as primary throughout.
 
 An effect that is real information should survive that correction, or strengthen
 under it, since lagging removes only the impossible part. Instead it collapses by
-an order of magnitude. The natural reading is that the same-day cells are picking
-up *contemporaneous* co-movement — coverage responding to the day's market news
-as much as the reverse — rather than information the market later used. That is
-reporting, not prediction.
+a factor of seven. The natural reading is that the same-day cells are picking up
+*contemporaneous* co-movement — coverage and prices both responding to the same
+events within the day, and coverage responding to the day's market news as much
+as the reverse — rather than information the market later used. That is
+reporting, not prediction, and it is what an efficiently priced market should
+look like from this angle.
+
+The same-day result is worth stating positively rather than only as a foil,
+because it is the strongest thing in this chapter. Local conflict coverage
+co-moves with defence-equity returns robustly enough to survive correction across
+seven cells, including the two deepest in the grid. The claim this thesis
+declines to make is the next one — that the co-movement is *exploitable*, or that
+local media know something Western media do not yet know. One day of lag is
+enough to remove it.
 
 **One cell does survive correction under the defensible alignment**, and it is
 reported rather than rounded away: weekly ITA returns in the 2017–19 episode
-window, p = 0.0011, BH-adjusted 0.035, on 129 observations. It is one of
+window, p = 0.0009, BH-adjusted 0.028, on 129 observations. It is one of
 thirty-one tests, which is roughly what a false-discovery-rate procedure is
 designed to tolerate, and it sits where the hypothesised mechanism does not
 apply — a window predating the escalation, on a US-focused aerospace ETF, driven
@@ -92,20 +120,20 @@ by Ukrainian and Russian coverage during a frozen conflict. A local-information
 advantage that shows up there and nowhere in the Russian build-up is not the
 mechanism the thesis set out to test.
 
-These figures changed late in the project, and the reason is instructive rather
-than incidental. Correcting a single misclassified outlet — Deutsche Welle,
-removed from the Russian-independent register — moved 124,219 articles, reduced
-the maximum collinearity between the ecosystem blocks from 0.673 to 0.602, and
-took the same-day survivor count from three to ten. Section 8.3 sets out why a
-measurement error of that kind is capable of moving a result in either direction,
-and why it makes the unrun precision audit the thesis's most consequential
-omission rather than a procedural one.
+These figures changed twice late in the project, and the reason is instructive
+rather than incidental. Correcting the outlet register — first Deutsche Welle,
+then Radio Free Europe/Radio Liberty's two Russian-language services, all three
+removed from the Russian-independent block — moved just over 200,000 articles and
+took the same-day survivor count from three to seven. Section 8.3 sets out why a
+measurement error of that kind can move a result in either direction, and why
+validating the register mattered more than any single robustness check.
 
-The window the thesis is about is the emptiest of all. In the Russian build-up
-and invasion — a European land war, covered first, closest and most intensively
-by Ukrainian and Russian outlets, where any local-information advantage should be
-at its maximum — the local-block p-values under the primary alignment run from 0.021 to 0.62 across
-the five targets. Nothing is close to correction on any of them.
+The window the thesis is about remains the emptiest. In the Russian build-up and
+invasion — a European land war, covered first, closest and most intensively by
+Ukrainian and Russian outlets, where any local-information advantage should be at
+its maximum — the local-block p-values under the primary alignment are 0.012,
+0.124, 0.361, 0.414 and 0.506 across the five targets. The smallest is 0.082
+after correction. Nothing clears on any of them.
 
 ## 6.3 Gate 3 — the anticipation structure
 
@@ -125,13 +153,13 @@ from February 2015 to May 2026**, it fails under both timing conventions:
 
 | specification | specs | nominal 5% | survive BH | verdict |
 |---|---|---|---|---|
-| primary (news lagged one day) | 31 | 9 | 2 | **FAIL** |
-| secondary (same-day) | 31 | 3 | 0 | **FAIL** |
+| primary (news lagged one day) | 31 | 8 | 2 | **FAIL** |
+| secondary (same-day) | 31 | 4 | 0 | **FAIL** |
 
 The two surviving cells are worth locating precisely, because where they sit is
 the argument. Both are weekly, both fall in the 2025–26 episode, and both rest on
 **58 observations supporting thirteen parameters**. The cell with the most data
-in the entire grid — pooled daily, **2,754 observations** — returns p = 0.10.
+in the entire grid — pooled daily, **2,754 observations** — returns p = 0.082.
 A local-information effect that appears only in the thinnest corner of a grid and
 vanishes where the data is deepest is the signature of noise, not of a small
 effect that needs more power to see.
@@ -142,16 +170,29 @@ survivor is a hand-built basket, which the pre-registration explicitly excludes
 from that arm. Arm 2 required survivors in two independent episode windows with
 the *same sign*; two windows do carry survivors, and the Russia daily cell has
 the opposite sign to all six weekly cells on every local term. In the build-up
-and invasion the primary local-block p-values run from 0.012 to 0.597, with
-nothing surviving correction. The positive control passes here as it does in Gate
-2, though less strongly on the full sample — the Western block in 2 of 31 cells, minimum p = 0.0002.
+and invasion the primary local-block p-values run from 0.018 to 0.720, the
+smallest of them 0.127 after correction, with nothing surviving.
+
+This is the gate in which the positive control passes, and it is the only one.
+The Western block survives Benjamini–Hochberg in 2 of 31 cells, at nominal
+p = 0.00016 and 0.0011 (adjusted 0.005 and 0.016), so the same F-test with the
+same correction does detect a media block in this data. The qualification from
+§6.1 applies with full force here: both of those cells are the weekly 2025–26
+cells resting on 58 observations, which is the thin corner this section has just
+finished arguing not to trust. The control shows the instrument can fire; it does
+not show that a detection in that corner should be believed, and the thesis does
+not treat the local survivors there as believable either. Applying one standard
+to both is the point.
 
 One pattern inside those cells deserves reporting precisely because it is
-seductive. Among the weekly survivors the coefficient signs were strikingly
-coherent: realized-conflict coverage in Russian independent media carried the
-same sign in 7 of 7 cells, and Ukrainian realized, Ukrainian anticipatory and
-Russian state realized coverage in 6 of 7 each. Read literally, that is *buy the
-rumour, sell the fact* in Ukrainian media — a shift toward anticipation raises
+seductive. Across the two surviving cells the coefficient signs were
+strikingly coherent: **five of the six local terms carry the same sign in both**,
+and the exception (Russian state anticipatory coverage) is the smallest of them.
+Ukrainian realized-conflict coverage enters negative in both (mean −0.43),
+Ukrainian anticipatory coverage positive in both (+0.27), Russian state realized
+coverage negative in both (−1.35) and Russian independent realized coverage
+positive in both (+1.00). Read literally, that is *buy the rumour, sell the fact*
+in Ukrainian media — a shift toward anticipation raises
 defence returns, a shift toward realization lowers them. It is exactly the
 mechanism this project set out to find. Those four signs were written down and
 tested on the 2017–19 window, which had not been ingested when the hypothesis was

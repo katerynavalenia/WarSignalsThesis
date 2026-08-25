@@ -255,7 +255,83 @@ observed anywhere in the fifty forecasting specifications is 0.11%. Predictabili
 across most of the range this literature reports is ruled out; only the region below it
 is not, and this chapter is why that distinction is drawn carefully.
 
-## 8.7 Limitations
+## 8.7 The firm cross-section, recovered
+
+Section 3.7 records two datasets as lost and draws a consequence from the loss:
+that the exposure-gradient question — whether firms with larger arms-revenue
+shares respond more strongly to geopolitical risk — is untestable here. **That
+consequence was wrong, and this section is the correction.**
+
+What was lost was a particular *copy* of the data, not the data. SIPRI publishes
+the Top-100 arms-producing companies annually, with arms revenue and total
+revenue for each, and has done so continuously across this sample. Arms revenue
+over total revenue is the exposure measure the question needs, and it is a public
+figure. Prices for the listed producers come from the same free endpoint the
+equity spine already uses. Neither input required the file that went missing. The
+question was recoverable for the cost of writing the matching code, and the
+inference in Section 3.7 — from *our copy is gone* to *this cannot be tested* —
+did not hold.
+
+The matching is deliberately hand-curated rather than fuzzy-matched on company
+names. Fuzzy matching is exactly where a silent error of the kind Section 8.3
+documents would enter: "General Dynamics" and "General Electric" are close in
+string distance and nothing alike in exposure, and a mismatch would attach the
+wrong exposure to the wrong returns without failing any test. Thirty-one listed
+firms match, spanning arms shares from 0.033 (General Electric) to 0.943 (BAE
+Systems), which is the full range the question needs. State-owned and unlisted
+producers are absent by construction: they have no returns to explain.
+
+The estimating equation is dictated by the design. Day fixed effects absorb every
+day-level shock, so a conflict variable cannot be identified from its own
+coefficient — every firm sees the same shock on the same day. The identification
+is therefore the **interaction**: does the response to a geopolitical-threat shock
+scale with the firm's arms-revenue share? Firm fixed effects absorb the level
+differences between producers, standard errors are clustered by date, and each
+firm's return is measured against the benchmark of the market it trades in
+(Section 8.1 is what that precaution is for).
+
+| window | firm-days | days | interaction β | p |
+|---|---|---|---|---|
+| full sample | 85,065 | 2,836 | +0.068 | 0.047 |
+| pre-war (2015-02→2021-10) | 49,779 | 1,677 | +0.079 | 0.021 |
+| build-up (2021-11→2022-02) | 2,405 | 79 | −0.037 | 0.728 |
+| invasion (2022-02→2022-09) | 4,529 | 149 | −0.055 | 0.828 |
+| attrition (2022-09→2026-06) | 28,352 | 931 | +0.090 | 0.136 |
+
+Two nominal hits, and **neither survives** Benjamini–Hochberg across the ten
+tests the specification defines — five windows in signed returns and the same
+five in absolute returns, smallest adjusted p = 0.211. The absolute-return arm is
+null everywhere, nominally included.
+
+Where the hits sit is the finding rather than the fact that there are two. Both
+are the **pre-war** window and the full sample, and the full sample is 59%
+pre-war observations, so they are one result reported twice. In the three windows
+where the hypothesis actually predicts a gradient the coefficient is
+insignificant, and in the build-up and the invasion it carries the wrong sign. A
+gradient that is visible in peacetime and absent once the war begins is not
+measuring war exposure; the most likely reading is that high-arms-share firms
+differ from diversified industrials in some stable way — government-dominated
+revenue, low cyclicality — that shows up in their loading on a risk index during
+quiet periods and is swamped once a real conflict repricing arrives.
+
+The honest qualification is power, and it cuts unevenly. The build-up and
+invasion windows carry 79 and 149 trading days, which is thin enough that a
+moderate gradient could hide there; those two nulls are weak evidence. The
+attrition window is not thin — 931 days and 28,352 firm-days — and it returns
+p = 0.136 with the largest point estimate in the table. The strongest statement
+the data supports is that no exposure gradient is detectable at conventional
+significance in any war window, and that the one window with enough data to speak
+confidently does not show one.
+
+This matters for the reader's confidence in the design more than for the thesis's
+conclusions, which are index-level throughout. The earlier firm-level attempt
+recorded in the project's v2 phase found no gradient either, but measured it on
+the attrition sample alone — the one window in which no repricing happens — and
+so could not distinguish "no gradient" from "no event". This test puts the
+February-2022 re-rating inside the sample, which was the whole objection to the
+earlier one, and the answer does not change.
+
+## 8.8 Limitations
 
 **Volatility was dropped as an outcome.** The design originally specified a
 volatility arm with a HAR-RV-X model, on the strength of a result showing

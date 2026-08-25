@@ -125,10 +125,14 @@ fifteen-minute feed and then aggregated to daily observations matched to daily
 equity data. If local coverage leads Western coverage by hours, this design
 cannot see it, and the null is silent about that horizon.
 
-Nothing here speaks to the firm cross-section either. The exposure-gradient
-question — whether firms with greater war-related revenue respond differently —
-required firm-level exposure data that is not available to this project, and the
-analysis is index- and basket-level throughout.
+The firm cross-section is spoken to, but weakly. Section 8.7 recovers the
+exposure-gradient question from public SIPRI revenue shares and finds no gradient
+in any war window: the two nominally significant cells are the pre-war period and
+a full sample dominated by it, and neither survives correction. The qualification
+is that the build-up and invasion windows carry 79 and 149 trading days, thin
+enough that a moderate gradient could hide in them. What can be said is that the
+one war window with enough data to speak confidently — the attrition phase, 931
+days — does not show one.
 
 ## 9.5 Where this goes next
 
