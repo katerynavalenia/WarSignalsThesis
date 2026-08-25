@@ -68,6 +68,10 @@ build/
 # BEFORE it is created, not after.
 !data/interim/gdelt_threat_act_daily.parquet
 !data/interim/gdelt_ecosystems_holdout.parquet
+# spine_macro is cheap to rebuild -- GPR and FRED are free -- but it is the input
+# to build_equity_spine.py, so without it the pipeline cannot be run from a fresh
+# clone in the documented order. 60 KB to spare a reader that discovery.
+!data/interim/spine_macro.parquet
 
 # Processed data
 **/data/processed/**/*.csv

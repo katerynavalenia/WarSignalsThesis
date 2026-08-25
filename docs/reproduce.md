@@ -38,17 +38,31 @@ Everything except the ingest runs with no credential and no cost.
 # run from the repository root
 python scripts/build_spine.py                 # GPR + FRED, free
 python scripts/build_equity_spine.py          # Yahoo, free; runs the basket validation
-python scripts/ingest_gdelt.py --preset full        # ~380 GB scanned
-python scripts/ingest_gdelt.py --preset threat-act  # ~310 GB
-python scripts/ingest_gdelt.py --preset holdout     # ~90 GB
+python scripts/ingest_gdelt.py --preset full             # ~380 GB scanned
+python scripts/ingest_gdelt.py --preset holdout         # ~90 GB
+python scripts/ingest_gdelt.py --preset threat-act      # ~454 GB
+python scripts/ingest_gdelt.py --preset threat-act-fill # ~706 GB
 ```
 
-Add `--dry-run` to any ingest to price it without running it. Total across all
-three presets is roughly 800 GB, inside BigQuery's 1 TB/month free tier — but
-only just, so a re-run in the same calendar month may cost a few dollars.
+Add `--dry-run` to any ingest to price it without running it. The full wave is
+roughly **1.6 TB**, which overruns BigQuery's 1 TB/month free tier — budget a few
+dollars if you run all four in one calendar month. The two `threat-act` presets
+write to the same file and together cover all 4,027 days; the split exists
+because the `Themes` field they read scans at roughly four times the cost of the
+`Locations` field the other presets use, and the episode windows were collected
+first.
 
 The ingest is chunked purely as a cost control. Results are identical to a
 single query over the same span.
+
+**Re-running an ingest genuinely re-ingests.** Existing rows are merged with
+freshly queried ones and the fresh row wins on a collision. This was not always
+true: the merge kept the *first* row, and since existing data is concatenated
+first, every re-query was silently resolved in favour of the stale copy. The
+threat/act table survived a 454 GB re-run byte-identical after the outlet
+register had been corrected — the query ran, the bill was paid, the result was
+discarded, and Gate 3 went on reporting numbers from the old register.
+`tests/test_register_and_exposure.py::TestIngestMerge` is the regression test.
 
 ## 2. Analysis
 
@@ -76,7 +90,24 @@ python scripts/diagnose_market_control.py # Ch 8 §8.1: THE retraction evidence
 python scripts/audit_gate3.py             # Ch 8 §8.2: strict rule + OOS sign test
 python scripts/diagnose_gas.py            # Ch 8 §8.4: asset scan + adversarial tests
 python scripts/explore_escalation.py      # Ch 8 §8.5: split-half + persistence diagnostic
+python scripts/run_break_tests.py         # Ch 5 §5.4: Chow + supremum-Wald breaks
+python scripts/run_register_audit.py      # Ch 4 §4.5: outlet precision against Wikidata
+python scripts/run_exposure_gradient.py   # Ch 8 §8.7: SIPRI firm-level exposure gradient
 ```
+
+Two of those need a note.
+
+`run_register_audit.py` reads Wikidata over the network and takes several
+minutes. Resolutions are **pinned** to a committed QID map, so a re-run
+reproduces the table exactly; without the pin it would not, because Wikidata's
+name-search ranking is unstable enough to move measured precision between runs of
+identical code. `--repin` re-resolves every outlet from scratch and rewrites the
+map, and is the right thing to run when the register changes — it takes far
+longer, because it examines every candidate rather than the first plausible one.
+
+`run_exposure_gradient.py` needs `data/raw/sipri/sipri_top100.xlsx`, which is not
+in the repository. Download the SIPRI Arms Industry Database Top-100 workbook
+from sipri.org and put it there; the parser reads every year sheet it finds.
 
 `diagnose_market_control.py` is the one to run first if you only run one. It
 reproduces the reversal that retracted the threat channel — the same regression
@@ -96,7 +127,7 @@ repository because Chapter 8 documents the retraction; do not cite its output.
 ## 3. Verification
 
 ```bash
-python -m pytest tests/ -q     # 85 tests, all offline
+python -m pytest tests/ -q     # 125 tests, all offline
 ```
 
 The suite needs neither the network nor the gitignored data: parsers are split
@@ -111,9 +142,11 @@ cd thesis
 ./build.sh pdf        # thesis.pdf, needs a local LaTeX engine
 ```
 
-**Not tested** — neither pandoc nor LaTeX is installed on the machine the thesis
-was written on. `build.sh` documents its likely first-run failures at the bottom
-of the file.
+`tex` and `docx` are **verified** with pandoc 3.1.11: they build clean from the
+chapters, and the tex output carries 9 chapters, 3 figures, 54 tables and all 16
+bibliography entries. `pdf` is the one target still unverified, because it needs
+a LaTeX engine and none is installed on the machine the thesis was written on —
+build `tex` and upload to Overleaf if you do not have one either.
 
 ## What each analysis writes
 
@@ -122,7 +155,7 @@ of the file.
 | `build_spine.py` | `data/interim/spine_macro.parquet`, `outputs/tables/spine_coverage.csv` |
 | `build_equity_spine.py` | `data/interim/spine_full.parquet`, `outputs/tables/basket_validation.csv` |
 | `ingest_gdelt.py` | `data/interim/gdelt_ecosystems_daily.parquet`, `gdelt_threat_act_daily.parquet`, `gdelt_ecosystems_holdout.parquet` |
-| `run_gates.py` | `outputs/tables/gate1_ecosystems.csv`, `gate1_collinearity.csv`, `gate2_horse_race.csv` |
+| `run_gates.py` | `outputs/tables/gate1_ecosystems.csv`, `gate1_collinearity.csv`, `gate1_gpr_levels.csv`, `gate2_horse_race.csv` |
 | `run_gate3.py` | `outputs/tables/gate3_threat_act.csv` |
 | `run_gate4_gas.py` | `outputs/tables/gate4_gas.csv`, `gate4_placebos.csv` |
 | `run_gate5_escalation.py` | `outputs/tables/gate5_escalation.csv` |
@@ -136,38 +169,41 @@ of the file.
 | `audit_gate3.py` | `outputs/tables/gate3_oos_signs.csv`, `gate3_sign_consistency.csv` |
 | `diagnose_gas.py` | `outputs/tables/gas_{asset_scan,controls,placebos}.csv` |
 | `explore_escalation.py` | `outputs/tables/escalation_{levels_vs_changes,split_half}.csv` |
+| `run_break_tests.py` | `outputs/tables/structural_breaks.csv` |
+| `run_register_audit.py` | `outputs/tables/register_audit.csv`, `register_audit_summary.csv` |
+| `run_exposure_gradient.py` | `outputs/tables/exposure_gradient.csv`, `exposure_gradient_bh.csv`, `sipri_exposure.csv` |
 
-## Where re-running gives different numbers, and why that is correct
+## What reproduces, and what deliberately does not
 
-Two scripts will not reproduce the chapters exactly, because the corpus grew
-after those results were recorded:
+**The committed data and the chapters agree.** Every parquet in `data/interim/`
+was regenerated on the final outlet register, and every table in
+`outputs/tables/` was regenerated from those parquets, so running the analysis
+scripts on this checkout reproduces the figures the chapters quote. That was not
+true for most of the project's life, and the way it failed is worth knowing:
 
-- **`compare_news_timing.py`** gives 3 same-day BH survivors where Chapter 6
-  reports 2. Gate 2 ran on the 1,605-day ingest; the corpus is now 4,027 days.
-  The lagged count is 0 either way, which is the specification the chapter
-  treats as primary.
-- **`analyse_wedge.py`** gives four independent outlets and p=0.561 where the
-  pre-correction run gave six and p=0.151, because `dw.com` has since been moved
-  out of the Russian-independent register. Chapters 5 and 8 quote the corrected
-  figures.
+- The ecosystem tables lagged the register by one fix, so the chapters quoted
+  RU_INDEP and WEST figures from a register that had `dw.com` in the wrong block.
+- The threat/act table lagged it by **two**, and silently. Re-ingesting it looked
+  like it worked — the query ran and 454 GB was scanned — but the merge kept the
+  stale row on every collision, so Gate 3 went on reporting pre-fix numbers. That
+  bug is fixed and has a regression test; see §1.
 
-Neither is a discrepancy to fix. A pre-registered result reports the data it was
-run on, not the data that exists later — re-estimating on later-arriving data is
-exactly the failure mode Gate 3 documents, where adding a held-out window turned
-seven survivors into two and a PASS into a FAIL.
+**The `pdf` build target and one raw input do not reproduce here.** `pdf` needs a
+LaTeX engine this machine lacks, and `run_exposure_gradient.py` needs the SIPRI
+workbook, which is not redistributable through this repository.
 
-## A caveat on re-running
+**Re-fetching the price data will move the numbers slightly, so do not.**
+`build_equity_spine.py` pulls adjusted closes, and adjusted closes are revised
+retroactively for splits and dividends. The committed `spine_full.parquet` is
+what every reported figure was computed on. Re-running it is only correct if you
+intend to re-derive the whole chapter, not to check a number.
 
-The committed ecosystem parquets were built **before** `dw.com` was corrected
-from Russian-independent to Western in the outlet register. Re-running
-`ingest_gdelt.py` regenerates them with the corrected classifier, which will
-change RU_INDEP and WEST slightly. It does **not** touch the state-versus-Ukraine
-contrast the thesis actually claims, since neither ecosystem is involved.
-
-`analyse_wedge.py` already reflects the corrected register: it gives five
-independent outlets and p = 0.561, against five and p = 0.323 after the
-`dw.com` fix alone and six and p = 0.151 before any of it.
-Chapters 5 and 8 quote the corrected figures.
+**A pre-registered result reports the data it was run on.** Where a gate's
+recorded verdict was formed on a smaller corpus, that verdict stands as the
+record of what was pre-registered, and the current table stands as what the same
+test says now. Re-estimating on later-arriving data and reporting the better
+answer is exactly the failure mode Gate 3 documents, where adding a held-out
+window turned seven survivors into two and a PASS into a FAIL.
 
 ## Added after the first pass
 
