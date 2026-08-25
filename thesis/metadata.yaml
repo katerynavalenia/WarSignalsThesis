@@ -42,14 +42,19 @@ abstract: |
   three national series from one English-language population.
 
   The answer is that Western defence equities price the Western narrative.
-  Local-language perception adds nothing beyond it, in coverage volume, in tone,
-  or in the anticipation-versus-realization structure of that coverage. The null
-  is established across two asset classes — defence equities and European
-  natural gas, the asset through which the conflict physically transmitted — and
-  one non-market outcome, realized escalation, each against a positive control
-  confirming the design detects Western media where Western media matter. A
-  simulated power curve bounds the forecasting result: out-of-sample R² of 1.0%
-  is detectable at 80% power and 0.5% at 56%, against a best observed 0.45%.
+  Local-language perception adds nothing beyond it *ahead of the market*, in
+  coverage volume, in tone, or in the anticipation-versus-realization structure
+  of that coverage. It does co-move with defence returns contemporaneously, and
+  strongly — but that co-movement all but disappears when the news is credited
+  to the trading day on which it was actually available, which is the
+  distinction the thesis turns on. The null is established across two asset
+  classes — defence equities and European natural gas, the asset through which
+  the conflict physically transmitted — and one non-market outcome, realized
+  escalation. A simulated power curve bounds the forecasting result:
+  out-of-sample R² of 0.5% is detectable at 82% power and 0.2% at 43%, against a
+  best observed 0.10%. The design's sensitivity is demonstrated cell by cell
+  rather than assumed, including where the Western positive control itself fails
+  to survive multiple-testing correction.
 
   Two further results survive. Russian state media's tone did not move when
   Russia invaded Ukraine — a shift of +0.02, and −0.05 on a fixed panel of
