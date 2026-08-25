@@ -42,11 +42,13 @@ python scripts/ingest_gdelt.py --preset full             # ~380 GB scanned
 python scripts/ingest_gdelt.py --preset holdout         # ~90 GB
 python scripts/ingest_gdelt.py --preset threat-act      # ~454 GB
 python scripts/ingest_gdelt.py --preset threat-act-fill # ~706 GB
+python scripts/run_classifier_sensitivity.py            # ~380 GB, five labellings in one scan
 ```
 
 Add `--dry-run` to any ingest to price it without running it. The full wave is
-roughly **1.6 TB**, which overruns BigQuery's 1 TB/month free tier — budget a few
-dollars if you run all four in one calendar month. The two `threat-act` presets
+roughly **1.6 TB** for the four ingest presets, or **2.0 TB** including the
+sensitivity scan, which overruns BigQuery's 1 TB/month free tier — budget a few
+dollars if you run them all in one calendar month. The two `threat-act` presets
 write to the same file and together cover all 4,027 days; the split exists
 because the `Themes` field they read scans at roughly four times the cost of the
 `Locations` field the other presets use, and the episode windows were collected
@@ -93,6 +95,7 @@ python scripts/explore_escalation.py      # Ch 8 §8.5: split-half + persistence
 python scripts/run_break_tests.py         # Ch 5 §5.4: Chow + supremum-Wald breaks
 python scripts/run_register_audit.py      # Ch 4 §4.5: outlet precision against Wikidata
 python scripts/run_exposure_gradient.py   # Ch 8 §8.7: SIPRI firm-level exposure gradient
+python scripts/run_classifier_sensitivity.py  # Ch 4 §4.5: Gate 2 under five classification rules
 ```
 
 Two of those need a note.
@@ -108,6 +111,13 @@ longer, because it examines every candidate rather than the first plausible one.
 `run_exposure_gradient.py` needs `data/raw/sipri/sipri_top100.xlsx`, which is not
 in the repository. Download the SIPRI Arms Industry Database Top-100 workbook
 from sipri.org and put it there; the parser reads every year sheet it finds.
+
+`run_classifier_sensitivity.py` re-labels the corpus five ways and re-runs Gate 2
+under each. It scans **380 GB** on its first run — the same as one ingest, because
+the rules differ in how they label an article and not in which articles they
+read, so a single scan carries all five labellings. The result is committed as
+`data/interim/gdelt_ecosystems_variants.parquet`; pass **`--no-ingest`** to
+re-run the regressions against it without querying BigQuery again.
 
 `diagnose_market_control.py` is the one to run first if you only run one. It
 reproduces the reversal that retracted the threat channel — the same regression
@@ -172,6 +182,7 @@ build `tex` and upload to Overleaf if you do not have one either.
 | `run_break_tests.py` | `outputs/tables/structural_breaks.csv` |
 | `run_register_audit.py` | `outputs/tables/register_audit.csv`, `register_audit_summary.csv` |
 | `run_exposure_gradient.py` | `outputs/tables/exposure_gradient.csv`, `exposure_gradient_bh.csv`, `sipri_exposure.csv` |
+| `run_classifier_sensitivity.py` | `data/interim/gdelt_ecosystems_variants.parquet`, `outputs/tables/classifier_sensitivity.csv`, `classifier_sensitivity_cells.csv` |
 
 ## What reproduces, and what deliberately does not
 

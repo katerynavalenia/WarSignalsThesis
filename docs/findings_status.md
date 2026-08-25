@@ -72,6 +72,8 @@ reporting rather than hiding.
 | [`data_sources.md`](data_sources.md) §2–3 | the equity half cannot be built without a vendor key | true of cloud sessions only; built free from a residential IP — **banner added** |
 | [`research_plan.md`](research_plan.md) §9 | odds table presented as live priors | every row now settled — **banner added** |
 | [`gate1_gate2_results.md`](gate1_gate2_results.md) §8 | "1,605 days ingested, not 4,151" | correct for that gate; coverage is now 4,027 days |
+| [`gate3_preregistration.md`](gate3_preregistration.md) §control | "Gate 2 passed this control (Western block at p=0.0005)" | it does not. On the corrected register the Western block survives correction nowhere in Gate 2 (smallest adjusted p 0.082). **The document is deliberately unedited** — a pre-registration that is revised after the fact is not a pre-registration, and this is the mechanism for recording that without touching it. Thesis §6.1 states the corrected position |
+| [`gate4_preregistration.md`](gate4_preregistration.md) §exploratory | gas exploratory result at p=0.0005 | 0.0028 on the corrected register, and 0.399 on the pre-registered 222-day sample. Unedited for the same reason |
 
 Gate documents describing the sample *they* were run on are correct as written
 and are not stale. A gate result must report the data it used, not the data that

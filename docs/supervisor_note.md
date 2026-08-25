@@ -113,7 +113,15 @@ reason it should be believed.
   creates a "whose" question, and Bondarenko is about exactly that. The
   forecasting question is still answered, in Chapter 7, with the tests he asked
   for. Nothing was substituted; a second question was added.
-- The one thing he may reasonably press on is the missing precision audit. The
-  answer is that it is the first item of remaining work, and that `dw.com` sitting
-  misclassified in the Russian-independent register — caught by a fixed-panel
-  robustness run rather than by validation — is the evidence that it matters.
+- The precision audit is no longer the open item it was. It exists, automated
+  against Wikidata, and it validates the outlet register domain by domain rather
+  than by sampling articles (§4.6). If he presses, the answer has two parts: the
+  classifier is a deterministic function of the domain, so auditing domains is
+  the same quantity as auditing articles rather than a weaker proxy; and what
+  genuinely remains is that GDELT's attribution of an article *to* a domain is
+  taken on trust, which only a reader with Russian and Ukrainian can check.
+- If he asks what the audit caught: `svoboda.org` — Radio Free Europe/Radio
+  Liberty's Russian service — sitting in the Russian *independent* register,
+  which is the same error class as `dw.com` and was found by validation rather
+  than by luck this time. Both are now Western, under a rule stated where it is
+  applied.
