@@ -268,6 +268,142 @@ def benjamini_hochberg(pvalues: pd.Series, alpha: float = 0.05) -> pd.DataFrame:
     ).sort_values("pvalue")
 
 
+def model_confidence_set(
+    losses: pd.DataFrame,
+    alpha: float = 0.10,
+    n_boot: int = 1000,
+    seed: int = 0,
+) -> pd.DataFrame:
+    """Hansen–Lunde–Nason Model Confidence Set.
+
+    Answers a different question from a pairwise test: *which* models cannot be
+    distinguished from the best one, rather than whether model A beats model B.
+    Iteratively drops the worst performer until the equal-predictive-ability
+    hypothesis survives, and returns each model with the step at which it left.
+
+    ``losses`` is (observations × models) of per-period losses. The bootstrap is
+    a plain i.i.d. resample of periods, which is adequate for the one-step-ahead
+    losses used here; longer horizons would want a block bootstrap.
+
+    A caveat worth reading before interpreting the output: when no model beats
+    the benchmark, the surviving set is large and that is *not* evidence the
+    models are all good. It means the data cannot separate them. In this thesis
+    the set is expected to retain nearly everything, which says the same thing
+    the zero Clark–West rejections say.
+    """
+    L = losses.dropna()
+    if L.shape[1] < 2:
+        raise ValueError("need at least two models to compare")
+    rng = np.random.default_rng(seed)
+    n = len(L)
+
+    idx = rng.integers(0, n, size=(n_boot, n))
+    alive = list(L.columns)
+    rows = []
+    step = 0
+
+    while len(alive) > 1:
+        step += 1
+        sub = L[alive].to_numpy()
+        d = sub.mean(axis=0)
+        centred = sub - d
+
+        boot_means = np.stack([centred[i].mean(axis=0) for i in idx])
+        var = boot_means.var(axis=0, ddof=1)
+        var[var <= 0] = np.nan
+
+        t = (d - d.mean()) / np.sqrt(var / n)
+        boot_t = (boot_means - boot_means.mean(axis=1, keepdims=True)) / np.sqrt(var / n)
+        stat = float(np.nanmax(np.abs(t)))
+        crit = float(np.nanquantile(np.nanmax(np.abs(boot_t), axis=1), 1 - alpha))
+
+        if stat <= crit:
+            break
+        worst = alive[int(np.nanargmax(t))]
+        rows.append({"model": worst, "eliminated_at_step": step,
+                     "statistic": stat, "critical_value": crit})
+        alive.remove(worst)
+
+    for m in alive:
+        rows.append({"model": m, "eliminated_at_step": np.nan,
+                     "statistic": np.nan, "critical_value": np.nan})
+    out = pd.DataFrame(rows).set_index("model")
+    out["in_confidence_set"] = out["eliminated_at_step"].isna()
+    return out
+
+
+def combine_forecasts(forecasts: pd.DataFrame, method: str = "mean") -> pd.Series:
+    """Combine single-predictor forecasts.
+
+    Rapach, Strauss and Zhou show that a simple average of individually weak
+    forecasts often beats every one of them, and beats the kitchen-sink model
+    that uses all predictors at once, because averaging cancels the estimation
+    noise that sinks each one alone. It is the standard remedy when predictors
+    are individually marginal, so a forecasting null that never tries it is
+    incomplete.
+
+    ``mean`` is the equal-weighted average; ``median`` is its robust cousin.
+    """
+    f = forecasts.dropna(how="all")
+    if method == "mean":
+        return f.mean(axis=1).rename("combination_mean")
+    if method == "median":
+        return f.median(axis=1).rename("combination_median")
+    raise ValueError(f"unknown method: {method!r}")
+
+
+def economic_value(
+    actual: pd.Series,
+    forecast: pd.Series,
+    benchmark: pd.Series,
+    risk_aversion: float = 3.0,
+    vol_window: int = 60,
+    max_weight: float = 1.5,
+    cost_bps: float = 0.0,
+) -> dict:
+    """Certainty-equivalent gain and Sharpe ratio for a mean–variance timer.
+
+    Statistical significance and economic value are different questions, and the
+    second is the one an investor asks. A mean–variance investor with the given
+    risk aversion allocates ``w_t = forecast_t / (gamma * sigma_t^2)`` to the
+    risky asset, with ``sigma_t`` estimated on a trailing window and the weight
+    capped to keep the exercise implementable.
+
+    Returns the annualised certainty-equivalent of the timing strategy and of
+    the benchmark, their difference (the CER gain — the fee an investor would
+    pay to switch), and both Sharpe ratios. ``cost_bps`` charges a round-trip
+    cost on turnover, since a strategy that rebalances daily on a noisy signal
+    can look profitable gross and lose money net.
+    """
+    a, f, b = _align(actual, forecast, benchmark)
+    var = pd.Series(a).rolling(vol_window, min_periods=20).var().to_numpy()
+    ok = np.isfinite(var) & (var > 0)
+    a, f, b, var = a[ok], f[ok], b[ok], var[ok]
+    if len(a) < 60:
+        raise ValueError("need at least 60 usable observations")
+
+    def _cer(weights: np.ndarray) -> tuple[float, float, float]:
+        turnover = np.abs(np.diff(weights, prepend=0.0))
+        r = weights * a - turnover * (cost_bps / 10_000.0) * 100.0
+        mu, sd = r.mean() * 252, r.std() * np.sqrt(252)
+        cer = mu - 0.5 * risk_aversion * (sd ** 2) / 100.0
+        return float(cer), float(mu / sd) if sd > 0 else np.nan, float(sd)
+
+    w_model = np.clip(f / (risk_aversion * var), -max_weight, max_weight)
+    w_bench = np.clip(b / (risk_aversion * var), -max_weight, max_weight)
+    cer_m, sharpe_m, _ = _cer(w_model)
+    cer_b, sharpe_b, _ = _cer(w_bench)
+
+    return {
+        "n": int(len(a)),
+        "cer_model_pct": cer_m,
+        "cer_benchmark_pct": cer_b,
+        "cer_gain_pct": cer_m - cer_b,
+        "sharpe_model": sharpe_m,
+        "sharpe_benchmark": sharpe_b,
+    }
+
+
 def romano_wolf(
     statistics: pd.Series,
     bootstrap_draws: np.ndarray,
