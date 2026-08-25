@@ -90,19 +90,19 @@ in defence.
 
 The efficiency result has the same shape. Across 50 expanding-window
 one-day-ahead specifications, the best Campbell–Thompson out-of-sample R² is
-**+0.0045**, 7 of 50 are positive at all, and Clark–West rejects at the 5% level
+**+0.0011**, 3 of 50 are positive at all, and Clark–West rejects at the 5% level
 in **zero** cases against 2.5 expected by chance alone. That is a null, and its
-value depends entirely on what it can rule out. Simulated on 848 out-of-sample
+value depends entirely on what it can rule out. Simulated on 1,855 out-of-sample
 days:
 
 | true R²_OS | 0.0% | 0.2% | 0.5% | 1.0% | 2.0% | 4.0% |
 |---|---|---|---|---|---|---|
-| rejection rate | 0.02 | 0.23 | 0.56 | **0.81** | 0.98 | 1.00 |
+| rejection rate | 0.02 | 0.43 | **0.82** | 0.98 | 1.00 | 1.00 |
 
-A true out-of-sample R² of **1.0% would be detected 81% of the time and 0.5%
-56% of the time**, with size at zero effect of 0.02. Predictability at the upper
-end of what this literature reports is ruled out. At the lower end it is not,
-and this thesis does not claim otherwise.
+A true out-of-sample R² of **0.5% would be detected 82% of the time and 0.2%
+43% of the time**, with size at zero effect of 0.02. Most of the range this
+literature reports as economically meaningful is therefore ruled out. The very
+bottom of it is not, and this thesis does not claim otherwise.
 
 ## 1.4 Contributions
 

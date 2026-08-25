@@ -44,9 +44,9 @@ reason it should be believed.
 > across the grid. I use Clark–West rather than Diebold–Mariano for the nested
 > comparisons, since the models nest the benchmark and the DM statistic is not
 > valid there; DM is implemented and used where the comparison is non-nested. The
-> more useful addition is a simulated power curve: with 848 out-of-sample
-> observations the test detects an R²_OS of 1.0% at 80% power and 0.5% at 56%.
-> The best observed is 0.45% and no test survives correction, so the null is
+> more useful addition is a simulated power curve: with 1,855 out-of-sample
+> observations the test detects an R²_OS of 0.5% at 82% power and 0.2% at 43%.
+> The best observed is 0.11% and no test survives correction, so the null is
 > bounded rather than merely observed.
 >
 > **On Bondarenko et al. (comment 5).** It became the methodological anchor. They

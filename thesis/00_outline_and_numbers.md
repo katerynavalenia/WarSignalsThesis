@@ -55,7 +55,9 @@ counterparty's equities and finds the opposite asymmetry. Campbell & Thompson
 | GDELT translingual archive | 2015-02-18 onward; 390,440 files, 4.19 TB | `gdelt_measurement_diagnosis.md` |
 | BigQuery table | `gkg_partitioned`, 1.83 bn rows, 21.8 TB, day-partitioned | `gate1_gate2_results.md` §4 |
 | Perception-index coverage | **2015-02-18 → 2026-05-20, 4,027 days, 98% of calendar**; ~3× the reviewed version on matched units (2,837 trading days vs 931, or 4,027 calendar days vs 1,370). **Do not write "4.4×"** — that divides calendar days by trading days | ingest logs |
-| Ingested for Gates 1–2 | 1,605 days (episode windows ±75d), 182 GB | `gate1_gate2_results.md` §4 |
+| In-sample corpus (Gates 1-2, 4, Ch7) | 3,073 days, 2015-02-18 -> 2026-05-20 | ingest logs |
+| Held-out block (Gate 5 only) | 954 days, never used in-sample | ingest logs |
+| Gate 3 threat/act | 1,605 days — Themes column costs 4x Locations | `gate3_results.md` |
 | Equity spine | 2015-02-18 → 2026-06-29, 2,837 trading days, 19 tickers | `data_sources.md` |
 | Regimes | pre_war 1,678 / buildup 79 / invasion 149 / attrition 931 | spine build log |
 | Bloomberg | WAERLST, BSHIELDT, 2020-01 → 2026-06, 1,698 days | `bloomberg.py` |
@@ -132,7 +134,7 @@ BH across the grid:
 
 | test | specs | nominal 5% | survive BH |
 |---|---|---|---|
-| Gate 2 — attention + tone | 31 | 8 | 2 (one thin window) |
+| Gate 2 — attention + tone | 31 | 8 | 3 (all in one thin window) |
 | Gate 2 — news lagged | 31 | 6 | **0** |
 | Gate 3 — threat/act, primary | 31 | 9 | 2 |
 | Gate 3 — threat/act, same-day | 31 | 6 | **0** |
@@ -151,19 +153,19 @@ binomial p=0.194.** US targets replicate, the European target inverts.
 50 specifications, expanding-window one-day-ahead, Campbell–Thompson R²_OS with
 Clark–West (nested, so DM is invalid):
 
-- best R²_OS **+0.0045**; 7 of 50 positive
+- best R²_OS **+0.0011**; 3 of 50 positive
 - Clark–West p<0.05: **0**, against 2.5 expected by chance
 - surviving BH: 0
 
-**The power statement**, simulated on 848 out-of-sample days:
+**The power statement**, simulated on 1,855 out-of-sample days:
 
 | true R²_OS | 0.0% | 0.2% | 0.5% | 1.0% | 2.0% | 4.0% |
 |---|---|---|---|---|---|---|
-| rejection rate | 0.02 | 0.23 | 0.56 | **0.81** | 0.98 | 1.00 |
+| rejection rate | 0.02 | 0.43 | **0.82** | 0.98 | 1.00 | 1.00 |
 
-So: **1.0% detectable at 80% power, 0.5% at 56%**, size at zero effect 0.02.
-The claim is bounded — predictability at the upper end of what this literature
-reports is ruled out; at the lower end it is not.
+So: **0.5% detectable at 82% power, 0.2% at 43%**, size at zero effect 0.02.
+The claim is bounded — predictability across most of the range this literature
+reports is ruled out; only the region below it is not.
 
 ### Ch. 8 — Robustness, and three corrections that killed a positive
 This chapter is a contribution, not an appendix. Three times a plausible positive

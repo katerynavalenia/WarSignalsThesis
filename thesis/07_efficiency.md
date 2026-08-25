@@ -97,14 +97,14 @@ Nothing forecasts.
 | quantity | value |
 |---|---|
 | specifications | 50 |
-| positive R²_OS | 7 |
-| best R²_OS | **+0.0045** |
+| positive R²_OS | 3 |
+| best R²_OS | **+0.0011** |
 | Clark–West p < 0.05 | **0** (2.5 expected by chance) |
 | surviving Benjamini–Hochberg at 5% FDR | **0** |
 
 Three features of that table are worth stating explicitly. The best out-of-sample
-R² across the whole grid is **0.45%**, and it is not significant. Only seven of
-fifty specifications improve on the historical mean at all; the other forty-three
+R² across the whole grid is **0.11%**, and it is not significant. Only three of
+fifty specifications improve on the historical mean at all; the other forty-seven
 forecast worse than a constant, which is the expected consequence of adding a
 noisy regressor to an already hard-to-beat benchmark. And the count of nominal
 Clark–West rejections is not merely small — it is **zero, against the 2.5 that
@@ -122,29 +122,37 @@ established by simulation on the actual return series instead. A predictor is
 implanted that explains a known fraction of return variance; returns are
 regenerated from it; the identical expanding-window machinery is run; and
 rejections at the 5% level are counted. The exercise uses the longest target,
-**848 out-of-sample days**.
+**1,855 out-of-sample days**.
 
 | true R²_OS | 0.0% | 0.2% | 0.5% | 1.0% | 2.0% | 4.0% |
 |---|---|---|---|---|---|---|
-| rejection rate | 0.02 | 0.23 | 0.56 | **0.81** | 0.98 | 1.00 |
+| rejection rate | 0.02 | 0.43 | **0.82** | 0.98 | 1.00 | 1.00 |
 
 Read the first column first. At a true effect of exactly zero the test rejects 2%
 of the time against a nominal 5%, so it is conservative rather than liberal — the
 zero rejections in Section 7.3 are not the artefact of a test that manufactures
-significance. Reading across: an effect of **1.0% is detectable at 80% power**, an
-effect of **0.5% at 56%**, and anything at 2% or above is found essentially every
+significance. Reading across: an effect of **0.5% is detectable at 82% power**, an
+effect of **0.2% at 43%**, and anything at 2% or above is found essentially every
 time.
 
 That converts the null from an observation into a bound. The range of
 out-of-sample R² this literature reports and treats as economically meaningful
-runs from roughly half a percent to one percent. **The upper end of that range
-is ruled out**: had local perception forecast defence returns as strongly as the
-better published predictors forecast equity returns, this design would have found
-it four times in five, and it found it zero times in fifty. **The lower end is
-not ruled out.** At 0.5% the test succeeds barely more often than a coin, and the
-best observed value, 0.45%, sits below even that. A true effect of a few tenths
-of a percent is consistent with everything reported here, and this sample cannot
-separate it from zero.
+runs from roughly half a percent to one percent. **That range is ruled out.** Had
+local perception forecast defence returns as strongly as the better published
+predictors forecast equity returns, this design would have found it between four
+and five times in five, and it found it zero times in fifty.
+
+**What is not ruled out is the region below the literature's range.** At a true
+effect of 0.2% the test succeeds a little over two times in five, so an effect of
+a couple of tenths of a percent remains consistent with everything reported here.
+The best observed value, 0.11%, sits below even that and is not significant.
+
+The distinction matters and it moved with the sample. On the shorter corpus this
+project first analysed, the 80%-power threshold sat at 1.0% and only the top of
+the literature's range could be excluded. Extending the out-of-sample window to
+1,855 days moved the threshold to 0.5% and brought most of the range inside it.
+More data did not rescue the result; it sharpened the statement of what the
+result rules out, which is the more useful thing for a null to do.
 
 Stating both halves is the point. The claim the thesis makes is bounded rather
 than absolute, and the bound is quantified rather than gestured at.

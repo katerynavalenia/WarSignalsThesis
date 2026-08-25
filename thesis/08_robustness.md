@@ -249,10 +249,10 @@ outlet panel, the genuinely unseen window — are cheap and were not obviously
 necessary in advance. And it is why the thesis's null should be believed: it was
 not obtained by failing to look. Positive controls pass throughout, with the
 Western block detected where the local block is flatly absent, and Chapter 7's
-power calculation bounds what could have been missed. An out-of-sample R² of 1.0%
-would have been detected with 80% probability and 0.5% with 56%; the best figure
-observed anywhere in the fifty forecasting specifications is 0.45%. Predictability
-at the upper end of what this literature reports is ruled out; at the lower end it
+power calculation bounds what could have been missed. An out-of-sample R² of 0.5%
+would have been detected with 82% probability and 0.2% with 43%; the best figure
+observed anywhere in the fifty forecasting specifications is 0.11%. Predictability
+across most of the range this literature reports is ruled out; only the region below it
 is not, and this chapter is why that distinction is drawn carefully.
 
 ## 8.7 Limitations

@@ -51,13 +51,27 @@ GDELT's own archive rather than a filtering choice. On matched units that is
 about three times the sample the supervisor reviewed: 2,837 trading days against
 931, or 4,027 calendar days against 1,370.
 
-**What each test ran on.** Gates 1 to 3 were estimated on **1,605 days**, drawn
-as ±75-day windows around the six anticipation episodes of Chapter 5, at a cost
-of 182 GB scanned and inside BigQuery's free tier. The full 4,151-day calendar
-was available; the episode-window restriction was a cost decision taken in
-advance, and it is reported as a limitation in Chapter 8 rather than presented as
-the whole archive. Gates 4 and 5 then drew their own continuous ingests — 944
-days of gas-crisis coverage and 954 days for the escalation test — each collected
+**What each test ran on.** The perception indices cover **4,027 days**, split
+deliberately into **3,073 in-sample days** and a **954-day held-out block** that
+no in-sample estimate touches. Every test uses the whole of what is available to
+it:
+
+| test | days available to it | note |
+|---|---|---|
+| Gates 1–2 | 3,073 in-sample | ~2,104 trading-day observations pooled |
+| Gate 3 | 1,605 | see below |
+| Gate 4 | continuous 2021-06 → 2023-12 | the gas crisis, ingested continuously |
+| Gate 5 | 954 held out | never used in-sample; 651 usable after lags |
+| Chapter 7 | 1,855 out-of-sample days | after a 250-day initial training window |
+
+**Gate 3 is the one exception, and the reason is cost rather than choice.** The
+threat/act split reads GDELT's `Themes` field, which is roughly four times more
+expensive to scan than the `Locations` field the other tests use — 0.88 TB
+against 0.24 TB across the full archive. It was therefore ingested only for the
+episode windows, 1,605 days. That is a real limitation of Gate 3 specifically and
+is recorded as one in Chapter 8; it does not affect any other result. Gates 4
+and 5 drew their own continuous ingests — 944 days of gas-crisis coverage and 954
+days for the escalation test — each collected
 *after* its pre-registration was written. Between those and subsequent fill
 collection, cumulative coverage ultimately reached the 4,027 days reported above.
 A test's sample is the sample it ran on, and the gate results report theirs.
@@ -203,7 +217,7 @@ ecosystem-level result on a single time-series sample.
 
 The sample's size is what turns the null results of Chapter 7 into findings
 rather than silences. Simulated on the out-of-sample evaluation window, a true
-out-of-sample R² of **1.0% is detectable at 80% power and 0.5% at 56%**, against
-a best observed value of **0.45%**. Predictability at the upper end of what this
-literature reports is ruled out by this sample; at the lower end it is not, and
+out-of-sample R² of **0.5% is detectable at 82% power and 0.2% at 43%**, against
+a best observed value of **0.11%**. Predictability across most of the range this
+literature reports is ruled out by this sample; only the region below it is not, and
 Chapter 7 states the bound rather than claiming more than it can.

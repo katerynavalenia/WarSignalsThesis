@@ -50,13 +50,14 @@ conflict-attention share and its mean conflict tone, both in daily changes.
 
 | specification | specs | nominal 5% | survive BH |
 |---|---|---|---|
-| same-day alignment | 31 | 8 | 2 |
-| **news lagged one day (primary)** | **31** | **6** | **0** |
+| same-day alignment | 31 | 8 | 3 |
+| **news lagged one day (primary)** | **31** | **7** | **0** |
 
 Eight nominal rejections against 1.6 expected by chance looks, at first glance,
-like something. It is not. Both BH survivors fall in the *same* window at the
-*same* frequency — the 2025–26 episode, weekly, sixty observations supporting
-thirteen parameters — and dropping tone to halve the parameter count leaves one.
+like something. It is not. All three BH survivors are **weekly**, and two of the
+three fall in the *same* window — the 2025–26 episode, sixty observations
+supporting thirteen parameters — with the third resting on 438. Dropping tone to
+halve the parameter count thins them further.
 A result that lives in one thin corner of a grid, and thins further when the
 corner is de-crowded, is a result about the corner.
 
@@ -197,7 +198,7 @@ of the tests. The design detects the Western block at p = 0.0028 in the equity
 grid, at p = 0.001 in the gas window, and at p = 0.006 in the escalation test, in
 the same cells where the local block is flat. Chapter 7 supplies the
 complementary bound from the other direction: an out-of-sample R²_OS of 1.0% is
-detectable at 80% power and 0.5% at 56%, against a best observed value of 0.45%.
+detectable at 82% power and 0.2% at 43%, against a best observed value of 0.11%.
 These are nulls with the reach to have been positives.
 
 Their direction is worth stating rather than apologising for. Bondarenko et al.
