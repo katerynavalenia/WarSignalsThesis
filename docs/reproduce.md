@@ -167,17 +167,38 @@ with a planted coefficient.
 
 ## 4. Building the document
 
+There are two documents in this repository, and they are not alternatives: the
+LaTeX manuscript is what gets submitted, and the markdown chapters are the long
+working record behind it.
+
+**The submitted manuscript.** `thesis/latex/main.tex`, built with:
+
+```bash
+python scripts/plot_thesis_figures.py   # regenerate the five figures first
+cd thesis/latex && ./build.sh           # -> Master_Thesis_3.pdf
+```
+
+`build.sh` tries `tectonic`, `latexmk` and `pdflatex` in that order and checks
+the output for unresolved citations rather than trusting a silent exit code.
+Verified with tectonic 0.15.0: **30 pages, 7 tables, 5 figures, every citation
+resolved**. The figures must be built first — they live in `outputs/figures/`
+rather than beside the `.tex`, and the manuscript reads them from there.
+
+`thesis/latex/changes-from-original.diff` records this manuscript against the
+version it was edited from, so the comparison needs no tooling.
+
+**The working chapters.** `thesis/*.md`, built with pandoc:
+
 ```bash
 cd thesis
 ./build.sh tex        # thesis.tex, for Overleaf
 ./build.sh pdf        # thesis.pdf, needs a local LaTeX engine
 ```
 
-`tex` and `docx` are **verified** with pandoc 3.1.11: they build clean from the
+`tex` and `docx` are verified with pandoc 3.1.11: they build clean from the
 chapters, and the tex output carries 9 chapters, 3 figures, 54 tables and all 16
 bibliography entries. `pdf` is the one target still unverified, because it needs
-a LaTeX engine and none is installed on the machine the thesis was written on —
-build `tex` and upload to Overleaf if you do not have one either.
+a LaTeX engine and none is installed on the machine the thesis was written on.
 
 ## What each analysis writes
 
@@ -207,6 +228,8 @@ build `tex` and upload to Overleaf if you do not have one either.
 | `run_horse_race.py` | `outputs/tables/horse_race.csv` |
 | `run_volatility_race.py` | `outputs/tables/volatility_race.csv` |
 | `diagnose_v1_weekend.py` | `outputs/tables/v1_weekend_diagnostic.csv` |
+| `run_horse_race.py` (Table 7 view) | `outputs/tables/horse_race_baseline_vs_extended.csv` |
+| `plot_thesis_figures.py` | `outputs/figures/fig1_defense_indices.png`, `fig2_attacks_news.png`, `fig3_return_mae_infosets.png`, `fig10_master_coverage.png`, `fig11_target_distribution.png` |
 
 ## What reproduces, and what deliberately does not
 
@@ -269,6 +292,7 @@ ought to register.
 python scripts/run_horse_race.py         # F/P/N/PN/PNG on returns
 python scripts/run_volatility_race.py    # GARCH family + HAR-RV-X on variance
 python scripts/diagnose_v1_weekend.py    # what the v1 weekend grid costs
+python scripts/plot_thesis_figures.py    # the five manuscript figures
 ```
 
 `run_volatility_race.py` fits GARCH(1,1), GJR-GARCH and EGARCH as benchmarks and
