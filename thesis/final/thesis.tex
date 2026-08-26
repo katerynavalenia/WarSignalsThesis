@@ -171,7 +171,7 @@ The choice of test statistic for that exercise follows from the structure of the
 \label{sec:descriptive}
 %==============================================================
 
-The descriptive evidence establishes two things before any regression is run: that the local and Western media ecosystems are not measuring the same thing, and that the one series which moved most sharply at the invasion belongs to the ecosystem that turns out not to be priced. Table~\ref{tab:vardefs} defines every variable used in the analysis and Table~\ref{tab:descriptive} reports its distribution; Table~\ref{tab:correlations} reports how the series co-move; Figures~\ref{fig:prices}--\ref{fig:tone} plot the outcome and the regressors over the full sample; and Table~\ref{tab:invasion_tone} isolates each ecosystem's tone response to the invasion, the event with the greatest identifying power in the sample.
+The descriptive evidence establishes two things before any regression is run: that the local and Western media ecosystems are not measuring the same thing, and that the one series which moved most sharply at the invasion belongs to the ecosystem that turns out not to be priced. Table~\ref{tab:vardefs} defines every variable used in the analysis and Table~\ref{tab:descriptive} reports its distribution; Table~\ref{tab:correlations}, in the appendix, reports how the series co-move; Figures~\ref{fig:prices}--\ref{fig:tone} plot the outcome and the regressors over the full sample; and Table~\ref{tab:invasion_tone} isolates each ecosystem's tone response to the invasion, the event with the greatest identifying power in the sample.
 
 Two features of Table~\ref{tab:descriptive} carry most of the descriptive argument. The first is in Panel B: Ukrainian, Russian state and Russian independent outlets devote 71--85\% of their output to this conflict on an average day, against 7.2\% for Western outlets and 5.4\% for native-English ones. That is an order-of-magnitude difference in editorial attention, sustained across eleven years, and it is the sense in which the local ecosystems are ``closer'' to the war. The local series are also far less variable \textit{relative to} those means: Ukrainian attention has a standard deviation of 5.0 percentage points on a mean of 81.0, a coefficient of variation of 0.06, against 0.63 for Western attention. An outlet already devoting four-fifths of its output to a subject has little room left to escalate, which is the mechanical reason the local levels move so little in proportional terms.
 
@@ -271,41 +271,6 @@ Mean daily interception rate & 0.735 & 0.211 & 0.000 & 1.000 & 809 \\
 \end{threeparttable}
 \end{table}
 
-\begin{table}[htbp]
-\centering
-\caption{Correlations between media ecosystems and defence-equity returns (daily first differences)}
-\label{tab:correlations}
-\begin{threeparttable}
-\compactx
-\begin{tabular}{lrrrrrcrr}
-\toprule
- & \multicolumn{5}{c}{Between media ecosystems} & & \multicolumn{2}{c}{With defence returns} \\
-\cmidrule(lr){2-6}\cmidrule(lr){8-9}
- & UA & RU\_ST & RU\_IN & WEST & EN\_GL & & WAERLST & BSHIELDT \\
-\midrule
-\multicolumn{9}{l}{\textit{Panel A: change in conflict attention share}} \\
-Ukrainian (UA) & 1.00 & & & & & & $-0.01$ & 0.01 \\
-Russian state (RU\_ST) & 0.47 & 1.00 & & & & & 0.02 & 0.02 \\
-Russian independent (RU\_IN) & 0.05 & 0.13 & 1.00 & & & & $-0.03$ & $-0.02$ \\
-Western (WEST) & 0.13 & 0.16 & 0.15 & 1.00 & & & $-0.03$ & $-0.03$ \\
-Native-English (EN\_GL) & 0.02 & 0.06 & 0.09 & \textbf{0.60} & 1.00 & & $-0.00$ & $-0.04$ \\
-\addlinespace
-\multicolumn{9}{l}{\textit{Panel B: change in conflict tone}} \\
-Ukrainian (UA) & 1.00 & & & & & & $-0.00$ & $-0.02$ \\
-Russian state (RU\_ST) & 0.39 & 1.00 & & & & & 0.03 & 0.05 \\
-Russian independent (RU\_IN) & 0.35 & \textbf{0.57} & 1.00 & & & & 0.03 & 0.04 \\
-Western (WEST) & 0.36 & 0.35 & 0.33 & 1.00 & & & 0.02 & $-0.01$ \\
-Native-English (EN\_GL) & 0.26 & 0.28 & 0.28 & \textbf{0.58} & 1.00 & & 0.02 & 0.01 \\
-\bottomrule
-\end{tabular}
-\begin{tablenotes}
-\small
-\item Notes: Pearson correlations of daily first differences, the transform used in every regression in this thesis. Correlations are computed pairwise: the media-versus-media block uses the 3,072 estimation-sample days on which all five ecosystem series and a lagged value are available, while the two right-hand columns are restricted to the days on which the relevant Bloomberg index also trades (936 for WAERLST, 921 for BSHIELDT). WAERLST is the Bloomberg World Aerospace \& Defense Total Return Index, BSHIELDT the Bloomberg Europe Defense Select Total Return Index. Only the lower triangle is shown; the matrix is symmetric.
-\item Two patterns matter for what follows. First, the ecosystems are distinct populations rather than one signal measured five times. The largest off-diagonal correlation anywhere in the table is 0.60, between Western and native-English attention --- two ecosystems that overlap by construction, since many global English-language outlets are also Western. Ukrainian and native-English attention correlate at 0.02. Series built from an English-only stream and sorted by article topic are near-duplicates of one another; the publisher-based series are not, which is what makes a conditional test between them meaningful.
-\item Second, no ecosystem is strongly correlated with defence returns unconditionally. Every entry in the two right-hand columns lies between $-0.04$ and $0.05$. This is a necessary but not sufficient condition for the null reported in Section~\ref{sec:findings}: an unconditional correlation of this size could still mask a conditional effect, which is why the tests that follow condition on the Western block and the market control rather than reading the answer off this table.
-\end{tablenotes}
-\end{threeparttable}
-\end{table}
 
 Figure~\ref{fig:prices} plots the outcome variable, and shows that the war repriced defence equities in two distinct steps rather than one. The first step is the invasion itself: in the five weeks from 24 February 2022 the European index gains 21.6\%, against 7.0\% globally and 9.1\% in the United States. The second, and much larger, step comes three years later, when European governments announced rearmament programmes: the European index gains 63.7\% in the first half of 2025 alone and ends the sample at roughly 2.5 times its January 2020 level, while the global and U.S.\ indices end near 1.9 times. Two features of this figure matter for what follows. The European index is the one that responds to the conflict, which is why the regional market control in Section~\ref{sec:identification} is a European rather than a U.S.\ index. And the largest single move in the sample is driven by European fiscal announcements rather than by battlefield news, which is a reason to test war-news predictability against a market control rather than in isolation.
 
@@ -371,7 +336,62 @@ Russian independent (RU\_INDEP) & $-2.09$ & $-2.01$ & $+0.09$ \\
 \subsection{Gates 2 and 3: local perception and defence-equity returns}
 \label{sec:gate3}
 
-Local media add nothing to defence-equity returns that Western media do not already carry, in either of the two forms the question can be asked. Table~\ref{tab:gates23} reports both. Gate 2 asks it of raw coverage volume and tone. Gate 3 asks it of structure, testing the local split between anticipated and realised conflict, which media in a country at war record very differently from media in a country watching one. Gate 2 is exploratory. Gate 3 is pre-registered, with its pass rule, its excluded targets and its sign condition fixed in a committed document before the test was estimated --- a distinction that matters here, because Gate 3 initially cleared that rule on the data available at the time and failed it once the held-out window was added.
+Before the grid of tests, Table~\ref{tab:regression} reports the estimated specification itself, so that the size of the associations at issue is on the page rather than implied by a $p$-value. Column (1) contains only the market control and lagged volatility; column (2) adds the Western block; column (3) adds the local block with news credited to the day it was published; and column (4) is the same full model with the news lagged by one trading day, the only alignment at which it could have been traded. Regressors are standardised, so a coefficient is the percentage-point change in the daily BSHIELDT return associated with a one-standard-deviation move in that series.
+
+\begin{table}[htbp]
+\centering
+\caption{The main specification, estimated}
+\label{tab:regression}
+\begin{threeparttable}
+\compact
+\begin{tabular}{lrrrr}
+\toprule
+ & (1) & (2) & (3) & (4) \\
+ & Controls & $+$ Western & $+$ local, & $+$ local, \\
+ & only & block & same-day & lagged 1 day \\
+\midrule
+$\Delta$ Ukrainian attention & & & 0.009 & $-0.011$ \\
+ & & & (0.045) & (0.044) \\
+$\Delta$ Russian state attention & & & $-0.001$ & $-0.001$ \\
+ & & & (0.061) & (0.061) \\
+$\Delta$ Russian indep.\ attention & & & $-0.125^{***}$ & 0.010 \\
+ & & & (0.042) & (0.049) \\
+$\Delta$ Ukrainian tone & & & $-0.073^{*}$ & $-0.038$ \\
+ & & & (0.043) & (0.036) \\
+$\Delta$ Russian state tone & & & $0.127^{**}$ & $-0.055$ \\
+ & & & (0.054) & (0.053) \\
+$\Delta$ Russian indep.\ tone & & & 0.033 & $-0.017$ \\
+ & & & (0.059) & (0.052) \\
+\addlinespace
+$\Delta$ Western attention & & 0.040 & 0.025 & 0.053 \\
+ & & (0.043) & (0.060) & (0.045) \\
+$\Delta$ Native-English attention & & 0.032 & 0.010 & 0.030 \\
+ & & (0.071) & (0.063) & (0.071) \\
+$\Delta$ Western tone & & 0.012 & $-0.070$ & 0.052 \\
+ & & (0.046) & (0.056) & (0.053) \\
+$\Delta$ Native-English tone & & $-0.009$ & 0.034 & 0.003 \\
+ & & (0.052) & (0.054) & (0.053) \\
+\addlinespace
+STOXX 600 return & $0.925^{***}$ & $0.923^{***}$ & $0.927^{***}$ & $0.921^{***}$ \\
+ & (0.066) & (0.067) & (0.065) & (0.067) \\
+Log VIX (lagged) & 0.068 & 0.066 & 0.075 & 0.066 \\
+ & (0.051) & (0.050) & (0.049) & (0.049) \\
+\midrule
+Observations & 921 & 921 & 921 & 921 \\
+$R^2$ & 0.348 & 0.351 & 0.365 & 0.354 \\
+$p$, local block jointly zero & --- & --- & \textbf{0.003} & \textbf{0.734} \\
+$p$, Western block jointly zero & --- & 0.333 & 0.688 & 0.177 \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\small
+\item Notes: Dependent variable is the daily percentage return on BSHIELDT, the Bloomberg Europe Defense Select Total Return Index, over the 921 days on which it trades and all five news series exist. HAC(5) standard errors in parentheses. $^{*}$, $^{**}$ and $^{***}$ denote significance at 10\%, 5\% and 1\%. All news regressors are daily first differences, standardised to unit variance, so a coefficient of $-0.125$ means that a one-standard-deviation rise in the change in Russian independent attention accompanies a 0.125 percentage-point lower defence return that day. Produced by \texttt{scripts/make\_thesis\_regression.py}, which reuses the specification of the gate tests exactly.
+\item Columns (3) and (4) differ in one respect only --- whether coverage is credited to the day it was published or to the next trading day --- and that single change is what moves the local block from jointly significant at $p = 0.003$ to indistinguishable from zero at $p = 0.734$. The individual coefficients move with it: Russian independent attention goes from $-0.125$ to $0.010$, and Russian state tone from $0.127$ to $-0.055$. Note also how little any of this matters for fit. The market control alone explains 34.8\% of the variation in daily European defence returns; adding all ten news series raises that to 36.5\% at the untradeable alignment and 35.4\% at the tradeable one.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+Table~\ref{tab:gates23} then asks the same question across the full grid rather than in one cell. Gate 2 asks it of raw coverage volume and tone. Gate 3 asks it of structure, testing the local split between anticipated and realised conflict, which media in a country at war record very differently from media in a country watching one. Gate 2 is exploratory. Gate 3 is pre-registered, with its pass rule, its excluded targets and its sign condition fixed in a committed document before the test was estimated --- a distinction that matters here, because Gate 3 initially cleared that rule on the data available at the time and failed it once the held-out window was added.
 
 \begin{table}[H]
 \centering
@@ -538,5 +558,48 @@ The extension of greatest value would establish whether this result generalises.
 
 \newpage
 \bibliography{references}
+
+\newpage
+\appendix
+\section{Supplementary tables}
+
+The table below supports the descriptive section and is placed here rather
+than in the body to keep the number of exhibits in the paper itself to ten.
+
+\begin{table}[htbp]
+\centering
+\caption{Correlations between media ecosystems and defence-equity returns (daily first differences)}
+\label{tab:correlations}
+\begin{threeparttable}
+\compactx
+\begin{tabular}{lrrrrrcrr}
+\toprule
+ & \multicolumn{5}{c}{Between media ecosystems} & & \multicolumn{2}{c}{With defence returns} \\
+\cmidrule(lr){2-6}\cmidrule(lr){8-9}
+ & UA & RU\_ST & RU\_IN & WEST & EN\_GL & & WAERLST & BSHIELDT \\
+\midrule
+\multicolumn{9}{l}{\textit{Panel A: change in conflict attention share}} \\
+Ukrainian (UA) & 1.00 & & & & & & $-0.01$ & 0.01 \\
+Russian state (RU\_ST) & 0.47 & 1.00 & & & & & 0.02 & 0.02 \\
+Russian independent (RU\_IN) & 0.05 & 0.13 & 1.00 & & & & $-0.03$ & $-0.02$ \\
+Western (WEST) & 0.13 & 0.16 & 0.15 & 1.00 & & & $-0.03$ & $-0.03$ \\
+Native-English (EN\_GL) & 0.02 & 0.06 & 0.09 & \textbf{0.60} & 1.00 & & $-0.00$ & $-0.04$ \\
+\addlinespace
+\multicolumn{9}{l}{\textit{Panel B: change in conflict tone}} \\
+Ukrainian (UA) & 1.00 & & & & & & $-0.00$ & $-0.02$ \\
+Russian state (RU\_ST) & 0.39 & 1.00 & & & & & 0.03 & 0.05 \\
+Russian independent (RU\_IN) & 0.35 & \textbf{0.57} & 1.00 & & & & 0.03 & 0.04 \\
+Western (WEST) & 0.36 & 0.35 & 0.33 & 1.00 & & & 0.02 & $-0.01$ \\
+Native-English (EN\_GL) & 0.26 & 0.28 & 0.28 & \textbf{0.58} & 1.00 & & 0.02 & 0.01 \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\small
+\item Notes: Pearson correlations of daily first differences, the transform used in every regression in this thesis. Correlations are computed pairwise: the media-versus-media block uses the 3,072 estimation-sample days on which all five ecosystem series and a lagged value are available, while the two right-hand columns are restricted to the days on which the relevant Bloomberg index also trades (936 for WAERLST, 921 for BSHIELDT). WAERLST is the Bloomberg World Aerospace \& Defense Total Return Index, BSHIELDT the Bloomberg Europe Defense Select Total Return Index. Only the lower triangle is shown; the matrix is symmetric.
+\item Two patterns matter for what follows. First, the ecosystems are distinct populations rather than one signal measured five times. The largest off-diagonal correlation anywhere in the table is 0.60, between Western and native-English attention --- two ecosystems that overlap by construction, since many global English-language outlets are also Western. Ukrainian and native-English attention correlate at 0.02. Series built from an English-only stream and sorted by article topic are near-duplicates of one another; the publisher-based series are not, which is what makes a conditional test between them meaningful.
+\item Second, no ecosystem is strongly correlated with defence returns unconditionally. Every entry in the two right-hand columns lies between $-0.04$ and $0.05$. This is a necessary but not sufficient condition for the null reported in Section~\ref{sec:findings}: an unconditional correlation of this size could still mask a conditional effect, which is why the tests that follow condition on the Western block and the market control rather than reading the answer off this table.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
 
 \end{document}
