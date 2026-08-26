@@ -10,14 +10,15 @@ The directory is self-contained — `thesis.tex`, `references.bib` and
 `figures/` are everything the document needs. It can be zipped and uploaded to
 Overleaf as-is, with `thesis.tex` set as the main file.
 
-Verified build: **33 pages, 7 tables, 3 figures, no overfull boxes, and no
+Verified build: **34 pages, 7 tables, 3 figures, no overfull boxes, and no
 unresolved citations or cross-references**, with tectonic 0.17. `build.sh`
 also tries `latexmk` and `pdflatex`, and warns if any `[?]` marker survives
 into the PDF.
 
-Section balance against the brief: Introduction pp. 4–6, Data and
-Identification pp. 7–11, Descriptive Statistics pp. 12–19, Empirical Findings
-pp. 20–29, Conclusion pp. 30–31, References pp. 32–33.
+Section balance against the brief: Introduction pp. 4–7 (the brief asks for
+about four), Data and Identification pp. 8–11, Descriptive Statistics
+pp. 12–19, Empirical Findings pp. 20–30, Conclusion pp. 31–32, References
+pp. 33–34.
 
 ## What supersedes what
 
@@ -60,8 +61,14 @@ register in any further edit: no first person, no address to the reader, and
 no narration of how the document came to be.
 
 The one deliberate exception is the pre-registration ordering, which the text
-does cite as verifiable from version history. That is a methodological claim
-about when each test was fixed relative to its data, and it is load-bearing.
+cites as verifiable. That is a methodological claim about when each test was
+fixed relative to its data, and it is load-bearing. Note that **Gates 3, 4 and
+5 are pre-registered and Gate 2 is not** — do not let an edit blur that, since
+the paper invites the reader to check it.
+
+Two further conventions worth preserving: paragraphs open with an unbolded
+topic sentence (bold is reserved for defined terms and for key figures inside
+tables), and p-values below 0.001 are given in scientific notation.
 
 ## The rule that applies here too
 
