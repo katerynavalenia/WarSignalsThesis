@@ -593,9 +593,11 @@ The results refine rather than contradict the defence-equity literature, and the
 
 The finding that continuous news measures do not predict returns is, if anything, the established position rather than a departure from it. \citet{apergis2018defense} reach the same conclusion for returns on 24 defence firms using the published geopolitical-risk index and a nonparametric design far removed from the one used here. Where their result and this one appear to diverge is on volatility: they find geopolitical risk predicting the volatility of about half their firms, whereas Section~\ref{sec:robustness} reports that war variables fail to improve on HAR and GARCH benchmarks. The two are compatible, because the questions differ. Theirs is whether geopolitical risk carries in-sample information about volatility; the one asked here is whether war-specific news adds \textit{out-of-sample} forecasting accuracy to volatility models that already exploit the persistence of realised variance. A variable can satisfy the first and fail the second, and conflict news evidently does.
 
-The physical record of the war does not forecast defence-equity returns either, which closes off the reading that the news measures are simply a poor proxy for the war itself. On the September 2022 -- June 2026 subsample where the Ukrainian Air Force attack data exist, 144 specifications compare five information sets --- physical attacks alone, news alone, and their combinations --- against historical-mean and AR(1) benchmarks, with ridge and gradient-boosted fits of each set, across three targets, two horizons and two samples. Sixteen achieve a positive out-of-sample R$^2$ and none survives Benjamini--Hochberg correction; the benchmarks outperform in the majority of cells. Realised physical intensity is no more informative about subsequent defence-equity returns than perceived intensity is, which indicates that the null documented above reflects the pricing relationship rather than a deficiency of the news measures as proxies for the conflict.
+The physical record of the war does not forecast defence-equity returns either, which closes off the reading that the news measures are simply a poor proxy for the war itself. The design is an expanding-window forecasting race on the September 2022 -- June 2026 subsample where the Ukrainian Air Force attack data exist. Five information sets are compared: financial controls alone (F), those plus physical attack variables (P), plus news variables (N), both (PN), and both plus the pairwise tone gaps between ecosystems (PNG). Each is fitted by ridge regression and by gradient boosting, and each is scored against a historical-mean and an AR(1) benchmark, over three targets, two horizons and two samples --- twelve cells carrying twelve fitted models each, or 144 specifications. Sixteen achieve a positive out-of-sample R$^2$ and none survives Benjamini--Hochberg correction. Table~\ref{tab:horserace} in the appendix reports the counts by information set: adding physical attack data to the financial controls raises the number of cells with positive R$^2_{\text{OS}}$ from one to four, and none of those four is significant. Realised physical intensity is therefore no more informative about subsequent defence-equity returns than perceived intensity is.
 
-War signals do not forecast defence-equity volatility either, which is the specification in which a positive result was most plausible. Returns are close to unforecastable in efficient markets, whereas volatility is persistent and routinely forecastable, so conflict information that carries no signal for the conditional mean might still carry one for the conditional variance. Forty-eight augmented HAR-RV-X specifications \citep{corsi2009} are evaluated against GARCH, GJR-GARCH and EGARCH benchmarks under the QLIKE loss. None improves significantly on its benchmark; eight are nominally significantly worse, and all six that survive multiple-testing correction are deteriorations. Both exercises reported in this subsection are exploratory rather than pre-registered, and are identified as such.
+The volatility exercise points the same way but is the weakest evidence in this thesis, and the reason is the volatility measure. Returns are close to unforecastable in efficient markets whereas volatility is persistent, so conflict information carrying no signal for the conditional mean might still carry one for the conditional variance, which makes this the specification where a positive result was most plausible. \textbf{Realised variance here is the sum of squared daily returns over the forecast horizon, dated at the start of that window, because intraday prices were not available for these indices.} That is a far noisier proxy than the intraday realised variance for which the HAR model was designed \citep{corsi2009}, and the cost is visible: the plain HAR-RV benchmark attains a mean QLIKE of 1.93 against 0.95 for GARCH, 0.96 for GJR-GARCH and 0.98 for EGARCH, so on this proxy the HAR family is roughly twice as inaccurate as the GARCH family it is normally competitive with.
+
+Within that limitation the result is clean, and it is reported as a limited one. Forty-eight augmented HAR-RV-X specifications --- log realised variance on its own one-, five- and twenty-two-day lags, plus one of the four war blocks, estimated by ridge on an expanding window --- are compared against the HAR-RV benchmark they nest, under QLIKE. None improves significantly on it, eight are nominally significantly worse, and the six that survive multiple-testing correction are all deteriorations; Table~\ref{tab:volrace} in the appendix gives the breakdown. Augmenting a volatility model with war variables degrades its accuracy on this measure rather than improving it. What cannot be concluded is that conflict news carries no information about defence-equity volatility, because a test built on squared daily returns has limited power to detect it. Both exercises in this subsection are exploratory rather than pre-registered.
 
 Six specifications in this setting yield significance under defensible initial choices and lose it under stricter ones, and the six mechanisms are distinct. Two fail on an omitted variable: a defence-volatility result and a build-up threat result, each estimated with the S\&P 500 as the market control for European defence equities, and each disappearing when the STOXX 600 replaces it, the second moving from $p = 0.0001$ to $p = 0.84$. One fails on sample truncation: the Gate 3 grid clears its pre-registered rule on a partial sample and fails once the held-out window is included, seven surviving cells becoming two. One fails on replication with more data: the gas specification, $p = 0.0028$ on 81 days and $p = 0.399$ on 222 days of the same calendar period. One fails out of sample: an escalation result significant in both halves of the in-sample period and $p = 0.21$ on held-out data. One fails on corpus composition: the state-versus-independent tone difference, which depends on outlets that the ownership rule of Section~\ref{sec:data}, correctly applied, places outside the Russian independent block; each such reassignment moves the difference \textit{further} from significance, and on the register as specified it stands at $p = 0.561$.
 
@@ -627,8 +629,10 @@ The extension of greatest value would establish whether this result generalises.
 \appendix
 \section{Appendix}
 
-The table below supports the descriptive section and is placed here rather than
-in the body to keep the number of exhibits in the paper itself to ten.
+The tables below support the descriptive section and the two exploratory
+forecasting exercises of Section~\ref{sec:robustness}, and are placed here
+rather than in the body to keep the number of exhibits in the paper itself
+to ten.
 
 \begin{table}[htbp]
 \centering
@@ -664,6 +668,62 @@ throughout. Correlations are pairwise: the media block uses the 3,072
 estimation-sample days with a lagged value available, the two right-hand columns
 the days on which the relevant Bloomberg index also trades (936 for WAERLST, 921
 for BSHIELDT). Only the lower triangle is shown; the matrix is symmetric.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Return forecasting race by information set}
+\label{tab:horserace}
+\begin{threeparttable}
+\compact
+\begin{tabular}{llrrrr}
+\toprule
+Set & Contents & Specs & $R^2_{\text{OS}}>0$ & Best $R^2_{\text{OS}}$ & BH surv. \\
+\midrule
+F   & Financial controls only             & 24 & 1 & 0.019 & 0 \\
+P   & F $+$ physical attack variables     & 24 & 4 & 0.073 & 0 \\
+N   & F $+$ news variables                & 24 & 1 & 0.033 & 0 \\
+PN  & F $+$ physical $+$ news             & 24 & 3 & 0.060 & 0 \\
+PNG & PN $+$ pairwise ecosystem tone gaps & 24 & 4 & 0.059 & 0 \\
+\addlinespace
+\multicolumn{2}{l}{\textit{Benchmarks}} & & & & \\
+    & Historical mean                     & 12 & 0 & 0.000 & --- \\
+    & AR(1)                               & 12 & 1 & 0.009 & --- \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\footnotesize
+\item Notes: Expanding-window one-step-ahead forecasts of daily returns on WAERLST, BSHIELDT and ITA, at horizons of one and five days, on the full sample and on the September 2022 -- June 2026 attack subsample. Each information set is fitted by ridge regression and by gradient boosting, giving 24 specifications per set across the twelve target--horizon--sample cells and 144 rows in total with the benchmarks. $R^2_{\text{OS}}$ is measured against the historical mean, and Benjamini--Hochberg correction is applied to the Clark--West $p$-values across the grid. Exploratory, not pre-registered.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Volatility forecasting race, augmented HAR-RV-X against HAR-RV}
+\label{tab:volrace}
+\begin{threeparttable}
+\compact
+\begin{tabular}{lrrrrr}
+\toprule
+Model & Specs & Mean QLIKE & Sig. & Sig. & BH \\
+      &       & gain (\%)  & better & worse & surv. \\
+\midrule
+HAR-RV-X (N)   & 12 & $-4.4$  & 0 & 1 & 0 \\
+HAR-RV-X (P)   & 12 & $-65.0$ & 0 & 2 & 2 \\
+HAR-RV-X (PN)  & 12 & $-62.6$ & 0 & 2 & 2 \\
+HAR-RV-X (PNG) & 12 & $-64.8$ & 0 & 3 & 2 \\
+\midrule
+\multicolumn{6}{l}{\textit{Mean QLIKE by model class, lower is better}} \\
+\multicolumn{6}{l}{GARCH 0.95 \quad GJR-GARCH 0.96 \quad EGARCH 0.98 \quad \textbf{HAR-RV 1.93}} \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\footnotesize
+\item Notes: Realised variance is the sum of squared daily returns over the forecast horizon, dated at the start of that window; intraday prices were not available for these indices. HAR-RV regresses log realised variance on its own one-, five- and twenty-two-day lags, estimated by ridge on an expanding window and exponentiated back; HAR-RV-X adds one war block (P, N, PN or PNG). Models are evaluated over the same twelve cells as Table~\ref{tab:horserace}. Gains are relative to HAR-RV, which the augmented models nest; significance is at 5\% before correction, and ``BH surv.'' counts cells surviving Benjamini--Hochberg.
+\item \textbf{The final row is the limitation, not an aside.} On a squared-daily-return proxy the HAR family is roughly twice as inaccurate as the GARCH family it is normally competitive with, so this exercise has limited power and its null bounds only what such a proxy can detect.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
