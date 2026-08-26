@@ -109,6 +109,17 @@ independent Russian block loses volume for the second time, which further weaken
 the state-versus-independent contrast already retracted in `findings_status.md`
 as underpowered.
 
+> **Addendum, 2026-08-26 — the entry above is left as written; this is what
+> changed after it.** The audit was rebuilt to confirm each Wikidata item against
+> its own website rather than its name, because the name-matching version
+> returned different precision figures on consecutive runs of identical code.
+> Under the stricter rule `svoboda.org` resolves to a different item that records
+> no country, so **the Q30 flag cited above no longer reproduces** — see thesis
+> §8.3 and §4.6. The decision does not change: it rests on the rule and on what
+> RFE/RL is, and `currenttime.tv`, the same organisation, resolves cleanly to the
+> United States. Verifiable coverage is now 66 of 84 outlets at precision 0.955,
+> not the 40 of 84 the revisit condition below refers to.
+
 **Revisit condition:** A future ingest that adds outlets to the register must
 apply the rule above at the point of adding, and re-run the audit. If the audit's
 verifiable coverage rises materially above the current 40 of 84 outlets and

@@ -237,7 +237,7 @@ byte-identical table every time.
 | Russian independent | 16 | 12 | 9 | 3 | 0.750 |
 | Ukrainian | 12 | 8 | 8 | 0 | **1.000** |
 
-Across the register, **44 of 66 verifiable outlets agree — precision 0.955**.
+Across the register, **63 of 66 verifiable outlets agree — precision 0.955**.
 The eighteen remaining outlets have no Wikidata item whose website resolves to
 the registered domain, or an item that records no country; they are reported as
 unverifiable and counted neither way, since an audit that dropped them silently

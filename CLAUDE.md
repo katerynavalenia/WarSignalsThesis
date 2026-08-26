@@ -31,7 +31,7 @@ thesis/    9 chapters + references.bib, metadata.yaml, build.sh
 docs/      pre-registrations, gate results, measurement diagnosis, reproduce.md
 src/       data/ features/ models/ — loaders, index construction, estimators
 scripts/   the pipeline: ingest -> gates -> figures
-tests/     130 tests, all offline
+tests/     143 tests, all offline
 data/      interim/ holds 7 tracked parquets; raw/ is gitignored
 outputs/   tables/ (53 CSVs) and figures/ (2 PNGs)
 archive/   superseded iterations, kept because the thesis cites them
@@ -44,7 +44,7 @@ resolve `src/` via `sys.path.insert(0, parents[1])`.
 
 ```bash
 bash bootstrap.sh && source .venv/bin/activate
-python -m pytest tests/ -q        # 130 pass, no network, no credentials
+python -m pytest tests/ -q        # 143 pass, no network, no credentials
 ```
 
 Full run order, BigQuery costs and per-script outputs:

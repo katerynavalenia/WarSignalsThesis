@@ -93,20 +93,41 @@ python scripts/audit_gate3.py             # Ch 8 §8.2: strict rule + OOS sign t
 python scripts/diagnose_gas.py            # Ch 8 §8.4: asset scan + adversarial tests
 python scripts/explore_escalation.py      # Ch 8 §8.5: split-half + persistence diagnostic
 python scripts/run_break_tests.py         # Ch 5 §5.4: Chow + supremum-Wald breaks
-python scripts/run_register_audit.py      # Ch 4 §4.5: outlet precision against Wikidata
+python scripts/run_register_audit.py      # Ch 4 §4.6: outlet precision against Wikidata
 python scripts/run_exposure_gradient.py   # Ch 8 §8.7: SIPRI firm-level exposure gradient
 python scripts/run_classifier_sensitivity.py  # Ch 4 §4.5: Gate 2 under five classification rules
 ```
 
 Two of those need a note.
 
-`run_register_audit.py` reads Wikidata over the network and takes several
-minutes. Resolutions are **pinned** to a committed QID map, so a re-run
-reproduces the table exactly; without the pin it would not, because Wikidata's
-name-search ranking is unstable enough to move measured precision between runs of
-identical code. `--repin` re-resolves every outlet from scratch and rewrites the
-map, and is the right thing to run when the register changes — it takes far
-longer, because it examines every candidate rather than the first plausible one.
+`run_register_audit.py` **touches no network at all** and finishes in under a
+second. Everything it needs — which Wikidata item each domain resolves to, and
+what that item says its country is — is cached in the `PINNED` map committed in
+`src/data/register_audit.py`, so the table is byte-identical on every run and the
+audit can be checked offline.
+
+That took two rounds to get right, and both failures were the same shape. Matching
+items by *name* is not stable: `dw.com` resolved once to Deutsche Welle and once
+to *Der Westen*, an unrelated German paper, and precision moved between runs of
+identical code. Pinning the item fixed the identity but not the arithmetic — the
+audit still fetched each pinned item to read its country, roughly a fifth of
+those requests failed on any given run, and a failed request is indistinguishable
+from an outlet Wikidata cannot place. Caching the country closed it.
+
+The network step is `--repin`, run when the register changes. It is slow on
+purpose: it examines every search candidate for every domain rather than stopping
+at the first plausible one, and confirms each against the item's own website
+before accepting it. Budget an hour.
+
+```bash
+python scripts/run_register_audit.py --repin                 # re-resolve everything
+python scripts/run_register_audit.py --repin --only-missing  # retry just the gaps
+```
+
+Use `--only-missing` after a full re-pin. A request that fails partway through a
+long run leaves that outlet unpinned, and an unpinned outlet is indistinguishable
+in the map from one Wikidata has never heard of — retrying only the gaps recovered
+nineteen of them, taking coverage from 49 to 68 of 84.
 
 `run_exposure_gradient.py` needs `data/raw/sipri/sipri_top100.xlsx`, which is not
 in the repository. Download the SIPRI Arms Industry Database Top-100 workbook
@@ -137,7 +158,7 @@ repository because Chapter 8 documents the retraction; do not cite its output.
 ## 3. Verification
 
 ```bash
-python -m pytest tests/ -q     # 125 tests, all offline
+python -m pytest tests/ -q     # 143 tests, all offline
 ```
 
 The suite needs neither the network nor the gitignored data: parsers are split
