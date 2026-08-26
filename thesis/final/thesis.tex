@@ -76,7 +76,7 @@
   % body of the thesis remains one-and-a-half spaced.
   \singlespacing
   \noindent
-  Standard measures of geopolitical risk are constructed from English-language newspapers, which makes the editorial vantage point of those measures an implicit modelling assumption rather than a tested one. This thesis asks whose perception of geopolitical risk is priced in defence equities. Using 4,027 days of multilingual news from GDELT's translingual archive, classified by the national identity of the \textit{publisher} rather than by the subject of the article, it tests whether Ukrainian, Russian state and Russian independent coverage of the Russia--Ukraine war explains defence-equity returns conditional on Western coverage. It does not. Local-language perception adds no explanatory power in coverage volume, in tone, or in the anticipated-versus-realised structure of coverage, across two asset classes --- defence equities and European natural gas --- and one non-market outcome, realised conflict escalation. The design is nonetheless sensitive: the Western block is detected under multiple-testing correction in the pre-registered anticipation test, and local coverage is itself detected in seven of 31 specifications when credited to its publication day, and in one when the same coverage is lagged one trading day so that it is wholly available before the market opens. A power simulation on 1,855 out-of-sample days detects a true out-of-sample R$^2$ of 0.5\% in 83\% of samples, so effect sizes the predictability literature treats as economically meaningful are excluded rather than merely unobserved. Descriptively, Russian state media's coverage tone did not change at the full-scale invasion of February 2022 ($+0.02$) while Ukrainian media's fell by 1.66 points, indicating that the signal which moved most sharply at the defining event of the sample is not the one defence-equity prices track.
+  Standard measures of geopolitical risk are constructed from English-language newspapers, which makes the editorial vantage point of those measures an implicit modelling assumption rather than a tested one. This thesis asks whose perception of geopolitical risk is priced in defence equities. Using 4,027 days of multilingual news from GDELT's translingual archive, classified by the national identity of the \textit{publisher} rather than by the subject of the article, it tests whether Ukrainian, Russian state and Russian independent coverage of the Russia--Ukraine war explains defence-equity returns conditional on Western coverage. It does not. Local-language perception adds no explanatory power in coverage volume, in tone, or in the anticipated-versus-realised structure of coverage, across two asset classes --- defence equities and European natural gas --- and one non-market outcome, realised conflict escalation. The design is nonetheless sensitive: the Western block is detected under multiple-testing correction in the pre-registered anticipation test, and local coverage is itself detected in seven of 31 specifications when credited to its publication day, and in one when the same coverage is lagged one trading day so that it is wholly available before the market opens. A power simulation gives the design 81\% power to detect a true out-of-sample R$^2$ of 0.5\% on the three long-sample targets, and 44\% on the two Bloomberg indices, whose shorter span leaves the null on them appreciably weaker. Descriptively, Russian state media's coverage tone did not change at the full-scale invasion of February 2022 ($+0.02$) while Ukrainian media's fell by 1.66 points, indicating that the signal which moved most sharply at the defining event of the sample is not the one defence-equity prices track.
   \end{abstract}
 \end{titlepage}
 
@@ -96,7 +96,7 @@ The second challenge is identification. News coverage of a conflict and defence-
 
 The third challenge is multiple testing. The specification grid crosses two frequencies, six conflict-episode windows plus the full sample, and five defence-equity targets, of which 31 cells carry enough observations to estimate. Running 31 tests at the 5\% level would be expected to produce roughly 1.5 false rejections by chance alone. Benjamini--Hochberg correction is therefore applied across the full grid. Four tests are reported. They are numbered as in the pre-registration series, which begins with a first gate on index construction rather than on the research question, so the tests reported here are Gates 2 to 5: Gate 2 tests coverage volume and tone, Gate 3 the anticipated/realised structure, Gate 4 European natural gas, and Gate 5 realised conflict escalation. Gates 3 to 5 are pre-registered; Gate 2 is not. For Gate 3 the pass rule, the excluded targets and the required sign condition were fixed before the test was constructed. For Gates 4 and 5 the data were collected only after the pre-registration was committed, so in those two cases the ordering of specification and observation is verifiable from the timestamps of the committed pre-registration documents rather than asserted. Gate 2 is reported as the exploratory test it is, and the results below turn on a timing contrast within it rather than on any single cell clearing a threshold.
 
-The fourth challenge is evaluating a null result. A finding that nothing predicts is uninformative unless the magnitude of effect the design could have detected is also established. The out-of-sample section of this thesis therefore accompanies its zero Clark--West rejections with a power simulation: using the actual return series and implanting a predictor with a known true effect, the design detects an out-of-sample R$^2$ of 0.5\% in 83\% of 60 simulated samples and one of 1.0\% in all of them, on 1,855 out-of-sample days (simulation standard error approximately six percentage points). The range of effect sizes the predictability literature treats as economically meaningful is therefore ruled out rather than merely unobserved.
+The fourth challenge is evaluating a null result. A finding that nothing predicts is uninformative unless the magnitude of effect the design could have detected is also established. The out-of-sample section of this thesis therefore accompanies its zero Clark--West rejections with a power simulation: using the actual return series and implanting a predictor with a known true effect, the design has 81\% power against a true out-of-sample R$^2$ of 0.5\% and 98\% against one of 1.0\%, on the 1,855 out-of-sample days available for the three long-sample targets. Power on the two Bloomberg indices, which contribute only 686 out-of-sample days, is materially lower at 44\% and 76\%. An effect in the range this literature treats as economically meaningful would therefore probably have been detected on the long-sample targets, which is what makes the null informative there; it is not the same as showing that no such effect exists.
 
 The principal finding is that local-language perception --- the ``local block'' of Ukrainian, Russian state and Russian independent indices, tested jointly against the ``Western block'' of Western and native-English ones --- adds nothing to defence-equity returns once Western coverage is in the regression, and that the design is nonetheless able to detect media effects where they exist. The second half of that statement is what makes the first a finding rather than an absence, and it is established test by test rather than in aggregate. The Western block survives multiple-testing correction in the pre-registered anticipation test (2 of 31 cells, minimum $p = 1.6\times10^{-4}$), and is detected at $p = 4\times10^{-5}$ in the natural-gas test. In the attention-and-tone test the Western block does not survive correction at the tradeable one-day lag and the local block retains a single surviving cell of 31; what demonstrates sensitivity there is the local block's own behaviour across the two alignments: seven of 31 cells at the same-day alignment, one at the conservative lagged alignment on which the verdicts rest.
 
@@ -434,14 +434,14 @@ Table~\ref{tab:gates23} then asks the same question across the full grid rather 
 \toprule
 Gate & Block and news timing & Cells & BH surv. & Min.\ $p$ & Verdict \\
 \midrule
-\multicolumn{6}{l}{\textit{Gate 2: coverage volume and tone}} \\
-2 & Local, news lagged 1 day \textit{(primary)} & 31 & 1 & $9.0\times10^{-4}$ & FAIL \\
-2 & Local, same-day & 31 & \textbf{7} & $\mathbf{2.2\times10^{-6}}$ & ---$^{a}$ \\
+\multicolumn{6}{l}{\textit{Gate 2: coverage volume and tone (exploratory)}} \\
+2 & Local, news lagged 1 day \textit{(primary)} & 31 & 1 & $9.0\times10^{-4}$ & not robust$^{a}$ \\
+2 & Local, same-day & 31 & \textbf{7} & $\mathbf{2.2\times10^{-6}}$ & ---$^{b}$ \\
 2 & \textit{Western, news lagged 1 day (control)} & 31 & 0 & $2.7\times10^{-3}$ & not detected \\
 2 & \textit{Western, same-day (control)} & 31 & 0 & $1.8\times10^{-2}$ & not detected \\
 \addlinespace
 \multicolumn{6}{l}{\textit{Gate 3: anticipated/realised split (pre-registered)}} \\
-3 & Local, news lagged 1 day \textit{(primary arm)} & 31 & 2 & $5.5\times10^{-6}$ & FAIL$^{b}$ \\
+3 & Local, news lagged 1 day \textit{(primary arm)} & 31 & 2 & $5.5\times10^{-6}$ & FAIL$^{c}$ \\
 3 & Local, same-day \textit{(secondary arm)} & 31 & 0 & --- & FAIL \\
 3 & \textit{Western, news lagged 1 day (control)} & 31 & \textbf{2} & $\mathbf{1.6\times10^{-4}}$ & detected \\
 \bottomrule
@@ -462,12 +462,29 @@ it is matched to, whereas a lagged one is entirely available before the open. It
 does not follow that the lag isolates post-close information --- it shifts the
 whole daily bundle --- and daily aggregates cannot resolve intraday timing.
 Verdicts refer to the block under test; control rows report only whether the
-Western block is detected.
+Western block is detected. \textbf{The two gates are held to different
+standards, because only one of them set a standard in advance.} Gate 3 was
+pre-registered and either meets its stated pass rule or does not, so its rows
+read FAIL. Gate 2 is exploratory and had no such rule, so its rows report what
+was found rather than a verdict against a threshold it never had.
+\item[$a$] One cell of 31 survives correction. It is the 2017--19 episode window
+on ITA at weekly frequency, years before the full-scale invasion, and no cell in
+any window contemporaneous with the events the thesis concerns survives.
+\item[$b$] Reported for comparison with the row above rather than as a result.
+Under this alignment the regressor includes coverage published after the return
+it is matched to, so a detection here is not evidence of a pricing relationship.
+\item[$c$] Neither pre-registered arm clears. The first required a surviving
+cell in the Russia build-up window on a Bloomberg target or ITA, and that window
+produces none, its smallest $p$ being 0.018. The second required same-sign
+survivors in two independent episode windows, and the two survivors share one.
+Both survivors are weekly cells in the 2025--26 window fitting 13 parameters to
+58 observations, while the two deepest cells in the grid, at 2,754 observations
+each, return $p = 0.08$ and $p = 0.36$.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
 
-The timing contrast in Gate 2 is the result that rules out low power as an explanation of the null. Local coverage is strongly associated with defence returns when credited to its publication day: seven of 31 cells survive correction, the strongest at $p = 2.2\times10^{-6}$. Credited instead to the following trading day, seven survivors become one --- and that one falls in the 2017--19 window, years before the full-scale invasion and during the low-intensity phase of the conflict, where neither the coverage volumes nor the price movements this thesis is about occur.
+The timing contrast in Gate 2 is what makes low power an implausible explanation of the null. Local coverage is strongly associated with defence returns when credited to its publication day: seven of 31 cells survive correction, the strongest at $p = 2.2\times10^{-6}$. Credited instead to the following trading day, seven survivors become one --- and that one falls in the 2017--19 window, years before the full-scale invasion and during the low-intensity phase of the conflict, where neither the coverage volumes nor the price movements this thesis is about occur.
 
 The two alignments are not equally interpretable, and the lagged one is preferred because it is conservative rather than because it isolates anything. A GDELT day is a full UTC day, while European markets close at 16:30 UTC, so a same-day aggregate mixes coverage published before the close, which the market could have traded on, with coverage published after it, which it could not. A same-day association is therefore not interpretable as a pricing relationship: part of the regressor postdates the return it is being related to. Lagging the aggregate by one trading day removes that contamination, since every article in it precedes the market open. What it does not do is separate the two components. The lag shifts the entire daily bundle rather than trimming the post-close portion from it, so it discards the genuinely tradeable pre-close coverage along with the rest.
 
@@ -540,29 +557,30 @@ None of the preceding tests is a statement about forecastability, which requires
 \label{tab:efficiency_power}
 \begin{threeparttable}
 \compact
-\begin{tabular}{lr}
+\begin{tabular}{lrr}
 \toprule
-Quantity & Value \\
+Quantity & \multicolumn{2}{r}{Value} \\
 \midrule
-\multicolumn{2}{l}{\textit{Panel A: Clark--West results across the full grid}} \\
+\multicolumn{3}{l}{\textit{Panel A: Clark--West results across the full grid}} \\
 \addlinespace
-Specifications (5 targets $\times$ 10 predictors) & 50 \\
-Out-of-sample days per specification & 1,855 or 686 \\
-Specifications with positive R$^2_{\text{OS}}$ & 3 of 50 \\
-Best R$^2_{\text{OS}}$ observed & $+0.0010$ \quad ($+0.10\%$) \\
-Smallest Clark--West $p$-value & 0.067 \\
-Clark--West $p < 0.05$ & \textbf{0} \quad (2.5 expected by chance) \\
-Survive Benjamini--Hochberg (5\% FDR) & \textbf{0} \\
+Specifications (5 targets $\times$ 10 predictors) & \multicolumn{2}{r}{50} \\
+Specifications with positive R$^2_{\text{OS}}$ & \multicolumn{2}{r}{3 of 50} \\
+Best R$^2_{\text{OS}}$ observed & \multicolumn{2}{r}{$+0.0010$ \quad ($+0.10\%$)} \\
+Smallest Clark--West $p$-value & \multicolumn{2}{r}{0.067} \\
+Clark--West $p < 0.05$ & \multicolumn{2}{r}{\textbf{0} \quad (2.5 expected by chance)} \\
+Survive Benjamini--Hochberg (5\% FDR) & \multicolumn{2}{r}{\textbf{0}} \\
 \midrule
-\multicolumn{2}{l}{\textit{Panel B: Simulated power, 1,855 OOS days, 60 paths per row}} \\
+\multicolumn{3}{l}{\textit{Panel B: Simulated power, rejection rate at the 5\% level}} \\
 \addlinespace
-True R$^2_{\text{OS}}$ implanted & Rejection rate at 5\% \\
-\cmidrule(lr){1-2}
-0.0\% (nominal size) & 0.02 \\
-0.2\% & 0.47 \\
-\textbf{0.5\%} & \textbf{0.83} \\
-1.0\% & 1.00 \\
-2.0\% & 1.00 \\
+ & Long sample & Bloomberg \\
+True R$^2_{\text{OS}}$ implanted & 1,855 OOS days & 686 OOS days \\
+ & \textit{(3 targets)} & \textit{(2 targets)} \\
+\cmidrule(lr){2-3}
+0.0\% (nominal size) & 0.02 & 0.02 \\
+0.2\% & 0.40 & 0.21 \\
+\textbf{0.5\%} & \textbf{0.81} & \textbf{0.44} \\
+1.0\% & 0.98 & 0.76 \\
+2.0\% & 1.00 & 0.97 \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}
@@ -573,16 +591,25 @@ perception predictor to a historical-mean benchmark, so the benchmark is nested
 and the comparison is arbitrated by the Clark--West test \citep{clark2007}.
 R$^2_{\text{OS}}$ is the Campbell--Thompson out-of-sample $R^2$
 \citep{campbell2008}, the proportional reduction in mean squared forecast error
-relative to that benchmark. Out-of-sample length differs by target: 1,855 days
-for the three free-data targets, 686 for the two Bloomberg indices. Panel B
-implants a predictor of known true R$^2_{\text{OS}}$ and re-runs the same
-machinery over 60 paths per row, giving each rejection rate a standard error of
-roughly six percentage points.
+relative to that benchmark. Out-of-sample length differs by target, and Panel B
+reports both: 1,855 days for the three free-data targets, and 686 for the two
+Bloomberg indices, which begin only in 2020. Panel B implants a predictor of
+known true R$^2_{\text{OS}}$ into the corresponding return series, re-runs the
+identical expanding-window machinery over 1,000 paths per cell, and reports the
+share of paths in which Clark--West rejects. At 1,000 paths the standard error
+of each entry is at most 1.6 percentage points. Produced by
+\texttt{scripts/make\_thesis\_power.py}.
+\item \textbf{The two columns should not be read as one number.} The power that
+justifies treating a null as informative is available on the long sample, where
+an effect of 0.5\% is detected in 81\% of paths. On the Bloomberg targets the
+same effect is detected in 44\%, so for those two targets a true effect of that
+size would be missed more often than not, and the null there is weak evidence
+rather than a bound.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
 
-Zero Clark--West rejections across 50 specifications is a bound, not an absence. Panel B quantifies what the null rules out. The 0.5--1.0\% range of out-of-sample R$^2$ that \citet{welch2008} and \citet{campbell2008} treat as the threshold for economic significance is detected in 83\% of simulated samples at the bottom of that range and in all of them at the top. The best value actually observed, $+0.10\%$, sits below even the 0.2\% effect size that the design detects only about half the time --- and its Clark--West $p$-value is 0.067, so not one of the fifty specifications reaches nominal significance, let alone survives correction. What can be claimed is therefore bounded in both directions: an effect large enough to matter economically would very probably have been seen, and an effect that escaped this design lies at or below the bottom of the range this literature treats as economically meaningful.
+Zero Clark--West rejections across 50 specifications is informative only to the extent the design could have rejected, and Panel B says how far that extends. On the three long-sample targets, an effect at the bottom of the 0.5--1.0\% range \citet{welch2008} and \citet{campbell2008} treat as economically significant is detected in 81\% of simulated paths, and one at the top in 98\%. On the two Bloomberg targets the corresponding figures are 44\% and 76\%, so on those a meaningful effect would be missed more often than not and the null carries little weight. The best value actually observed, $+0.10\%$, sits below even the 0.2\% effect size that the design detects only about half the time --- and its Clark--West $p$-value is 0.067, so not one of the fifty specifications reaches nominal significance, let alone survives correction. What can be claimed is therefore bounded in both directions: an effect large enough to matter economically would very probably have been seen, and an effect that escaped this design lies at or below the bottom of the range this literature treats as economically meaningful.
 
 \subsection{Discussion}
 \label{sec:robustness}
@@ -614,7 +641,7 @@ Taken together these six bound how much confidence a single significant specific
 \label{sec:conclusion}
 %==============================================================
 
-Local coverage provides no robust incremental information about defence-equity returns beyond what Western coverage already carries. That is the answer this thesis can defend, and it is a null rather than a reversal: perception from Ukrainian outlets, Russian state media and Russian independent outlets adds no explanatory power conditional on Western coverage, in any of four tests, across two asset classes, and against one non-market outcome. The null is not attributable to a design unable to detect media effects: the Western block is detected under correction in the anticipation and gas tests, and in the attention-and-tone test the local block itself is detected at the same-day alignment and lost at the conservative lagged one. A power simulation on 1,855 out-of-sample days establishes that effects in the range the predictability literature treats as economically meaningful would have been detected in 83\% to 100\% of simulated samples, with a simulation standard error of roughly six percentage points. No such effect is observed.
+Local coverage provides no robust incremental information about defence-equity returns beyond what Western coverage already carries. That is the answer this thesis can defend, and it is a null rather than a reversal: perception from Ukrainian outlets, Russian state media and Russian independent outlets adds no explanatory power conditional on Western coverage, in any of four tests, across two asset classes, and against one non-market outcome. The null is not attributable to a design unable to detect media effects: the Western block is detected under correction in the anticipation and gas tests, and in the attention-and-tone test the local block itself is detected at the same-day alignment and lost at the conservative lagged one. A power simulation establishes that on the three long-sample targets, with 1,855 out-of-sample days each, effects in the range the predictability literature treats as economically meaningful would have been detected in 81\% to 98\% of simulated paths. None is observed. The claim is that such an effect is unlikely to have been missed on those targets, not that it has been excluded, and it does not extend to the two Bloomberg indices, where the same simulation returns 44\% and 76\%.
 
 This inverts the asymmetry \citet{bondarenko2024} document on the other side of the conflict. For the Russian domestic economy local coverage carries information that English-language coverage does not; for Western defence equities local coverage carries nothing beyond it. The evidence here is more consistent with Western than with local media being the relevant information set for these assets, but it does not establish that Western coverage is priced, and the stronger claim should not be read into the weaker one. Neither study supports a general statement about whether local media matter. Together they suggest that the question is empirical for each market, and that the answer tracks whose readers hold the asset.
 

@@ -255,6 +255,8 @@ a LaTeX engine and none is installed on the machine the thesis was written on.
 | `run_horse_race.py` (Table 7 view) | `outputs/tables/horse_race_baseline_vs_extended.csv` |
 | `make_thesis_descriptives.py` | `outputs/tables/thesis_descriptives.csv`, `thesis_invasion_tone.csv` |
 | `make_thesis_correlations.py` | `outputs/tables/thesis_correlations.csv` |
+| `make_thesis_regression.py` | `outputs/tables/thesis_regression.csv` |
+| `make_thesis_power.py` | `outputs/tables/thesis_power_curve.csv` — both out-of-sample lengths, 1,000 paths per point (~4 min) |
 | `run_horse_race.py` (news only) | `outputs/tables/horse_race_news_only.csv` |
 | `plot_thesis_figures.py` | `outputs/figures/fig1_defense_indices.png`, `fig2_attacks_news.png`, `fig3_return_mae_infosets.png`, `figA1_diagnostics.png` |
 | `run_shap_attribution.py` | `outputs/tables/shap_by_block.csv`, `shap_by_feature.csv`, `outputs/figures/fig4_shap_attribution.png` |
