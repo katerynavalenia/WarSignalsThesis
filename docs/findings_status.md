@@ -7,7 +7,15 @@ documents that reported them are kept unedited, because the sequence is part of
 the contribution — but that means several files state, in their own voice,
 results that no longer hold. This page is the authority on which is which.
 
-**Last updated:** 2026-08-23
+**Last updated:** 2026-08-26
+
+> **2026-08-26.** Every number in the submission draft (`thesis/final/thesis.tex`)
+> was checked against `outputs/tables/`. Two entries in *this* file were the stale
+> side of the comparison and are corrected below: the power-curve figures (which
+> were 82%/43%; the committed CSV says 83%/47%) and the Gate 4 window (b) and (c)
+> p-values quoted in `gate4_results.md`, where the CSV gives 0.533 and 0.250
+> against the doc's 0.573 and 0.352. The rule that `outputs/tables/` wins over
+> prose held in both directions.
 
 ---
 
@@ -41,7 +49,7 @@ reporting rather than hiding.
 | Local perception is not priced in European gas | Gate 4, all four conditions fail | [`gate4_results.md`](gate4_results.md) |
 | Local perception does not anticipate escalation out of sample | Gate 5, p=0.21 / 0.23 | [`gate5_results.md`](gate5_results.md) |
 | No out-of-sample return predictability | 0 of 50 Clark–West rejections | `outputs/tables/forecast_null.csv` |
-| Power bound on that null | **R²_OS 0.5% detectable at 82% power**, 0.2% at 43%, on 1,855 OOS days | `outputs/tables/forecast_power_curve.csv` |
+| Power bound on that null | **R²_OS 0.5% detectable at 83% power**, 0.2% at 47%, 1.0% at 100%, on 1,855 OOS days. The committed curve runs **60 paths per grid point**, so each rate carries ≈6pp of simulation error — quote it with that caveat, or re-run at 150 | `outputs/tables/forecast_power_curve.csv` |
 | Threat *is* priced market-wide in Europe **during the build-up and invasion** | SXXP loads +0.474, p<0.0001 on that window; +0.028, p=0.15 on the full sample | [`gate1_gate2_results.md`](gate1_gate2_results.md) §6b |
 | Sample coverage | **2015-02-18 → 2026-05-20, 4,027 days, 98% of calendar**; ~3× the reviewed version on matched units (2,837 trading days vs 931) | ingest logs |
 | Outlet register precision, audited against Wikidata | **0.955** on 66 of 84 verifiable outlets; RU_STATE, WEST and UA all 1.000; all three disagreements are exile newsrooms | `outputs/tables/register_audit.csv`, thesis §4.6 |
