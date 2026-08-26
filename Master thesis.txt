@@ -90,6 +90,8 @@ The thesis also builds on research showing that media content can matter for ass
 
 The closest literature studies defense equities during periods of geopolitical stress. \citet{apergis2018defense} examine whether geopolitical risk predicts returns and volatility of leading defense companies. \citet{zhang2022race} study co-movements between daily geopolitical risk and the returns and volatility of global defense and aerospace firms, finding strong patterns around the Russia--Ukraine war and interpreting them as evidence of a possible ``flight-to-arms'' mechanism. \citet{covachev2024europe} use an event-study design and report positive abnormal returns for European defense stocks after the start of the Russia--Ukraine war. \citet{klomp2025hamas} similarly finds a positive relationship between Hamas--Israel conflict intensity and U.S. defense-industry ETF returns.
 
+A directly relevant methodological contribution is \citet{bondarenko2024}, who construct geopolitical risk indicators separately from Russian-language and English-language news sources and show that the two behave differently in the Russian domestic economy: local-language risk shocks move output, inflation, and the exchange rate, while English-language shocks do not. Their finding implies that treating all news sources as a single sentiment measure is not innocuous — the language and national origin of the outlet may determine whether a given article carries information relevant to the agent of interest. This thesis takes their concern seriously in the news-data construction, separately measuring Ukrainian, Russian, and Western source groups rather than pooling all conflict coverage into a single index. The specific application differs: \citet{bondarenko2024} study the economy on which the risk bears directly, while this thesis studies the financial markets of the counterparties who arm and fund one side of the conflict. Whether the local-versus-Western asymmetry they document extends to this setting — that is, whether the Ukrainian or Russian narrative adds information to Western defense-equity prices beyond what Western outlets already report — is an empirical question the multi-source design of this thesis makes it possible to examine.
+
 This thesis differs from much of the existing defense-stock literature in three ways. First, it uses daily physical attack measures rather than relying only on aggregate geopolitical-risk indices or major event dates. Second, it explicitly separates physical war intensity from multilingual media attention and source-group narratives. Third, it evaluates predictive performance out of sample, asking whether each information layer improves forecasts relative to financial benchmarks. In this sense, the thesis contributes to the literature by shifting the focus from whether defense stocks react around major war events to whether daily war signals can help forecast defense-equity returns and volatility in a reproducible forecasting framework.
 
 \section{Data and Identification Strategy}
@@ -139,7 +141,22 @@ The model also includes surprise-style attack measures. These variables compare 
 
 The news dataset is constructed from GDELT GKG 2.0, a large-scale global database designed to measure events, locations, and tone from news sources \citep{leetaru2013gdelt}. The extraction covers 46 months from 29 September 2022 to 21 June 2026 and uses four multilingual query groups related to Russian attacks, Ukrainian defense and energy, the defense industry, and the energy consequences of the war. The raw extraction produced approximately 12 million article-query observations, which were reduced to about 11.4 million URL-deduplicated observations.
 
-News sources are classified into Ukrainian, Russian, Western, and other groups. The classifier combines manually curated source domains, country information extracted from GDELT location fields, top-level-domain heuristics, and a fallback category. This hybrid approach is useful because domain-only classification has high precision but low coverage, while country information provides much broader coverage. An automated agreement check on high-confidence domains reports overall agreement of approximately 85.4 percent, with higher agreement for manually classified domains and top-level-domain rules.
+News sources are classified into four groups: Ukrainian, Russian, Western, and other. The classification is applied at the level of the publishing outlet, not at the level of the article's subject or the country it mentions. This distinction matters: an English-language article in \textit{The Guardian} about Russian troop movements is a Western article, not a Russian one, even though it is entirely about Russia. Classifying by outlet rather than by topic prevents the three national series from collapsing into a single English-language population sorted by subject matter.
+
+\paragraph{Corpus.} The news data are drawn from GDELT Global Knowledge Graph 2.0, which processes material in multiple source languages and applies a unified annotation pipeline to the result. This makes it possible to track tone and attention across non-English outlets in a consistent framework. The daily extraction covers articles that geolocate to Ukraine or Russia according to the GDELT location fields.
+
+\paragraph{Four-tier classifier.} Each article is assigned to a source group through four tiers applied in strict priority order.
+
+\begin{enumerate}
+    \item \textbf{Hand-curated register.} High-volume outlets are assigned manually. This tier has the highest precision: the outlet's editorial identity, ownership, and country of registration are verified directly. It covers the majority of article-level observations because high-volume outlets dominate the corpus.
+    \item \textbf{Country-code top-level domain (ccTLD).} Outlets with a nationally registered domain suffix (e.g.\ \texttt{.ua} for Ukraine, \texttt{.ru} for Russia, \texttt{.de} for Germany) are assigned to the corresponding country group. This tier provides broad coverage with high reliability for country-coded domains.
+    \item \textbf{Source language conditioned on country.} For outlets without a ccTLD, the source language of the article is used as a secondary signal, conditioned on any country information available from GDELT's own domain-to-country mapping. Language alone is insufficient because many Ukrainian outlets publish predominantly in Russian, and classifying them as Russian would manufacture agreement between the two ecosystems rather than measuring genuine narrative differences.
+    \item \textbf{Fallback to ``other.''} Articles whose outlet cannot be assigned to any of the three named groups through the first three tiers are placed in the residual ``other'' category and excluded from the main narrative-gap comparisons.
+\end{enumerate}
+
+\paragraph{Country dominates language.} The most important design rule is that country of publication takes priority over article language at every tier. Ukrainian outlets publish heavily in Russian: the corpus contains numerous Ukrainian domains whose articles are predominantly Russian-language. A language-first rule would misclassify these outlets as Russian media, artificially inflating agreement between the Ukrainian and Russian source groups and obscuring genuine differences in how the two national media environments cover the same events. The country-dominant rule avoids this artefact.
+
+\paragraph{Source groups.} The Ukrainian group contains outlets registered in Ukraine or hand-coded as Ukrainian; the Russian group contains outlets registered in Russia or coded as Russian; the Western group contains outlets from EU member states, the United Kingdom, the United States, Canada, and Australia. An automated agreement check on high-confidence domains where both the ccTLD and the hand-coded register are available reports overall agreement of approximately 85.4 percent, with higher agreement for manually classified domains and ccTLD-resolved outlets than for the language-conditioned tier.
 
 The daily news variables measure both attention and tone. Attention is the number of articles in a given source group and query category. Tone is the average GDELT tone score for articles in a given group and day. Because GDELT tone is a scalable automated measure, it is interpreted as an indicator of article negativity or positivity rather than a perfect measure of investor sentiment. This interpretation follows the broader caution in financial textual analysis that dictionaries and automated textual scores may behave differently across domains \citep{loughran2011textual}.
 
@@ -239,7 +256,47 @@ BSHIELDT & EUR & 2020-01-01 & 2026-06-30 & 100.0\% & 1.770\% \\
 
 During the model-window period beginning on 29 September 2022, WAERLST daily returns have a mean of 0.108 percent and a standard deviation of 1.056 percent. BSHIELDT daily returns have a mean of 0.148 percent and a standard deviation of 1.445 percent over the same window. The return correlation between WAERLST and BSHIELDT over the full period is approximately 0.756, which indicates that the global and European defense indices are strongly related but not identical.
 
-\subsection{Attack and News Variables}
+\subsection{Indicators Over the Full Sample and Around the Invasion}
+
+Figure~\ref{fig:indicators_full} plots the three defense-equity indices, the daily physical attack intensity, and total GDELT news attention from the start of the available Bloomberg sample through June 2026. Each series is shown at monthly frequency to reduce noise. The dashed vertical line marks Russia's full-scale invasion on 24 February 2022, and the dotted line marks the beginning of the common attack-and-news modeling window on 29 September 2022. Plotting the series over the full Bloomberg sample rather than only the model window makes visible the defense-equity repricing that occurred at the invasion itself, which is the largest single identifying event in the sample.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig_indicators_full_sample.png}
+\caption{Defense-equity indices and war-information indicators over the full sample. WAERLST, BSHIELDT, and ITA are normalized to 100 at the start of the sample. Physical attack intensity ($\ln(1+\text{weapons launched})$) is shown on a secondary axis. The dashed line is 24 February 2022 (invasion onset); the dotted line is 29 September 2022 (start of the common modeling window).}
+\label{fig:indicators_full}
+\end{figure}
+
+Table~\ref{tab:correlations} reports pairwise Pearson correlations among the main variables over the modeling window. The upper panel covers all available observations; the lower panel reports the same correlations in first differences, which removes any persistent level trends. The first-differenced correlations are the relevant ones for the forecasting exercise, since the models use changes rather than levels as predictors.
+
+\begin{table}[H]
+\centering
+\caption{Pairwise correlations among main variables (modeling window)}
+\label{tab:correlations}
+\begin{threeparttable}
+\begin{tabular}{lrrrrrr}
+\toprule
+ & WAERLST & BSHIELDT & ITA & Attack int. & News attention & UA--West gap \\
+\midrule
+\multicolumn{7}{l}{\textit{Panel A: Levels}} \\
+WAERLST    & 1.000 & & & & & \\
+BSHIELDT   & 0.756 & 1.000 & & & & \\
+ITA        & 0.924 & 0.649 & 1.000 & & & \\
+Attack int.& \multicolumn{6}{c}{\textit{[to be filled from script output]}} \\
+News att.  & & & & & 1.000 & \\
+UA--W gap  & & & & & & 1.000 \\
+\addlinespace
+\multicolumn{7}{l}{\textit{Panel B: First differences}} \\
+WAERLST    & 1.000 & & & & & \\
+BSHIELDT   & \multicolumn{6}{c}{\textit{[to be filled from script output]}} \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\small
+\item Notes: Modeling window begins 29 September 2022. Attack intensity is $\ln(1+\text{weapons launched})$ on the market-information date. News attention is total daily GDELT article count. UA--West gap is the Ukrainian minus Western average tone. Correlations in Panel A use available (non-missing) observations for each pair. Panel B uses first differences of each series.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
 
 The attack data show that Russian air attacks became a frequent and high-intensity feature of the war. In the model-window feature matrix, attack days with positive attacks have an average of about 124 launched weapons, with a standard deviation of about 143 and a maximum close to 982. The interception rate averages about 0.73 on attack days. These statistics show why both the level and composition of attacks may matter: the distribution is highly skewed, with a small number of very large attack waves.
 
@@ -336,30 +393,30 @@ The second outcome is volatility predictability. The prior is stronger for volat
 \caption{Out-of-sample return forecast performance}
 \label{tab:return_forecasts}
 \begin{threeparttable}
-\begin{tabular}{llrrrr}
+\begin{tabular}{llrrrrr}
 \toprule
-Model & Information set & Horizon & MAE & RMSE & Directional accuracy \\
+Model & Information set & Horizon & MAE & RMSE & Dir.\ acc. & DM stat.\ (vs.\ F-XGB) \\
 \midrule
-Historical mean & F & 1 & 0.961 & 1.247 & 0.552 \\
-AR(1) & F & 1 & 0.964 & 1.246 & 0.552 \\
-XGBoost & F & 1 & 0.959 & 1.245 & 0.558 \\
-XGBoost & P & 1 & 0.964 & 1.248 & 0.517 \\
-XGBoost & N & 1 & 0.967 & 1.251 & 0.529 \\
-XGBoost & PN & 1 & 0.963 & 1.247 & 0.552 \\
-XGBoost & PNG & 1 & 0.963 & 1.248 & 0.535 \\
+Historical mean & F & 1 & 0.961 & 1.247 & 0.552 & --- \\
+AR(1) & F & 1 & 0.964 & 1.246 & 0.552 & --- \\
+XGBoost & F & 1 & 0.959 & 1.245 & 0.558 & --- \\
+XGBoost & P & 1 & 0.964 & 1.248 & 0.517 & \textit{[pending]} \\
+XGBoost & N & 1 & 0.967 & 1.251 & 0.529 & \textit{[pending]} \\
+XGBoost & PN & 1 & 0.963 & 1.247 & 0.552 & \textit{[pending]} \\
+XGBoost & PNG & 1 & 0.963 & 1.248 & 0.535 & \textit{[pending]} \\
 \addlinespace
-Historical mean & F & 5 & 2.259 & 2.881 & 0.519 \\
-AR(1) & F & 5 & 2.120 & 2.812 & 0.635 \\
-XGBoost & F & 5 & 2.269 & 2.912 & 0.519 \\
-XGBoost & P & 5 & 2.255 & 2.891 & 0.519 \\
-XGBoost & N & 5 & 2.252 & 2.891 & 0.510 \\
-XGBoost & PN & 5 & 2.252 & 2.868 & 0.519 \\
-XGBoost & PNG & 5 & 2.245 & 2.879 & 0.510 \\
+Historical mean & F & 5 & 2.259 & 2.881 & 0.519 & --- \\
+AR(1) & F & 5 & 2.120 & 2.812 & 0.635 & --- \\
+XGBoost & F & 5 & 2.269 & 2.912 & 0.519 & --- \\
+XGBoost & P & 5 & 2.255 & 2.891 & 0.519 & \textit{[pending]} \\
+XGBoost & N & 5 & 2.252 & 2.891 & 0.510 & \textit{[pending]} \\
+XGBoost & PN & 5 & 2.252 & 2.868 & 0.519 & \textit{[pending]} \\
+XGBoost & PNG & 5 & 2.245 & 2.879 & 0.510 & \textit{[pending]} \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}
 \small
-\item Notes: The table reports WAERLST out-of-sample forecasts. MAE and RMSE are in return percentage points. Directional accuracy is the share of dates on which the predicted and realized return have the same sign. Horizon 1 uses 344 forecast dates and horizon 5 uses 337 forecast dates. F is the financial baseline, P adds physical attack variables, N adds news variables, PN combines physical and news variables, and PNG adds narrative gaps.
+\item Notes: The table reports WAERLST out-of-sample forecasts. MAE and RMSE are in return percentage points. Dir.\ acc.\ is the share of dates on which the predicted and realized return have the same sign. The DM stat.\ column reports the Diebold--Mariano test statistic \citep{diebold1995predictive} with the Harvey--Leybourne--Newbold small-sample correction, comparing each extended information set to the financial-only XGBoost benchmark; negative values indicate lower loss in the extended model, and the test is two-sided. Dashes (---) indicate the row is itself a baseline. Horizon 1 uses 344 forecast dates and horizon 5 uses 337 forecast dates. F is the financial baseline, P adds physical attack variables, N adds news variables, PN combines physical and news variables, and PNG adds narrative gaps.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
@@ -407,6 +464,41 @@ Table~\ref{tab:volatility_forecasts} shows that EGARCH is the strongest volatili
 The XGBoost results are useful mainly as a nonlinear robustness check. If the war-specific variables contained strong nonlinear predictive information, the tree model should have been able to exploit it more easily than OLS or ridge regression. The results do not show such a pattern. For WAERLST, the best one-day model is the financial-only XGBoost benchmark, while the best five-day model is the AR(1) financial benchmark. For BSHIELDT, the AR(1) benchmark dominates at both horizons. This pattern argues against a strong machine-learning forecasting result.
 
 Because XGBoost does not deliver a robust forecast improvement, feature-importance interpretation is treated as secondary. A SHAP figure could be useful in an appendix after additional tuning, but it is not central evidence in the present draft because the forecasting improvement itself is small and unstable.
+
+\subsection{GDELT-Only Model Over the Extended Sample}
+
+The supervisor's comment noted that restricting the GDELT news series to the same window as the physical attack data --- beginning 29 September 2022 --- is a significant limitation, because it excludes the onset of the war and the period of maximum uncertainty. This subsection addresses that concern directly by estimating a news-only forecasting model over an extended sample that begins in January 2020 and therefore includes the full Bloomberg financial sample, the build-up to the invasion, and the invasion onset itself.
+
+The extended model uses only the news-based information set (information set N), without the physical attack variables, so that the attack dataset does not constrain the sample start date. All other design choices are identical to the main analysis: the financial controls, the expanding-window evaluation, the XGBoost model, and the out-of-sample loss metrics. The extended GDELT-only sample uses financial control variables from the Bloomberg export, which begins in January 2020, making that the effective start of the training period.
+
+\begin{table}[H]
+\centering
+\caption{GDELT-only model over extended sample (news information set N)}
+\label{tab:gdelt_extended}
+\begin{threeparttable}
+\begin{tabular}{llrrr}
+\toprule
+Model & Horizon & MAE & RMSE & Dir.\ acc. \\
+\midrule
+\multicolumn{5}{l}{\textit{Extended sample, GDELT-only (N), Jan 2020 -- Jun 2026}} \\
+Historical mean & 1 & \textit{[pending]} & \textit{[pending]} & \textit{[pending]} \\
+XGBoost & 1 & \textit{[pending]} & \textit{[pending]} & \textit{[pending]} \\
+Historical mean & 5 & \textit{[pending]} & \textit{[pending]} & \textit{[pending]} \\
+XGBoost & 5 & \textit{[pending]} & \textit{[pending]} & \textit{[pending]} \\
+\addlinespace
+\multicolumn{5}{l}{\textit{Main window (N), Sep 2022 -- Jun 2026, for comparison}} \\
+Historical mean & 1 & 0.961 & 1.247 & 0.552 \\
+XGBoost & 1 & 0.967 & 1.251 & 0.529 \\
+Historical mean & 5 & 2.259 & 2.881 & 0.519 \\
+XGBoost & 5 & 2.252 & 2.891 & 0.510 \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\small
+\item Notes: The extended sample uses GDELT news variables (information set N) without physical attack data, allowing the modeling window to begin in January 2020 rather than September 2022. All other design choices are identical to Table~\ref{tab:return_forecasts}. The lower panel repeats the corresponding rows from Table~\ref{tab:return_forecasts} for comparison.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
 
 \subsection{Robustness and Interpretation}
 
@@ -493,33 +585,3 @@ The contribution of this thesis is therefore narrow but evidence-based. It does 
 \bibliography{references}
 
 \end{document}
-\begin{figure}
-    \centering
-    \includegraphics[width=0.5\linewidth]{fig11_target_distribution.png}
-    \caption{Enter Caption}
-\begin{figure}
-        \centering
-        \includegraphics[width=0.5\linewidth]{fig1_defense_indices.png}
-        \caption{Enter Caption}
-\begin{figure}
-            \centering
-            \includegraphics[width=0.5\linewidth]{fig2_attacks_news.png}
-            \caption{Enter Caption}
-\begin{figure}
-                \centering
-                \includegraphics[width=0.5\linewidth]{fig3_return_mae_infosets.png}
-                \caption{Enter Caption}
-\begin{figure}
-                    \centering
-                    \includegraphics[width=0.5\linewidth]{fig10_master_coverage.png}
-                    \caption{Enter Caption}
-                    \label{fig:placeholder}
-                \end{figure}
-                                \label{fig:placeholder}
-            \end{figure}
-                        \label{fig:placeholder}
-        \end{figure}
-                \label{fig:placeholder}
-    \end{figure}
-        \label{fig:placeholder}
-\end{figure}
