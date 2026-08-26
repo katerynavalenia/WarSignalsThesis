@@ -10,9 +10,14 @@ The directory is self-contained — `thesis.tex`, `references.bib` and
 `figures/` are everything the document needs. It can be zipped and uploaded to
 Overleaf as-is, with `thesis.tex` set as the main file.
 
-Verified build: **31 pages, 7 tables, 3 figures, 0 unresolved citations or
-cross-references**, with tectonic 0.17. `build.sh` also tries `latexmk` and
-`pdflatex`, and warns if any `[?]` marker survives into the PDF.
+Verified build: **33 pages, 7 tables, 3 figures, no overfull boxes, and no
+unresolved citations or cross-references**, with tectonic 0.17. `build.sh`
+also tries `latexmk` and `pdflatex`, and warns if any `[?]` marker survives
+into the PDF.
+
+Section balance against the brief: Introduction pp. 4–6, Data and
+Identification pp. 7–11, Descriptive Statistics pp. 12–19, Empirical Findings
+pp. 20–29, Conclusion pp. 30–31, References pp. 32–33.
 
 ## What supersedes what
 
@@ -43,6 +48,20 @@ python scripts/make_thesis_correlations.py   # Table 3
 which read the same parquets the regressions do and write to
 `outputs/tables/thesis_*.csv`. The remaining tables are transcribed by hand
 from `outputs/tables/` — the gate CSVs named in each table's notes.
+
+## Register
+
+The manuscript is written as a research paper, not as a revision of an earlier
+one. It does not refer to previous versions of itself, to the review it
+responds to, or to this repository. Where an earlier iteration's measurement
+error is discussed, it is stated impersonally as a property of GDELT's GKG 1.0
+stream, which is what makes it a finding rather than an apology. Keep that
+register in any further edit: no first person, no address to the reader, and
+no narration of how the document came to be.
+
+The one deliberate exception is the pre-registration ordering, which the text
+does cite as verifiable from version history. That is a methodological claim
+about when each test was fixed relative to its data, and it is load-bearing.
 
 ## The rule that applies here too
 
