@@ -76,6 +76,14 @@ build/
 # query. Listed here BEFORE it was committed, which is the rule the paragraph
 # above was written to enforce after the last two were lost.
 !data/interim/gdelt_ecosystems_variants.parquet
+# The physical air-attack layer, inherited from the v1 design. These files were
+# NEVER in git history -- they survived only as untracked leftovers of the
+# deleted thesis_v1/ tree, one `git clean` away from being unrecoverable. They
+# cannot be rebuilt: the raw Ukrainian Air Force export and the v1 source that
+# processed it are both gone. Listed here before anything is built on them.
+!data/interim/attacks/daily_master.parquet
+!data/interim/attacks/model_matrix.parquet
+!data/interim/attacks/data_dictionary.csv
 
 # Processed data
 **/data/processed/**/*.csv
