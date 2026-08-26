@@ -31,6 +31,18 @@
 % Wide tables are set one step down and with tighter column padding, so that
 % they fit the text block instead of running into the margin. Applied inside
 % threeparttable, this narrows the table notes to match.
+% LaTeX's defaults insist that at least 20% of any page carrying a float be
+% text, and hand a whole page to any float taking more than half of one. With
+% exhibits this size that strands figures on near-empty pages, so the
+% thresholds are relaxed: a float may take most of a page, but only a float
+% that genuinely fills three quarters of one gets a page to itself.
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.75}
+\setcounter{topnumber}{3}
+\setcounter{totalnumber}{4}
+
 \newcommand{\compact}{\setlength{\tabcolsep}{3.5pt}\small}
 \newcommand{\compactx}{\setlength{\tabcolsep}{3pt}\footnotesize}
 
@@ -171,7 +183,7 @@ The choice of test statistic for that exercise follows from the structure of the
 \label{sec:descriptive}
 %==============================================================
 
-The descriptive evidence establishes two things before any regression is run: that the local and Western media ecosystems are not measuring the same thing, and that the one series which moved most sharply at the invasion belongs to the ecosystem that turns out not to be priced. Table~\ref{tab:vardefs} defines every variable used in the analysis and Table~\ref{tab:descriptive} reports its distribution; Table~\ref{tab:correlations}, in the appendix, reports how the series co-move; Figures~\ref{fig:prices}--\ref{fig:tone} plot the outcome and the regressors over the full sample; and Table~\ref{tab:invasion_tone} isolates each ecosystem's tone response to the invasion, the event with the greatest identifying power in the sample.
+The descriptive evidence establishes two things before any regression is run: that the local and Western media ecosystems are not measuring the same thing, and that the one series which moved most sharply at the invasion belongs to the ecosystem that turns out not to be priced. Table~\ref{tab:vardefs} defines every variable used in the analysis and Table~\ref{tab:descriptive} reports its distribution; Table~\ref{tab:correlations}, in the appendix, reports how the series co-move; Figures~\ref{fig:prices} and~\ref{fig:news} plot the outcome and the regressors over the full sample; and Table~\ref{tab:invasion_tone} isolates each ecosystem's tone response to the invasion, the event with the greatest identifying power in the sample.
 
 Two features of Table~\ref{tab:descriptive} carry most of the descriptive argument. The first is in Panel B: Ukrainian, Russian state and Russian independent outlets devote 71--85\% of their output to this conflict on an average day, against 7.2\% for Western outlets and 5.4\% for native-English ones. That is an order-of-magnitude difference in editorial attention, sustained across eleven years, and it is the sense in which the local ecosystems are ``closer'' to the war. The local series are also far less variable \textit{relative to} those means: Ukrainian attention has a standard deviation of 5.0 percentage points on a mean of 81.0, a coefficient of variation of 0.06, against 0.63 for Western attention. An outlet already devoting four-fifths of its output to a subject has little room left to escalate, which is the mechanical reason the local levels move so little in proportional terms.
 
@@ -265,8 +277,13 @@ Mean daily interception rate & 0.735 & 0.211 & 0.000 & 1.000 & 809 \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}
-\small
-\item Notes: Each series is summarised over the full span on which it exists: the two Bloomberg indices from 2 January 2020, the news series from 18 February 2015 to 20 May 2026. Panel E covers the 809 market-information dates carrying at least one recorded weapon launch, between 29 September 2022 and 21 June 2026. Panel D reports the daily changes of the Panel B and C series, which are the variables that actually enter equation~(\ref{eq:main}); attention changes are in percentage points and tone changes in index points. Two of the ten change series, Russian independent and native-English tone, are omitted from Panel D for space.
+\footnotesize
+\item Notes: Panels A--D summarise each series over the full span on which it
+exists: the Bloomberg indices from 2 January 2020, the news series from
+18 February 2015 to 20 May 2026. Panel D reports the daily first differences
+that enter equation~(\ref{eq:main}), attention in percentage points and tone in
+index points; two of the ten change series are omitted for space. Panel E covers
+the 809 dates carrying at least one recorded weapon launch.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
@@ -274,29 +291,25 @@ Mean daily interception rate & 0.735 & 0.211 & 0.000 & 1.000 & 809 \\
 
 Figure~\ref{fig:prices} plots the outcome variable, and shows that the war repriced defence equities in two distinct steps rather than one. The first step is the invasion itself: in the five weeks from 24 February 2022 the European index gains 21.6\%, against 7.0\% globally and 9.1\% in the United States. The second, and much larger, step comes three years later, when European governments announced rearmament programmes: the European index gains 63.7\% in the first half of 2025 alone and ends the sample at roughly 2.5 times its January 2020 level, while the global and U.S.\ indices end near 1.9 times. Two features of this figure matter for what follows. The European index is the one that responds to the conflict, which is why the regional market control in Section~\ref{sec:identification} is a European rather than a U.S.\ index. And the largest single move in the sample is driven by European fiscal announcements rather than by battlefield news, which is a reason to test war-news predictability against a market control rather than in isolation.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{fig1_defense_indices.png}
 \caption{Defence-equity index levels, 1 January 2020 = 100, to June 2026. \textbf{WAERLST} (blue) is the Bloomberg World Aerospace \& Defense Total Return Index; \textbf{BSHIELDT} (orange) is the Bloomberg Europe Defense Select Total Return Index; \textbf{ITA} (green) is the iShares U.S.\ Aerospace \& Defense ETF. The dashed vertical line marks the full-scale invasion (24 February 2022); the dotted vertical line marks 29 September 2022, the first day of the Ukrainian Air Force attack record used in Section~\ref{sec:attacks}. All three series are total-return indices, so the vertical distance between them is cumulative performance including dividends, not a price-only comparison.}
 \label{fig:prices}
 \end{figure}
 
-Figures~\ref{fig:attention} and~\ref{fig:tone} plot the perception indices that are the regressors of interest. The dominant feature of Figure~\ref{fig:attention} is that the two media environments occupy entirely different levels throughout the eleven years. Ukrainian and Russian outlets devote 71--85\% of their output to conflict-related content on an average day and never fall below 41\%, while Western and native-English outlets average 7.2\% and 5.4\% and remain in single digits until the build-up of late 2021. The two ecosystems differ in level by an order of magnitude for almost the whole sample. In the underlying daily series that Figure~\ref{fig:attention} smooths, the invasion registers as a one-day step: Western attention moves from 19.0\% on 23 February 2022 to 40.9\% on the 24th, and native-English attention from 11.8\% to 23.8\%. In the same two days Ukrainian attention moves from 90.3\% to 95.8\% and Russian state attention from 84.6\% to 91.2\%: the local ecosystems had almost no room left to react, which is the mechanical reason a Western investor watching coverage volume would have seen a signal in Western outlets and nothing much in local ones.
+Figure~\ref{fig:news} plots the perception indices that are the regressors of interest. The dominant feature of Panel A is that the two media environments occupy entirely different levels throughout the eleven years. Ukrainian and Russian outlets devote 71--85\% of their output to conflict-related content on an average day and never fall below 41\%, while Western and native-English outlets average 7.2\% and 5.4\% and remain in single digits until the build-up of late 2021. The two ecosystems differ in level by an order of magnitude for almost the whole sample. In the underlying daily series that Panel A smooths, the invasion registers as a one-day step: Western attention moves from 19.0\% on 23 February 2022 to 40.9\% on the 24th, and native-English attention from 11.8\% to 23.8\%. In the same two days Ukrainian attention moves from 90.3\% to 95.8\% and Russian state attention from 84.6\% to 91.2\%: the local ecosystems had almost no room left to react, which is the mechanical reason a Western investor watching coverage volume would have seen a signal in Western outlets and nothing much in local ones.
 
-\begin{figure}[H]
+Panel B shows an asymmetry at the invasion. Ukrainian conflict tone falls sharply and stays down; Russian state tone barely moves. Before 2022 the Ukrainian, Russian state, Western and native-English series interleave without a stable ordering, with only Russian independent running consistently more negative; after 24 February 2022 the Ukrainian line separates downward, by $-1.66$ points, and remains separated for the rest of the sample, while the Russian state line stays within its pre-war band.
+
+\begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{fig1_attention_full_sample.png}
-\caption{Conflict attention share by media ecosystem, 30-day moving average, 18 February 2015 to 20 May 2026. Each line gives the percentage of one ecosystem's own daily article output that concerns conflict in Ukraine or Russia: \textbf{Ukrainian} (blue), \textbf{Russian state-controlled} (red), \textbf{Russian independent} (orange), \textbf{Western} (green) and \textbf{native-English} (purple). The three shaded bands mark war regimes against an unshaded pre-war period --- build-up (tan, November 2021 to 23 February 2022), invasion (pink, 24 February to June 2022) and attrition (blue, July 2022 onward) --- and the dashed vertical line marks the full-scale invasion of 24 February 2022. The vertical separation between the upper three lines and the lower two is the fact to take from this figure: the local ecosystems devote most of their output to the conflict throughout, while the Western-facing ones do so only briefly, at the invasion.}
-\label{fig:attention}
-\end{figure}
-
-Figure~\ref{fig:tone} shows an asymmetry at the invasion. Ukrainian conflict tone falls sharply and stays down; Russian state tone barely moves. Before 2022 the five tone series interleave with no stable ordering; after 24 February 2022 the Ukrainian line separates downward (by $-1.66$ points; see Table~\ref{tab:invasion_tone}) and remains separated for the rest of the sample, while the Russian state line stays within its pre-war band.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{fig2_tone_full_sample.png}
-\caption{Mean conflict tone by media ecosystem, 30-day moving average, with the same sample, line colours and regime shading as Figure~\ref{fig:attention}. The vertical axis is the mean GDELT tone of each ecosystem's conflict articles; the underlying scale runs from $-10$ to $+10$, and the plotted range of roughly $-3.5$ to $-0.8$ reflects the uniformly negative tone of conflict reporting. Before 2022 the Ukrainian, Russian state, Western and native-English series interleave without a stable ordering, with only Russian independent (orange) running consistently more negative. After 24 February 2022 the \textbf{Ukrainian} line (blue) separates downward and remains separated for the rest of the sample, while the \textbf{Russian state} line (red) stays within its pre-war band --- the asymmetry quantified in Table~\ref{tab:invasion_tone}.}
-\label{fig:tone}
+\includegraphics[width=\textwidth]{fig1_attention_full_sample.png}\\[-0.2em]
+{\footnotesize\textit{Panel A. Conflict attention share (\% of each ecosystem's own output)}}\\[0.8em]
+\includegraphics[width=\textwidth]{fig2_tone_full_sample.png}\\[-0.2em]
+{\footnotesize\textit{Panel B. Mean conflict tone (GDELT score)}}
+\caption{Perception indices by media ecosystem, 30-day moving averages, 18 February 2015 to 20 May 2026. In both panels the five lines are \textbf{Ukrainian} (blue), \textbf{Russian state-controlled} (red), \textbf{Russian independent} (orange), \textbf{Western} (green) and \textbf{native-English} (purple). Shaded bands mark war regimes against an unshaded pre-war period: build-up (tan, November 2021 to 23 February 2022), invasion (pink, 24 February to June 2022) and attrition (blue, July 2022 onward); the dashed vertical line marks 24 February 2022. Panel A plots the percentage of each ecosystem's daily article output concerning conflict in Ukraine or Russia, and the gap between the upper three lines and the lower two is its point: local outlets cover the conflict continuously, Western-facing ones only around the invasion. Panel B plots the mean GDELT tone of those conflict articles, on a scale running from $-10$ to $+10$; the plotted range of roughly $-3.5$ to $-0.8$ reflects the uniformly negative tone of conflict reporting, and the separation of the Ukrainian line after February 2022, against a flat Russian state line, is the asymmetry quantified in Table~\ref{tab:invasion_tone}.}
+\label{fig:news}
 \end{figure}
 
 Russian state media's tone did not change when Russia invaded Ukraine, and Table~\ref{tab:invasion_tone} quantifies how far that is from what every other ecosystem did. Ukrainian tone falls by 1.66 points, native-English by 0.64, Western by 0.36; Russian state tone moves by $+0.02$, which is to say not at all. The result is not an artefact of which outlets happen to be in the corpus on either side of the invasion: on a fixed panel of the 24 state outlets present in both windows with at least 200 conflict articles in each, the mean shift is $-0.05$. Several state outlets in fact became \textit{more positive} --- \textit{Gazeta.ru} ($+0.48$), \textit{Ren.tv} ($+0.43$), \textit{mskagency.ru} ($+0.40$) --- which is what one would expect from outlets covering the launch of an operation their government had announced as a success. This contrast is the largest and most robust descriptive fact in the data, and it is the reason the pricing null that follows is interesting rather than merely negative: the ecosystem whose signal changed most sharply at the defining event of the sample is not the ecosystem whose signal the market tracks.
@@ -320,10 +333,14 @@ Russian independent (RU\_INDEP) & $-2.09$ & $-2.01$ & $+0.09$ \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}
-\small
-\item Notes: Mean GDELT tone score over the two windows named in the column headings (115 pre-invasion and 102 post-invasion days); more negative values indicate more negative coverage. Ecosystems are ordered by the size of the shift.
-\item The comparison this table is used for is Ukrainian against Russian state, and that contrast is large. Ukrainian tone falls by 1.66 points; Russian state tone does not move. The Russian state figure is not an artefact of which outlets happen to be in the corpus on each side of the invasion: on a fixed panel of the 24 state outlets present in both windows with at least 200 conflict articles in each, the mean shift is $-0.05$ --- negligible on a scale where Ukrainian tone moves by 1.66, and of the same order as the aggregate $+0.02$. A supremum-Wald test for a break at an unknown date, free to choose any day in the interior 70\% of the sample, puts Ukrainian tone's largest break on exactly 24 February 2022, while Russian state tone's largest break falls 393 days later.
-\item The comparison this table is \textit{not} used for is Russian state against Russian independent. The two differ by 0.07 points in the aggregate and by 0.11 on the fixed panel, and a formal test of that difference does not reject ($p = 0.561$). A gap of this kind is readily interpreted as a censorship wedge, and Section~\ref{sec:robustness} reports why that interpretation is not sustainable here. The Russian independent block is small --- four outlets clear the fixed-panel threshold against 24 state outlets --- which is the proximate reason the comparison lacks power.
+\footnotesize
+\item Notes: Mean GDELT tone of each ecosystem's conflict articles over the two
+windows in the column headings (115 pre-invasion and 102 post-invasion days),
+ordered by the size of the shift. The Russian state figure is confirmed on a
+fixed panel of the 24 state outlets present in both windows with at least 200
+conflict articles in each, on which the mean shift is $-0.05$. A supremum-Wald
+test for a break at an unknown date places Ukrainian tone's largest break on
+24 February 2022 and Russian state tone's 393 days later.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
@@ -384,9 +401,16 @@ $p$, Western block jointly zero & --- & 0.333 & 0.688 & 0.177 \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}
-\small
-\item Notes: Dependent variable is the daily percentage return on BSHIELDT, the Bloomberg Europe Defense Select Total Return Index, over the 921 days on which it trades and all five news series exist. HAC(5) standard errors in parentheses. $^{*}$, $^{**}$ and $^{***}$ denote significance at 10\%, 5\% and 1\%. All news regressors are daily first differences, standardised to unit variance, so a coefficient of $-0.125$ means that a one-standard-deviation rise in the change in Russian independent attention accompanies a 0.125 percentage-point lower defence return that day. Produced by \texttt{scripts/make\_thesis\_regression.py}, which reuses the specification of the gate tests exactly.
-\item Columns (3) and (4) differ in one respect only --- whether coverage is credited to the day it was published or to the next trading day --- and that single change is what moves the local block from jointly significant at $p = 0.003$ to indistinguishable from zero at $p = 0.734$. The individual coefficients move with it: Russian independent attention goes from $-0.125$ to $0.010$, and Russian state tone from $0.127$ to $-0.055$. Note also how little any of this matters for fit. The market control alone explains 34.8\% of the variation in daily European defence returns; adding all ten news series raises that to 36.5\% at the untradeable alignment and 35.4\% at the tradeable one.
+\footnotesize
+\item Notes: The dependent variable is the daily percentage return on BSHIELDT,
+the Bloomberg Europe Defense Select Total Return Index, over the 921 days on
+which it trades and all five news series exist. All news regressors are daily
+first differences standardised to unit variance, so a coefficient is the
+percentage-point return change associated with a one-standard-deviation move.
+Column (1) contains the controls alone; (2) adds the Western block; (3) adds the
+local block with news credited to its publication day; (4) is the same full
+model with news lagged one trading day. Newey--West HAC(5) standard errors in
+parentheses. $^{***}$ $p<0.01$, $^{**}$ $p<0.05$, $^{*}$ $p<0.10$.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
@@ -416,17 +440,24 @@ Gate & Block and news timing & Cells & BH surv. & Min.\ $p$ & Verdict \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}
-\small
-\item Notes: Each cell is a joint $F$-test on one block of coefficients in equation~(\ref{eq:main}), with the other block, the regional market control and VIX already in the regression; HAC(5) standard errors. The grid crosses daily/weekly frequency, six conflict-episode windows plus the full sample, and five defence-equity targets, giving 31 cells that clear the minimum-observation rule. Benjamini--Hochberg correction at 5\% FDR is applied across all 31 cells of an arm simultaneously. ``BH surv.'' is that count of surviving cells, and ``Min.\ $p$'' is the smallest uncorrected $p$-value in the arm, reported so that the survivor count can be read against the strength of the strongest single cell; it is omitted for the Gate 3 secondary arm, in which no cell survives correction. ``Verdict'' records the outcome for the block under test: for Gate 2, which is exploratory, whether any cell survives correction; for Gate 3, whether the pre-registered pass rule stated in note $b$ is met. Control rows are marked \textit{detected} or not, since a control is evidence about the design rather than a test of the research question. \textbf{Lagged is the primary timing convention}: GDELT days are full UTC days while European markets close at 16:30 UTC, so only news credited to the following trading day was reliably available to trade on.
-\item[$a$] This row bears on the power of the design, not on local pricing. Seven of 31 same-day cells survive correction, at a minimum $p$ of $2.2\times10^{-6}$, so the design detects the local block where it is present. Crediting the same news to the next trading day, which removes only the portion published after the European close, reduces those seven survivors to one. Information the market had not yet impounded should have survived that shift; what does not survive it is the mechanical same-day association that efficient pricing predicts.
-\item[$b$] The two Gate 3 primary survivors are both weekly and both in the 2025--26 episode window (58 observations against 13 parameters). The two deepest cells in the grid, the pooled daily specifications with 2,754 observations each, return $p = 0.08$ and $p = 0.36$. Neither pre-registered arm clears: Arm 1 requires a surviving cell in the Russia build-up window on a Bloomberg target or ITA, and that window produces no surviving cell at all (smallest $p$ there is 0.018); Arm 2 requires same-sign survivors in two independent episode windows, and the two that survive share a window.
+\footnotesize
+\item Notes: Each cell is a joint $F$-test on one block of coefficients in
+equation~(\ref{eq:main}), with the other block, the regional market control and
+VIX already in the regression; HAC(5) standard errors. The grid crosses two
+frequencies, six conflict-episode windows plus the full sample, and five
+targets, of which 31 cells clear the minimum-observation rule. Benjamini--Hochberg
+correction is applied across all 31 cells of an arm at a 5\% false discovery
+rate; ``BH surv.'' is the resulting count and ``Min.\ $p$'' the smallest
+uncorrected $p$-value in the arm. Lagged is the primary alignment, since GDELT
+days close at midnight UTC and European markets at 16:30. Verdicts refer to the
+block under test; control rows report only whether the Western block is detected.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
 
 The timing contrast in Gate 2 is the result that rules out low power as an explanation of the null. Local coverage is strongly associated with defence returns when credited to its publication day: seven of 31 cells survive correction, the strongest at $p = 2.2\times10^{-6}$. Credited instead to the following trading day --- the only convention under which the information could have been acted upon, since GDELT days run to midnight UTC while European markets close at 16:30 --- seven survivors become one --- and that one falls in the 2017--19 pre-war window, where coverage of a war that had not yet begun cannot be carrying information about it. The lag displaces only the portion of coverage published after the close. Information not yet impounded in prices should therefore have survived it largely intact, whereas a mechanical contemporaneous association should not. The observed pattern is the one efficient pricing implies, and estimating a single alignment would have left the two indistinguishable.
 
-Gate 3 reaches the same verdict on the structural version of the question, and its two survivors fail the pre-registered rule for an instructive reason. They are both weekly cells in the 2025--26 episode window, fitting 13 parameters to 58 observations, while the two deepest cells in the grid --- pooled daily specifications with 2,754 observations each --- return $p = 0.08$ and $p = 0.36$. An effect that concentrates in the thinnest corner of a grid and disappears where the data are deepest is the signature of noise rather than of a small true effect awaiting more power. The Western block, tested in the same 31 cells under the same correction, does survive, at a minimum $p$ of $1.6\times10^{-4}$. That asymmetry --- the Western block detected and the local block not, in identical cells --- is what the test was built to isolate.
+Gate 3 reaches the same verdict on the structural version of the question, and its two survivors fail the pre-registered rule for an instructive reason. They are both weekly cells in the 2025--26 episode window, fitting 13 parameters to 58 observations, while the two deepest cells in the grid --- pooled daily specifications with 2,754 observations each --- return $p = 0.08$ and $p = 0.36$. An effect that concentrates in the thinnest corner of a grid and disappears where the data are deepest is the signature of noise rather than of a small true effect awaiting more power. Neither pre-registered arm clears in any case. The first required a surviving cell in the Russia build-up window on a Bloomberg target or ITA, and that window produces no surviving cell at all, its smallest $p$ being 0.018. The second required same-sign survivors in two independent episode windows, and the two that survive share a window. The Western block, tested in the same 31 cells under the same correction, does survive, at a minimum $p$ of $1.6\times10^{-4}$. That asymmetry --- the Western block detected and the local block not, in identical cells --- is what the test was built to isolate.
 
 Gate 3 also produced a coefficient pattern with an economic interpretation, which a held-out test did not support. Among the surviving weekly cells the Ukrainian coefficients were consistent with ``buy the rumour, sell the fact'': a shift toward anticipatory coverage raised defence returns and a shift toward realised conflict lowered them. Those four sign predictions were recorded and then tested on the 2017--19 window, which had not been examined when the hypothesis was formed, across the three defence-equity targets available there --- twelve sign comparisons in all. Seven matched, against six expected by chance (binomial $p = 0.387$). The out-of-sample signs are indistinguishable from chance. The episode illustrates a general point about pre-registration in this setting: a test fixed in advance but estimated on a sample that is still being extended is not, in the relevant sense, pre-registered, because the data that would discipline it have not yet been observed.
 
@@ -457,15 +488,20 @@ Horizon $h=5$ days & 629 & 0.227 & \textbf{0.033} \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}
-\small
-\item Notes: Each entry is the $p$-value of a joint $F$-test on one block --- local (Ukrainian, Russian state, Russian independent attention and tone changes) or Western --- with the other block and the controls already in the regression; HAC(5) standard errors. Bold marks $p<0.05$; $n$ is the number of observations in the estimation window, at the frequency named in the row. Gate 4's windows are (a) June 2021 to June 2022, (b) June 2022 to June 2023 and (c) June 2021 to December 2023. All four Gate 4 cells estimated are reported, and both Gate 5 horizons. Gate 4 regresses daily TTF returns; Gate 5 regresses the realised-conflict component of the \citet{caldara2022} index on held-out days never used in sample: 637 at $h=1$ and 629 at $h=5$. Both tests were pre-registered, and in both cases the data were collected after the pre-registration was committed, so the ordering is verifiable from the timestamps of the committed pre-registration documents.
-\item All four of Gate 4's pre-registered conditions fail, and they fail in different ways, which is what makes the verdict robust rather than marginal: no BH survivor in either required window; the placebo condition breached, since local perception is jointly significant for Brent crude ($p = 0.0014$) as readily as for European gas; the build-up result does not survive dropping the ten largest TTF moves ($0.399 \rightarrow 0.840$); and the ordering is wrong, with Russian \textit{independent} rather than Russian \textit{state} media leading the local block, which inverts the supply-signalling mechanism the test was built to detect.
-\item The Western block behaves differently in the two gates, and on this evidence Gate 4 carries the positive control and Gate 5 corroborates it only weakly. In Gate 4's build-up window the Western block is detected at $p = 4\times10^{-5}$ in the same specification where the local block returns 0.399 --- the sharpest positive control anywhere in this thesis. In Gate 5 the Western block is significant at the five-day horizon ($p = 0.033$) but not at one day ($p = 0.171$), so Gate 5 on its own would not establish that the design has power; it is reported as corroboration, not as an independent control. A placebo in which the perception series are randomly reordered in time returns $p = 0.557$ at $h=1$ and $0.799$ at $h=5$, confirming the procedure does not manufacture significance from noise.
+\footnotesize
+\item Notes: Each entry is the $p$-value of a joint $F$-test on one block, with
+the other block and the controls already in the regression; HAC(5) standard
+errors, bold marks $p<0.05$, and $n$ is the number of observations at the
+frequency named in the row. Gate 4 regresses daily Dutch TTF gas returns over
+windows (a) June 2021 to June 2022, (b) June 2022 to June 2023 and (c) June 2021
+to December 2023. Gate 5 regresses the realised-conflict component of the
+\citet{caldara2022} index on held-out days never used in sample, 637 at $h=1$
+and 629 at $h=5$. All four Gate 4 cells estimated are reported.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
 
-Gate 4 shows that the null is not a property of defence equities being a weak testbed. European gas is the asset where Russian supply signals should matter most --- Russia supplied roughly 40\% of EU gas and TTF moved from about \texteuro{}20 to over \texteuro{}300 --- and Russian state media is the channel through which supply intent was signalled. Yet the local block returns $p = 0.399$ in the build-up window, and all four pre-registered conditions fail. In the same specification the Western block is detected at $p = 4\times10^{-5}$, which demonstrates that the apparatus finds effects where they exist.
+Gate 4 shows that the null is not a property of defence equities being a weak testbed. European gas is the asset where Russian supply signals should matter most --- Russia supplied roughly 40\% of EU gas and TTF moved from about \texteuro{}20 to over \texteuro{}300 --- and Russian state media is the channel through which supply intent was signalled. Yet the local block returns $p = 0.399$ in the build-up window, and all four pre-registered conditions fail, in four different ways. There is no surviving cell in either required window. The placebo condition is breached, since local perception is jointly significant for Brent crude ($p = 0.0014$) as readily as for European gas, and Brent is an asset the supply-signalling mechanism does not predict. The build-up estimate does not survive dropping the ten largest TTF moves, going from 0.399 to 0.840. And the ordering is inverted: Russian \textit{independent} rather than Russian \textit{state} media leads the local block, which is the wrong way round for a channel that is supposed to run through state signalling of supply intent. In the same specification the Western block is detected at $p = 4\times10^{-5}$, which demonstrates that the apparatus finds effects where they exist.
 
 Gate 4 also demonstrates how a significant result in this setting can dissolve under replication alone. Estimated exploratorily on an initial 81-day subsample of gas-crisis coverage, the build-up specification returned $p = 0.0028$ under the controls the confirmatory test would later use, and $p = 0.0020$ under an alternative control set --- stable enough across specifications to appear robust. The pre-registered confirmatory estimate, on the same asset, specification, controls and calendar period, with nothing altered but the quantity of data, returned $p = 0.399$ on 222 continuous days. The result was not overturned by a better control or a stricter correction, but by fuller coverage of the period it had always concerned. This is the failure mode that pre-registration is designed to expose, and it is invisible to any robustness check conducted within the smaller sample.
 
@@ -508,9 +544,18 @@ True R$^2_{\text{OS}}$ implanted & Rejection rate at 5\% \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}
-\small
-\item Notes: Expanding-window, one-day-ahead design with a minimum 250-day training window, re-estimated at each step. R$^2_{\text{OS}}$ is the Campbell--Thompson out-of-sample $R^2$ \citep{campbell2008}: the proportional reduction in mean squared forecast error relative to the historical-mean benchmark, so a positive value means the predictor helps and a negative one means it hurts. Each specification adds one perception predictor --- the lagged daily change in attention share or tone for one ecosystem --- to a historical-mean benchmark. Because setting that predictor's coefficient to zero returns the benchmark exactly, the comparison is nested and is arbitrated by the Clark--West test \citep{clark2007} with a Bartlett long-run variance estimator, one-sided in the direction of model improvement. Out-of-sample length differs by target: the three free-data targets yield 1,855 out-of-sample days each and the two Bloomberg indices, which begin in 2020, yield 686.
-\item Panel B simulates power by implanting a predictor with a known true R$^2_{\text{OS}}$ into the actual return series and running the identical expanding-window machinery over 1,855 out-of-sample days. The simulation uses 60 paths per row, so each rejection rate carries a standard error of roughly six percentage points; the entries should be read as locating the power curve, not as precise to the second decimal. Nominal size in the first row is 0.02 against a nominal 5\%, confirming the test is conservative rather than over-rejecting --- which means the null in Panel A is not produced by a test that cannot reject.
+\footnotesize
+\item Notes: Expanding-window, one-day-ahead forecasts with a minimum 250-day
+training window, re-estimated at each step. Each specification adds one
+perception predictor to a historical-mean benchmark, so the benchmark is nested
+and the comparison is arbitrated by the Clark--West test \citep{clark2007}.
+R$^2_{\text{OS}}$ is the Campbell--Thompson out-of-sample $R^2$
+\citep{campbell2008}, the proportional reduction in mean squared forecast error
+relative to that benchmark. Out-of-sample length differs by target: 1,855 days
+for the three free-data targets, 686 for the two Bloomberg indices. Panel B
+implants a predictor of known true R$^2_{\text{OS}}$ and re-runs the same
+machinery over 60 paths per row, giving each rejection rate a standard error of
+roughly six percentage points.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
@@ -561,10 +606,10 @@ The extension of greatest value would establish whether this result generalises.
 
 \newpage
 \appendix
-\section{Supplementary tables}
+\section{Appendix}
 
-The table below supports the descriptive section and is placed here rather
-than in the body to keep the number of exhibits in the paper itself to ten.
+The table below supports the descriptive section and is placed here rather than
+in the body to keep the number of exhibits in the paper itself to ten.
 
 \begin{table}[htbp]
 \centering
@@ -594,10 +639,12 @@ Native-English (EN\_GL) & 0.26 & 0.28 & 0.28 & \textbf{0.58} & 1.00 & & 0.02 & 0
 \bottomrule
 \end{tabular}
 \begin{tablenotes}
-\small
-\item Notes: Pearson correlations of daily first differences, the transform used in every regression in this thesis. Correlations are computed pairwise: the media-versus-media block uses the 3,072 estimation-sample days on which all five ecosystem series and a lagged value are available, while the two right-hand columns are restricted to the days on which the relevant Bloomberg index also trades (936 for WAERLST, 921 for BSHIELDT). WAERLST is the Bloomberg World Aerospace \& Defense Total Return Index, BSHIELDT the Bloomberg Europe Defense Select Total Return Index. Only the lower triangle is shown; the matrix is symmetric.
-\item Two patterns matter for what follows. First, the ecosystems are distinct populations rather than one signal measured five times. The largest off-diagonal correlation anywhere in the table is 0.60, between Western and native-English attention --- two ecosystems that overlap by construction, since many global English-language outlets are also Western. Ukrainian and native-English attention correlate at 0.02. Series built from an English-only stream and sorted by article topic are near-duplicates of one another; the publisher-based series are not, which is what makes a conditional test between them meaningful.
-\item Second, no ecosystem is strongly correlated with defence returns unconditionally. Every entry in the two right-hand columns lies between $-0.04$ and $0.05$. This is a necessary but not sufficient condition for the null reported in Section~\ref{sec:findings}: an unconditional correlation of this size could still mask a conditional effect, which is why the tests that follow condition on the Western block and the market control rather than reading the answer off this table.
+\footnotesize
+\item Notes: Pearson correlations of daily first differences, the transform used
+throughout. Correlations are pairwise: the media block uses the 3,072
+estimation-sample days with a lagged value available, the two right-hand columns
+the days on which the relevant Bloomberg index also trades (936 for WAERLST, 921
+for BSHIELDT). Only the lower triangle is shown; the matrix is symmetric.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

@@ -10,7 +10,7 @@ The directory is self-contained — `thesis.tex`, `references.bib` and
 `figures/` are everything the document needs. It can be zipped and uploaded to
 Overleaf as-is, with `thesis.tex` set as the main file.
 
-Verified build: **33 pages, 7 tables and 3 figures in the body plus one
+Verified build: **30 pages, 7 tables and 2 figures in the body plus one
 appendix table, no overfull boxes, and no unresolved citations or
 cross-references**, with both tectonic 0.17 and Debian TeX Live 2025. `build.sh` tries `tectonic`, then `latexmk`, then a three-pass
 `pdflatex` + `bibtex`, and warns if any `[?]` marker survives into the PDF.
@@ -30,14 +30,18 @@ Nothing else is required. The euro sign uses `\texteuro` from the kernel
 rather than the `eurosym` package, specifically so that the roughly 1 GB
 `texlive-fonts-extra` set is not a dependency of one character.
 
-Section balance against the brief: Introduction pp. 2–5 (the brief asks for
-about four), Data and Identification pp. 6–9, Descriptive Statistics
-pp. 10–16, Empirical Findings pp. 17–27, Conclusion pp. 28–30, References and
-appendix pp. 31–33.
-
 The ten-exhibit limit applies to the body, which holds Tables 1–7 and
-Figures 1–3. Supporting material goes to the appendix, which is how the
+Figures 1–2. Supporting material goes to the appendix, which is how the
 exemplar thesis this was benchmarked against handles its diagnostics.
+
+Two conventions here are deliberate and worth keeping. **Table notes are
+technical only** — dependent variable, estimator, standard errors, what each
+column is, significance thresholds — because interpretation belongs in the
+body; the notes had once grown to 200–380 words apiece and carried the
+argument, which is not how a research paper reads. And **the float parameters
+in the preamble are tuned, not decorative**: LaTeX's defaults reserve a fifth
+of every page for text and hand a whole page to any float over half a page,
+which strands exhibits of this size on near-empty pages.
 
 ## What supersedes what
 
