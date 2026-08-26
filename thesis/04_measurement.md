@@ -272,6 +272,18 @@ funded by the US Agency for Global Media — was sitting in the Russian
 exactly. Both moved, under a rule now stated where it is applied. The audit found
 by validation what the earlier error had been found by luck.
 
+There is an awkwardness in that sentence which is better stated than smoothed.
+The version of the audit that caught `svoboda.org` was the name-matching one —
+the version this section has just finished explaining is not a measurement. Under
+the website rule the domain resolves to a different item, recording no country,
+and returns as unverifiable rather than as a disagreement. **The flag that found
+the error no longer reproduces.** The correction stands on the rule and on what
+RFE/RL is; `currenttime.tv`, the same organisation, does resolve cleanly to the
+United States and supplies the evidence the other lacks. A loose audit found a
+real error that a strict one cannot see, and a strict one is still the right
+thing to report — the loose one's precision figure moved between runs of
+identical code.
+
 **Three limits, stated rather than blurred.**
 
 *It validates domains, not attribution.* Every check here establishes that a

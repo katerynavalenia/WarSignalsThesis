@@ -135,7 +135,19 @@ already looking at. Running the register against an independent source instead
 (§4.6) turned up a second instance of the same class immediately: `svoboda.org`,
 Radio Free Europe/Radio Liberty's Russian service, funded by the US Agency for
 Global Media and sitting in the same Russian-independent set. `currenttime.tv` is
-the same organisation and follows by rule. All three are now Western.
+the same organisation, and resolves in the audit to the United States. All three
+are now Western.
+
+One detail about that flag belongs in the record, because it cuts against the
+convenient version of this story. The audit that caught `svoboda.org` matched
+Wikidata items by *name*, and that version was later replaced — for reasons §4.6
+sets out — by one that accepts an item only when its own website confirms the
+domain. Under the stricter rule `svoboda.org` resolves to a different item that
+records no country, so it now returns as unverifiable rather than as a
+disagreement: **the flag that found the error no longer reproduces.** The
+correction stands on the rule and on what RFE/RL is, not on the flag. An audit
+strict enough to be reproducible is not always the audit that finds the error,
+and both facts are worth having.
 
 The episode's lesson is not that one outlet was misfiled. It is that the register
 had **no stated rule** for outlets whose publisher, language and audience point

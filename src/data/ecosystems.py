@@ -50,10 +50,20 @@ RU_INDEPENDENT = {
 # Both are Radio Free Europe/Radio Liberty services, funded by the US Agency for
 # Global Media. A state-funded external broadcaster classifies to the state that
 # funds it, whatever language it publishes in; that is the single rule that puts
-# Deutsche Welle in Germany and RFE/RL in the United States. ``svoboda.org`` was
-# flagged independently by the Wikidata audit (country of origin: Q30, United
-# States); ``currenttime.tv`` was not resolvable there and follows by the same
-# rule rather than by evidence.
+# Deutsche Welle in Germany and RFE/RL in the United States.
+#
+# ``svoboda.org`` was flagged by the Wikidata audit, which is how the error was
+# found. What the audit reports for it has since changed, and the change is worth
+# recording rather than papering over: the flag came from a version that matched
+# items by name, and the stricter resolver now in use confirms a *different*
+# item for the domain — Q120484020, "RFE/RL's Russian Service" — which records no
+# country at all. The identity is confirmed and the country is not, so the audit
+# now returns it as unverifiable rather than as a disagreement.
+#
+# The correction therefore rests on the rule and on what RFE/RL is, not on a flag
+# that no longer reproduces. ``currenttime.tv`` is the same organisation and
+# resolves cleanly (Q55663942, United States), which is the evidence the other
+# one lacks.
 #
 # The rule cuts the other way for **exile newsrooms**, which stay with their
 # country of origin: Meduza, Novaya Gazeta Europe, TV Rain and The Moscow Times
