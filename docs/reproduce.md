@@ -167,26 +167,49 @@ with a planted coefficient.
 
 ## 4. Building the document
 
-There are two documents in this repository, and they are not alternatives: the
-LaTeX manuscript is what gets submitted, and the markdown chapters are the long
-working record behind it.
+There are three documents in this repository and they are not alternatives.
+`thesis/final/` is what gets submitted; `thesis/latex/` is an earlier
+manuscript on a different research question; the markdown chapters are the long
+working record behind both.
 
-**The submitted manuscript.** `thesis/latex/main.tex`, built with:
+**The submitted manuscript.** `thesis/final/thesis.tex`, built with:
 
 ```bash
-python scripts/run_shap_attribution.py  # regenerate the attribution figure
-python scripts/plot_thesis_figures.py   # and the other four
-cd thesis/latex && ./build.sh           # -> Master_Thesis_3.pdf
+python scripts/make_thesis_descriptives.py   # Tables 2 and 4
+python scripts/make_thesis_correlations.py   # Table 3
+python scripts/plot_thesis_figures.py        # the figures
+cd thesis/final && ./build.sh                # -> thesis.pdf
 ```
 
 `build.sh` tries `tectonic`, `latexmk` and `pdflatex` in that order and checks
 the output for unresolved citations rather than trusting a silent exit code.
-Verified with tectonic 0.15.0: **30 pages, 7 tables, 5 figures, every citation
-resolved**. The figures must be built first — they live in `outputs/figures/`
-rather than beside the `.tex`, and the manuscript reads them from there.
+Verified with tectonic 0.17: **33 pages, 7 tables, 3 figures, no overfull
+boxes, every citation resolved**.
 
-`thesis/latex/changes-from-original.diff` records this manuscript against the
-version it was edited from, so the comparison needs no tooling.
+Unlike the earlier manuscript, `thesis/final/` is **self-contained** — the
+figures it reads live in `thesis/final/figures/`, not in `outputs/figures/`,
+so the directory can be zipped and uploaded to Overleaf unchanged. Re-copy
+them after regenerating:
+
+```bash
+cp outputs/figures/fig1_attention_full_sample.png \
+   outputs/figures/fig2_tone_full_sample.png \
+   outputs/figures/fig1_defense_indices.png thesis/final/figures/
+```
+
+The two `make_thesis_*.py` scripts read `data/interim/perception_indices.parquet`
+and `spine_full.parquet` — the same tables the regressions use — and write
+`outputs/tables/thesis_descriptives.csv`, `thesis_invasion_tone.csv` and
+`thesis_correlations.csv`. The remaining tables in the manuscript are
+transcribed by hand from the gate CSVs named in each table's notes.
+
+**The earlier manuscript.** `thesis/latex/main.tex` → `Master_Thesis_3.pdf`,
+built the same way from `outputs/figures/`, and requiring
+`run_shap_attribution.py` first. It answers the previous research question
+(physical attack intensity versus news, with a SHAP attribution and an MAE
+horse race) and is kept because the history is cited, not for submission.
+`thesis/latex/changes-from-original.diff` records it against the version it
+was edited from.
 
 **The working chapters.** `thesis/*.md`, built with pandoc:
 
@@ -230,6 +253,8 @@ a LaTeX engine and none is installed on the machine the thesis was written on.
 | `run_volatility_race.py` | `outputs/tables/volatility_race.csv` |
 | `diagnose_v1_weekend.py` | `outputs/tables/v1_weekend_diagnostic.csv` |
 | `run_horse_race.py` (Table 7 view) | `outputs/tables/horse_race_baseline_vs_extended.csv` |
+| `make_thesis_descriptives.py` | `outputs/tables/thesis_descriptives.csv`, `thesis_invasion_tone.csv` |
+| `make_thesis_correlations.py` | `outputs/tables/thesis_correlations.csv` |
 | `run_horse_race.py` (news only) | `outputs/tables/horse_race_news_only.csv` |
 | `plot_thesis_figures.py` | `outputs/figures/fig1_defense_indices.png`, `fig2_attacks_news.png`, `fig3_return_mae_infosets.png`, `figA1_diagnostics.png` |
 | `run_shap_attribution.py` | `outputs/tables/shap_by_block.csv`, `shap_by_feature.csv`, `outputs/figures/fig4_shap_attribution.png` |
