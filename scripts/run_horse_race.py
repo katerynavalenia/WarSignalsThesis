@@ -227,6 +227,9 @@ def main() -> None:
 
     # The invasion window leaves every set, not just the physical ones, so the
     # sets race on one sample. This is enforced, not assumed.
+    # Kept before the exclusion below, for the news-only comparison at the end.
+    panel_with_invasion = panel.copy()
+
     before = len(panel)
     panel = panel[~panel["attack_unobserved"].fillna(False).astype(bool)]
     print(f"\ndropped {before - len(panel)} rows where physical data does not "
@@ -376,6 +379,66 @@ def main() -> None:
     print(f"  Clark-West p<0.05 nominal : {int((out.cw_p < 0.05).sum())}"
           f" of {int(testable.sum())} testable")
     print(f"  surviving BH at FDR 5%    : {int(out.survives_bh.sum())}")
+    # --- news only, over the whole sample, invasion window included ----------
+    #
+    # The main race drops the 149 days for which physical data does not exist,
+    # so that every information set is compared on identical observations. That
+    # is right for the comparison and wrong for one question: a model using only
+    # news needs no physical data, and excluding those days denies it precisely
+    # the window in which the war began. This runs F and N over the complete
+    # 2015-2026 sample with nothing dropped.
+    news_rows = []
+    for tgt in TARGETS:
+        d = panel_with_invasion
+        for h in HORIZONS:
+            y = (d[tgt].rolling(h).sum().shift(-(h - 1)) if h > 1
+                 else d[tgt]).rename("y")
+            cols_n = [c for c in sets["N"] if c in d.columns]
+            frame = pd.concat([y, d[cols_n]], axis=1).dropna()
+            if len(frame) < 400:
+                continue
+            yy = frame["y"]
+            test_start = int(len(yy) * (1 - TEST_FRACTION))
+            bench = expanding_oos(yy, frame[cols_n], "mean", test_start, horizon=h)
+            for name, cols in (("F", sets["F"]), ("N", sets["N"])):
+                use = [c for c in cols if c in d.columns]
+                for model in ("ridge", "xgb"):
+                    fc = expanding_oos(yy, frame[use], model, test_start,
+                                       horizon=h)
+                    ok = pd.concat([yy, bench.rename("b"), fc.rename("f")],
+                                   axis=1).dropna()
+                    if len(ok) < 50:
+                        continue
+                    a, b, c = ok["y"], ok["b"], ok["f"]
+                    cw = clark_west(a, b, c, horizon=h)
+                    news_rows.append({
+                        "target": tgt, "horizon": h, "info_set": name,
+                        "model": model, "n_obs": len(frame),
+                        "n_test": len(ok),
+                        "mae": float(np.mean(np.abs(a - c))),
+                        "r2_oos": float(campbell_thompson_r2_oos(a, c, b)),
+                        "cw_p": float(cw.pvalue),
+                    })
+            print(f"  news-only {tgt:11s} h={h} done ({len(frame)} rows)",
+                  flush=True)
+
+    if news_rows:
+        news = pd.DataFrame(news_rows)
+        rej, padj, _, _ = multipletests(news.cw_p, alpha=0.05, method="fdr_bh")
+        news["cw_p_bh"], news["survives_bh"] = padj, rej
+        news.to_csv(args.out_dir / "horse_race_news_only.csv", index=False)
+        print("\n=== news only, full sample, invasion window retained ===\n")
+        print(news[["target", "horizon", "info_set", "model", "n_obs",
+                    "n_test", "mae", "r2_oos", "cw_p"]]
+              .round(4).to_string(index=False))
+        n_ext = news[news.info_set == "N"]
+        print(f"\n  observations per target: {news.n_obs.min()}-{news.n_obs.max()}"
+              f" (against {len(panel[panel.date >= UAF_REPORTING_START])} on the "
+              f"measured sample)")
+        print(f"  news specifications      : {len(n_ext)}")
+        print(f"  positive R2_OS           : {int((n_ext.r2_oos > 0).sum())}")
+        print(f"  surviving BH at FDR 5%   : {int(n_ext.survives_bh.sum())}")
+
     print("\n  This race was NOT pre-registered. Any positive is exploratory,")
     print("  and Section 8.2 is what happens when that caveat is dropped.")
     print(f"\nwrote {args.out_dir/'horse_race.csv'}")

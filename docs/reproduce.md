@@ -230,6 +230,7 @@ a LaTeX engine and none is installed on the machine the thesis was written on.
 | `run_volatility_race.py` | `outputs/tables/volatility_race.csv` |
 | `diagnose_v1_weekend.py` | `outputs/tables/v1_weekend_diagnostic.csv` |
 | `run_horse_race.py` (Table 7 view) | `outputs/tables/horse_race_baseline_vs_extended.csv` |
+| `run_horse_race.py` (news only) | `outputs/tables/horse_race_news_only.csv` |
 | `plot_thesis_figures.py` | `outputs/figures/fig1_defense_indices.png`, `fig2_attacks_news.png`, `fig3_return_mae_infosets.png`, `figA1_diagnostics.png` |
 | `run_shap_attribution.py` | `outputs/tables/shap_by_block.csv`, `shap_by_feature.csv`, `outputs/figures/fig4_shap_attribution.png` |
 | `run_indicator_correlations.py` | `outputs/tables/indicator_correlations.csv` |

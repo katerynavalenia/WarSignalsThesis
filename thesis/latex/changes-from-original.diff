@@ -50,23 +50,23 @@
 > 
 > From 29 September 2022 onward the variables are observed. Trading days inside this window with no published attack wave are genuine zeros and are treated as such; 809 of the 931 trading days in the window carry a Ukrainian Air Force record.
 > 
-138a155,159
+138a155
 > \label{sec:news}
-> 
-> The news dataset is constructed from GDELT GKG 2.0, a large-scale global database designed to measure events, locations, and tone from news sources \citep{leetaru2013gdelt}. The extraction covers 18 February 2015 to 20 May 2026, or 4,027 days, which is 98 percent of the calendar in that span; the missing days are gaps in the GDELT archive itself. Coverage begins well before the full-scale invasion so that the news series are observed across quiet periods, the 2021--2022 build-up, and the war itself, rather than only during the conflict.
-> 
-> News sources are classified by the identity of the outlet that published an article, not by the country an article mentions. The distinction is essential rather than technical. Classifying by subject would place a Western wire report about Russia in the Russian group, so that all national series would be drawn from a single English-language population and would differ only in topic; the question of whether the perception carried by different media matters cannot be answered by a classifier of that kind.
-140c161
+140c157
 < The news dataset is constructed from GDELT GKG 2.0, a large-scale global database designed to measure events, locations, and tone from news sources \citep{leetaru2013gdelt}. The extraction covers 46 months from 29 September 2022 to 21 June 2026 and uses four multilingual query groups related to Russian attacks, Ukrainian defense and energy, the defense industry, and the energy consequences of the war. The raw extraction produced approximately 12 million article-query observations, which were reduced to about 11.4 million URL-deduplicated observations.
 ---
-> The classifier applies four tiers in order. Syndication platforms with no newsroom of their own are excluded first, because they carry large volume but no editorial voice. A curated register of the highest-volume outlets is applied next, recording country and, for Russian outlets, state control as against independent or exile ownership. Country top-level domains are applied third. Source language is applied last and only where country remains unknown. Country resolves before language because many Ukrainian outlets publish heavily in Russian, so a language-first rule would file them as Russian media and manufacture agreement between the two groups; Section~\ref{sec:classcheck} reports what such a rule costs in practice.
-142c163
+> The news dataset is constructed from GDELT GKG 2.0, a large-scale global database designed to measure events, locations, and tone from news sources \citep{leetaru2013gdelt}. The extraction covers 18 February 2015 to 20 May 2026, or 4,027 days, which is 98 percent of the calendar in that span; the missing days are gaps in the GDELT archive itself. Coverage begins well before the full-scale invasion so that the news series are observed across quiet periods, the 2021--2022 build-up, and the war itself, rather than only during the conflict.
+142c159
 < News sources are classified into Ukrainian, Russian, Western, and other groups. The classifier combines manually curated source domains, country information extracted from GDELT location fields, top-level-domain heuristics, and a fallback category. This hybrid approach is useful because domain-only classification has high precision but low coverage, while country information provides much broader coverage. An automated agreement check on high-confidence domains reports overall agreement of approximately 85.4 percent, with higher agreement for manually classified domains and top-level-domain rules.
 ---
-> Five source groups enter the tests: Ukrainian, Russian state, Russian independent, Western, and native-English. Russian outlets outside the register are retained as a residual group that is reported but not tested, so that unclassified Russian volume remains visible rather than hidden inside another series.
-144c165
+> News sources are classified by the identity of the outlet that published an article, not by the country an article mentions. The distinction is essential rather than technical. Classifying by subject would place a Western wire report about Russia in the Russian group, so that all national series would be drawn from a single English-language population and would differ only in topic; the question of whether the perception carried by different media matters cannot be answered by a classifier of that kind.
+144c161,165
 < The daily news variables measure both attention and tone. Attention is the number of articles in a given source group and query category. Tone is the average GDELT tone score for articles in a given group and day. Because GDELT tone is a scalable automated measure, it is interpreted as an indicator of article negativity or positivity rather than a perfect measure of investor sentiment. This interpretation follows the broader caution in financial textual analysis that dictionaries and automated textual scores may behave differently across domains \citep{loughran2011textual}.
 ---
+> The classifier applies four tiers in order. Syndication platforms with no newsroom of their own are excluded first, because they carry large volume but no editorial voice. A curated register of the highest-volume outlets is applied next, recording country and, for Russian outlets, state control as against independent or exile ownership. Country top-level domains are applied third. Source language is applied last and only where country remains unknown. Country resolves before language because many Ukrainian outlets publish heavily in Russian, so a language-first rule would file them as Russian media and manufacture agreement between the two groups; Section~\ref{sec:classcheck} reports what such a rule costs in practice.
+> 
+> Five source groups enter the tests: Ukrainian, Russian state, Russian independent, Western, and native-English. Russian outlets outside the register are retained as a residual group that is reported but not tested, so that unclassified Russian volume remains visible rather than hidden inside another series.
+> 
 > The daily news variables measure both attention and tone. Attention is each group's conflict-related coverage as a share of its own total output rather than as a raw count, because GDELT source coverage drifts substantially over eleven years and a count series would show that drift as a common trend in every group at once. Tone is the average GDELT tone score for articles in a given group and day. Because GDELT tone is a scalable automated measure, it is interpreted as an indicator of article negativity or positivity rather than a perfect measure of investor sentiment. This interpretation follows the broader caution in financial textual analysis that dictionaries and automated textual scores may behave differently across domains \citep{loughran2011textual}.
 151c172,173
 < \text{UA--RU gap}_{t} &= \text{Tone}^{UA}_{t} - \text{Tone}^{RU}_{t}.
@@ -136,17 +136,17 @@
 > The main identification challenge is information timing. The pipeline addresses this challenge by assigning physical attacks to a market-information date, lagging predictors before forecasting, and evaluating models only on future trading outcomes. The second challenge is avoiding overfitting in a small daily sample. The pipeline addresses this through out-of-sample testing, expanding-window validation, hyperparameters held fixed across information sets, comparisons against simple benchmarks, and a false-discovery-rate correction across the specification grid. The third challenge is measurement error in news and source classification. The pipeline addresses this by classifying on the publisher rather than the subject, by validating the classifier against an independent external source, and by re-running the central comparison under alternative classification rules; Section~\ref{sec:classcheck} reports both.
 214a241
 > \section{Descriptive Statistics}
-244c271,275
+244c271
 < The attack data show that Russian air attacks became a frequent and high-intensity feature of the war. In the model-window feature matrix, attack days with positive attacks have an average of about 124 launched weapons, with a standard deviation of about 143 and a maximum close to 982. The interception rate averages about 0.73 on attack days. These statistics show why both the level and composition of attacks may matter: the distribution is highly skewed, with a small number of very large attack waves.
 ---
 > The attack data show that Russian air attacks became a frequent and high-intensity feature of the war. On days with a recorded attack, an average of about 127 weapons were launched, with a standard deviation of about 144 and a maximum close to 982. The interception rate averages about 0.74 across the sample. These statistics show why both the level and composition of attacks may matter: the distribution is highly skewed, with a small number of very large attack waves.
-> 
+246c273,279
+< The news data contain broad daily coverage of the war. In the model-window feature matrix, total daily article attention averages about 8,551 articles, with a standard deviation of about 3,296 and a maximum of 23,886. The tone variables show that Ukrainian and Russian source groups are more negative on average than Western sources. Ukrainian tone averages about -3.43, Russian tone about -3.52, and Western tone about -1.73. The average Ukrainian--Western tone gap is about -1.70, and the average Russian--Western tone gap is about -1.79.
+---
 > The news data contain broad daily coverage of the war across the whole 2015--2026 span. Volume differs substantially across source groups, which is one reason attention is measured as a share of a group's own output rather than as a count: the Western group publishes a median of about 7,600 conflict-related articles a day and the Russian independent group about 390. Tone differs as well. Ukrainian and Russian independent coverage is more negative on average, at about $-2.39$ and $-2.31$, than Western coverage at about $-1.80$ or Russian state coverage at about $-1.78$.
 > 
 > Panel B of Table~\ref{tab:summary_statistics} reports how the indicators move together over the full sample, which bears directly on whether the two layers are worth separating. They are. Attack intensity correlates with the narrative indicators at between 0.23 and 0.58 in absolute value, so the physical and media layers are related without being substitutes for one another. The pattern within that range is itself informative: attack intensity moves with Russian state attention at 0.58 and against Ukrainian attention at $-0.35$, so the same battlefield activity is reflected very differently depending on which press is doing the reflecting. Ukrainian and Western attention are the most closely related pair at 0.66, and the three tone series move together at 0.45 to 0.50, which is what one would expect of measures that respond to the same events with different emphasis.
-246c277,279
-< The news data contain broad daily coverage of the war. In the model-window feature matrix, total daily article attention averages about 8,551 articles, with a standard deviation of about 3,296 and a maximum of 23,886. The tone variables show that Ukrainian and Russian source groups are more negative on average than Western sources. Ukrainian tone averages about -3.43, Russian tone about -3.52, and Western tone about -1.73. The average Ukrainian--Western tone gap is about -1.70, and the average Russian--Western tone gap is about -1.79.
----
+> 
 > The published geopolitical risk index sits closest to Western attention at 0.46 and to attack intensity at 0.42, and is almost unrelated to Ukrainian attention at 0.07. That is consistent with a global index built largely from Anglophone coverage, and it is one reason a source-group design can say something an aggregate index cannot.
 > 
 > The Russian independent group is much the smallest, and it is small for reasons connected to what it measures. Several of its constituent outlets were liquidated, blocked, or relocated abroad during the sample, so its volume falls sharply across the very event being studied. Results that depend specifically on that group are correspondingly less well determined than results resting on the larger groups.
@@ -159,7 +159,7 @@
 > \footnotesize
 > \textit{Panel A. Summary statistics for selected modeling variables}
 > 
-286,294c323,391
+286,294c323,332
 < VIX & 18.012 & 4.760 & 11.860 & 52.330 & 920 \\
 < Weapons launched & 124.171 & 142.575 & 1.000 & 982.000 & 788 \\
 < Interception rate & 0.731 & 0.213 & 0.000 & 1.000 & 788 \\
@@ -180,8 +180,7 @@
 > Russian state tone & -1.778 & --- & --- & --- & 4027 \\
 > Russian independent tone & -2.312 & --- & --- & --- & 4027 \\
 > Western tone & -1.802 & --- & --- & --- & 4027 \\
-> \bottomrule
-> \end{tabular}
+296a335,356
 > 
 > \vspace{1em}
 > \textit{Panel B. Correlations among the war indicators, in levels}
@@ -204,13 +203,11 @@
 > \bottomrule
 > \end{tabular}
 > 
-> \begin{tablenotes}
-> \small
+299c359
+< \item Notes: WAERLST and BSHIELDT return statistics are computed from the official Bloomberg index files over the model-window period beginning 29 September 2022. Other statistics come from the rebuilt WAERLST model matrix. Returns are in percent. Tone is the GDELT tone score.
+---
 > \item Notes: In Panel A, WAERLST and BSHIELDT return statistics are computed from the official Bloomberg index files over the model-window period beginning 29 September 2022. Attack statistics are over the 809 dates carrying a Ukrainian Air Force record. News statistics are over the full 4,027-day extraction; article counts are medians because the distributions are strongly right-skewed, and tone is the mean GDELT tone of conflict-related articles. Returns are in percent. Panel B reports Pearson correlations in levels over the 1,956 days on which every indicator is observed. Attack intensity is the log of one plus weapons launched. The geopolitical risk index is the published Caldara--Iacoviello series and is not used as a predictor; it is included as an external reference point.
-> \end{tablenotes}
-> \end{threeparttable}
-> \end{table}
-> 
+303a364,424
 > \subsection{Validating the Source Classification}
 > \label{sec:classcheck}
 > 
@@ -239,7 +236,8 @@
 > Western             & 28 & 23 & 23 & 1.000 \\
 > \midrule
 > All groups          & 84 & 66 & 63 & 0.955 \\
-296a394,409
+> \bottomrule
+> \end{tabular}
 > 
 > \vspace{1em}
 > \textit{Panel B. The central comparison under alternative classification rules}
@@ -256,11 +254,13 @@
 > \bottomrule
 > \end{tabular}
 > 
-299c412
-< \item Notes: WAERLST and BSHIELDT return statistics are computed from the official Bloomberg index files over the model-window period beginning 29 September 2022. Other statistics come from the rebuilt WAERLST model matrix. Returns are in percent. Tone is the GDELT tone score.
----
+> \begin{tablenotes}
+> \small
 > \item Notes: In Panel A an outlet is verifiable when an external record can be matched to it by its official website and that record states a country. Outlets without such a record are counted neither as successes nor as failures, since counting them either way would misstate the audit; precision is agreeing outlets as a share of verifiable ones. In Panel B each row re-estimates the same grid of 31 specifications under a different classification rule, holding everything else fixed, and counts are of specifications significant at the 5 percent level before and after false-discovery-rate correction.
-303a417,424
+> \end{tablenotes}
+> \end{threeparttable}
+> \end{table}
+> 
 > Panel A of Table~\ref{tab:classification_validation} reports the result. The three groups that carry the thesis's main comparisons return no disagreement at all. All three disagreements fall in the Russian independent group and are the same disagreement three times over: they are exile newsrooms, for which the external source records the country of legal registration while the register records the country whose readership the outlet serves. These are recorded and not acted upon, since acting on them would empty the independent Russian group of precisely the outlets that define it.
 > 
 > The third is sensitivity to the classification rule itself. Every rule in Section~\ref{sec:news} is a judgement --- which tier applies first, whether to infer a country from a top-level domain, whether to fall back on language at all, whether syndication platforms count as media --- and a reader is entitled to ask what happens if they are made differently. The central comparison is therefore re-estimated under four alternatives.
@@ -434,29 +434,35 @@
 > sample to the measured attack window beginning 29 September 2022. No extended
 > specification in this table survives false-discovery-rate correction across the
 > grid.
-456c619,621
+456c619,627
 < The robustness evidence confirms the conservative interpretation. War-specific variables do not improve WAERLST or BSHIELDT return forecasts relative to the best financial baseline. ITA provides a tiny one-day exception, but the improvement is only about 0.4 percent in MAE and disappears at the five-day horizon. A further robustness check that cuts the sample at 4 June 2026, the last date with complete market-control coverage, gives the same qualitative conclusion: the extended information sets do not improve WAERLST or BSHIELDT forecasts and only marginally improve one-day ITA forecasts.
 ---
 > The robustness evidence confirms the conservative interpretation. A war-augmented information set achieves a lower MAE than every baseline in five of the twelve cells, by between 0.2 and 3.0 percent, and is worse in the other seven. The gains are concentrated at the one-day horizon and reverse at five days, and none is statistically distinguishable from zero once the size of the specification grid is taken into account. Read together with Table~\ref{tab:return_forecasts}, the picture is one of small and unstable differences around a benchmark rather than a detectable signal.
 > 
+> A further check addresses the sample restriction itself. The comparison above drops the 149 days for which physical data does not exist, so that every information set is judged on identical observations. That is right for comparing sets and wrong for one question, because a model using only news requires no physical data and the exclusion denies it precisely the months in which the war began. Estimated on its own, with those days retained and the physical block dropped, the news set has 904 observations against 579 on the measured sample --- more than half as many again, and including 143 days inside the invasion window.
+> 
+> Over that longer sample the news set does not improve on the historical mean in any of the twelve specifications it supports. Every out-of-sample $R^2$ is negative, ranging from $-0.04$ to $-0.20$, and no Clark--West comparison survives correction. The conclusion does not depend on the sample restriction that the attack data imposes.
+> 
+> It is worth being explicit about what limits that sample, because it is not the news. The extraction runs from February 2015, but the defence-equity indices begin in January 2020, so a forecasting model cannot reach further back than its target does however long the news series is. The gain from the longer news sample is therefore real but bounded, and the binding constraint on this design is the availability of the financial outcome rather than of the war signal.
+> 
 > The two samples also answer a question about the pre-war period directly. Carrying those years as zeros in the physical block does not change the verdict, and it does not help the physical layer: mean out-of-sample $R^2$ for the news set improves slightly on the longer sample, by 0.013, while the physical, combined, and narrative-gap sets all deteriorate, by between 0.025 and 0.035. The reason is straightforward. In 1,757 of the added trading days every physical variable is identically zero, so those observations add sample size without adding variation in the quantity whose predictive content is being tested. The assumption is defensible, and it is not free.
-462c627
+462c633
 < The main contribution is to compare physical and narrative war signals in the same forecasting framework. The physical layer measures realized military intensity through weapons launched, weapons destroyed, interception rates, weapon composition, and attack-surprise variables. The narrative layer measures news attention, tone, and differences in tone across Ukrainian, Russian, Western, and other source groups. This distinction is useful because the market may respond differently to what happens physically and to how those events are reported.
 ---
 > The main contribution is to compare physical and narrative war signals in the same forecasting framework. The physical layer measures realized military intensity through weapons launched, weapons destroyed, interception rates, weapon composition, and attack-surprise variables. The narrative layer measures news attention, tone, and differences in tone across Ukrainian, Russian state, Russian independent, Western, and native-English source groups. This distinction is useful because the market may respond differently to what happens physically and to how those events are reported. Classifying sources by publisher rather than by subject is what makes the second half of that comparison meaningful, and the classifier is validated externally, audited domain by domain, and re-estimated under alternative rules so that the news result does not rest on one set of unexamined choices.
-464c629
+464c635
 < The final answer to the research question is cautious. Physical air-attack intensity and multilingual news narratives do not provide robust incremental out-of-sample predictive power for defense-equity returns or volatility in this sample. The main WAERLST results are not improved by adding attack or news variables, and the European BSHIELDT robustness outcome gives the same conclusion. The only positive robustness result is a tiny one-day ITA improvement from the narrative-gap XGBoost model, but this gain is economically small and does not persist at the five-day horizon. For volatility, standard EGARCH or GARCH benchmarks outperform the attempted exogenous GARCH extensions under QLIKE. The evidence therefore supports a null or near-null conclusion rather than a strong predictability result.
 ---
 > The final answer to the research question is cautious. Physical air-attack intensity and multilingual news narratives do not provide robust incremental out-of-sample predictive power for defense-equity returns or volatility in this sample. Across 144 return specifications, 16 improve on the historical mean and none survives a false-discovery-rate correction, while models using no war variables win two-thirds of the outcome-horizon cells. The one-day WAERLST results show small improvements from the combined physical-and-news set, but they are not statistically distinguishable from zero and they reverse at the five-day horizon. For volatility, standard GARCH-family benchmarks are not improved upon by war-augmented specifications under QLIKE, and every statistically detectable difference runs the wrong way. The evidence therefore supports a null or near-null conclusion rather than a strong predictability result.
-466c631
+466c637
 < The thesis has several limitations. First, the analysis does not identify causal effects of attacks or news on defense-equity prices. Second, the daily frequency may be too coarse for some market reactions and too noisy for others; intraday data would allow a cleaner analysis of immediate price discovery. Third, volatility is measured using close-to-close returns rather than high-frequency realized volatility. Fourth, GDELT tone and source classification are imperfect proxies for media narratives and may contain measurement error. Fifth, the sample is shaped by the availability of consistent attack and news data beginning in late 2022, which limits the number of out-of-sample forecast observations.
 ---
 > The thesis has several limitations. First, the analysis does not identify causal effects of attacks or news on defense-equity prices. Second, the daily frequency may be too coarse for some market reactions and too noisy for others; intraday data would allow a cleaner analysis of immediate price discovery. Third, volatility is measured using close-to-close returns rather than high-frequency realized volatility. Fourth, GDELT tone remains an imperfect proxy for media narratives: the source classification is validated externally at the level of the publishing domain, but that validation cannot establish that GDELT has attributed every article to the right domain in the first place, which only a reader with the relevant languages could check. Fifth, physical attack data exist only from late September 2022, so the months of the invasion itself lie outside every specification that uses them, and the number of out-of-sample forecast observations remains modest.
-470c635
+470c641
 < The contribution of this thesis is therefore narrow but evidence-based. It does not find strong incremental predictability from daily physical attacks or multilingual news narratives, but it shows this through a transparent dataset, a careful timing design, and an out-of-sample comparison of physical and narrative war information. The study contributes to the literature by testing a clear forecasting question in a setting where geopolitical risk, news, and defense-equity markets meet.
 ---
 > The contribution of this thesis is therefore narrow but evidence-based. It does not find strong incremental predictability from daily physical attacks or multilingual news narratives, but it shows this through a transparent dataset, a careful timing design, a source classification that is validated rather than assumed, and an out-of-sample comparison of physical and narrative war information in which the size of the specification grid is accounted for. The study contributes to the literature by testing a clear forecasting question in a setting where geopolitical risk, news, and defense-equity markets meet.
-478,487c643,645
+478,487c649,651
 < \includegraphics[width=1\textwidth]{fig11_target_distribution.png}
 < \caption{Distribution of the one-day WAERLST return forecasting target. The left panel reports daily log returns in percent. The right panel reports the same distribution with a logarithmic count axis, which makes the tails of the return distribution easier to see.}
 < \label{fig:appendix_target_distribution}
@@ -471,7 +477,7 @@
 > \includegraphics[width=1\textwidth]{figA1_diagnostics.png}
 > \caption{Diagnostics for the forecasting target and the news sample. The upper panels report the distribution of the one-day WAERLST return target, on a linear count axis and on a logarithmic one that makes the tails easier to see. The lower panel reports monthly coverage of the news extraction, as the share of days in each month for which the series are observed; coverage is common to all five source groups, since they are derived from the same extraction. The dashed vertical line marks the beginning of the measured attack window on 29 September 2022.}
 > \label{fig:appendix_diagnostics}
-496,525d653
+496,525d659
 < \begin{figure}
 <     \centering
 <     \includegraphics[width=0.5\linewidth]{fig11_target_distribution.png}
