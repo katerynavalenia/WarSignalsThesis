@@ -21,8 +21,14 @@ will do, where it lands in the paper, and what it costs.
 > | #3(c) face validity on known events | **done** — §4.5 |
 > | #3(d) sensitivity across classification rules | **done** — §4.5, five rules, one scan |
 > | #4 R²_OS, Clark–West, MCS, multiple-testing control | **done** — Chapter 7, plus combination and economic value |
-> | #4 HAR-RV-X volatility arm | **not done** — volatility dropped as an outcome; §8.8 records why |
+> | #4 HAR-RV-X volatility arm | **done** — volatility restored; GARCH/GJR/EGARCH benchmarks with HAR-RV-X under QLIKE (`run_volatility_race.py`). Nothing improves on the benchmark; eight of 48 augmented specifications are significantly worse |
 > | #5 cite Bondarenko et al. (2024) | **done** — the methodological anchor throughout |
+>
+> The physical air-attack layer, dropped in the v3 rebuild, is also restored —
+> the approved title is *Physical Air-Attack Intensity versus Multilingual News
+> Narratives*, and without it the work had stopped answering half its own
+> question. The five-set horse race (F/P/N/PN/PNG) runs again, now against the
+> corrected publisher classifier rather than v1's country-mentioned one.
 >
 > Two items in the design that this plan did not list were also closed: the
 > firm-level exposure gradient (SQ5), recovered from public SIPRI data in §8.7

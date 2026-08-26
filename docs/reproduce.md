@@ -158,7 +158,7 @@ repository because Chapter 8 documents the retraction; do not cite its output.
 ## 3. Verification
 
 ```bash
-python -m pytest tests/ -q     # 143 tests, all offline
+python -m pytest tests/ -q     # 167 tests, all offline
 ```
 
 The suite needs neither the network nor the gitignored data: parsers are split
@@ -204,6 +204,9 @@ build `tex` and upload to Overleaf if you do not have one either.
 | `run_register_audit.py` | `outputs/tables/register_audit.csv`, `register_audit_summary.csv` |
 | `run_exposure_gradient.py` | `outputs/tables/exposure_gradient.csv`, `exposure_gradient_bh.csv`, `sipri_exposure.csv` |
 | `run_classifier_sensitivity.py` | `data/interim/gdelt_ecosystems_variants.parquet`, `outputs/tables/classifier_sensitivity.csv`, `classifier_sensitivity_cells.csv` |
+| `run_horse_race.py` | `outputs/tables/horse_race.csv` |
+| `run_volatility_race.py` | `outputs/tables/volatility_race.csv` |
+| `diagnose_v1_weekend.py` | `outputs/tables/v1_weekend_diagnostic.csv` |
 
 ## What reproduces, and what deliberately does not
 
@@ -254,8 +257,28 @@ offline script — about a minute at 500 draws. The scan uses a closed form for 
 intercept-only case; supplying a regressor falls back to refitting and is
 markedly slower.
 
-One item promised in the response matrix remains unimplemented: **HAR-RV-X**.
-Volatility was dropped as an outcome when the only volatility result in the
-project was retracted (Chapter 8 §8.1), so there is no volatility arm for it to
-serve. Chapter 8 records this as a scope reduction rather than leaving the
-promise silently unmet.
+**HAR-RV-X is now implemented**, and the volatility arm it serves is back. It
+was written off when volatility was dropped as an outcome, on the reasoning that
+the only volatility result the project had produced was the retracted one
+(Chapter 8 §8.1) — but the approved design asks about returns *and* volatility,
+and volatility is the harder of the two to fail. Daily returns are close to
+unforecastable for anyone; volatility clusters, persists, and is where conflict
+ought to register.
+
+```bash
+python scripts/run_horse_race.py         # F/P/N/PN/PNG on returns
+python scripts/run_volatility_race.py    # GARCH family + HAR-RV-X on variance
+python scripts/diagnose_v1_weekend.py    # what the v1 weekend grid costs
+```
+
+`run_volatility_race.py` fits GARCH(1,1), GJR-GARCH and EGARCH as benchmarks and
+admits the war blocks through HAR-RV-X, judged on QLIKE. A literal GARCH-X would
+put the exogenous block in the *variance* equation and `arch` has no such
+specification — its `x` argument enters the mean. That is almost certainly what
+the approved thesis ran into: its Table 6 notes that "across the implemented
+exogenous information sets, the recorded loss values were identical", which is
+what happens when the exogenous block never reaches the variance equation at all.
+
+`run_horse_race.py` carries the AR(1) baseline the approved thesis reports
+winning every five-day cell, alongside the historical mean, ridge and XGBoost,
+and reports MAE, RMSE, directional accuracy and Campbell–Thompson R²_OS.
