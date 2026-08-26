@@ -62,6 +62,14 @@ import pandas as pd
 API = "https://www.wikidata.org/w/api.php"
 HEADERS = {"User-Agent": "WarSignalsThesis/1.0 (academic research; register audit)"}
 
+#: Countries that no longer exist. An outlet founded before 1991 often records
+#: several states in sequence, and reading the first one is how ``iz.ru``
+#: (Izvestia — a Russian newspaper) came back classified as Ukrainian: its item
+#: lists the Ukrainian SSR, then the Soviet Union, then Russia, in that order.
+#: A present-day state always wins over a predecessor, and only when no
+#: present-day state is recorded does a predecessor decide.
+HISTORICAL_COUNTRIES = frozenset({"Q15180", "Q34266", "Q2305208"})
+
 #: Wikidata country QIDs mapped to the ecosystem a publisher there belongs to.
 #: Historical predecessors resolve to their successor, because the classifier is
 #: about where an outlet publishes from, not about which state existed when it
@@ -89,64 +97,94 @@ ECOSYSTEM_TO_COUNTRY = {
 }
 
 
-#: Domain -> Wikidata item, pinned so the audit reproduces exactly.
+#: Domain -> the Wikidata item confirmed for it, and what that item says.
 #:
-#: Every entry here was resolved by the website check in :func:`lookup_outlet`
-#: and is therefore confirmed by the item's own P856, not by a name that looked
-#: close enough. Pinning them removes the last source of run-to-run variation:
-#: without it, coverage moves between runs because Wikidata's search ranking
-#: does, and a precision figure that changes when nothing changed is not a
-#: measurement. Regenerate with ``scripts/run_register_audit.py --repin``.
-PINNED_QIDS: dict[str, str] = {
-    "1prime.ru": "Q4376388",
-    "1tv.ru": "Q330067",
-    "aif.ru": "Q212256",
-    "apnews.com": "Q40469",
-    "barrons.com": "Q4863797",
-    "bbc.co.uk": "Q9531",
-    "bloomberg.com": "Q13975",
-    "cnbc.com": "Q1023911",
-    "currenttime.tv": "Q55663942",
-    "dw.com": "Q153770",
-    "economist.com": "Q180089",
-    "forbes.com": "Q956568",
-    "ft.com": "Q2196240",
-    "gazeta.ru": "Q595181",
-    "hromadske.ua": "Q15280975",
-    "iz.ru": "Q753932",
-    "kommersant.ru": "Q1780134",
-    "kp.ru": "Q849047",
-    "kyivindependent.com": "Q111028947",
-    "kyivpost.com": "Q1795015",
-    "lenta.ru": "Q658909",
-    "life.ru": "Q4042868",
-    "marketwatch.com": "Q17068426",
-    "mediazona.ca": "Q28135463",
-    "moscowtimes.ru": "Q1202611",
-    "novayagazeta.eu": "Q111654428",
-    "novayagazeta.ru": "Q170135",
-    "nytimes.com": "Q9684",
-    "obozrevatel.com": "Q4329488",
-    "politico.eu": "Q991826",
-    "pravda.com.ua": "Q904463",
-    "regnum.ru": "Q1977770",
-    "ren.tv": "Q1479649",
-    "reuters.com": "Q130879",
-    "rg.ru": "Q1853433",
-    "riafan.ru": "Q48940498",
-    "rt.com": "Q22868",
-    "smotrim.ru": "Q211511",
-    "sputniknews.com": "Q212196",
-    "strana.news": "Q30889269",
-    "tass.ru": "Q223799",
-    "theguardian.com": "Q11148",
-    "themoscowtimes.com": "Q1202611",
-    "tvrain.ru": "Q155172",
-    "ukrinform.net": "Q987030",
-    "vesti.ru": "Q628101",
-    "vz.ru": "Q1970600",
-    "wsj.com": "Q164746",
-    "zona.media": "Q28135463",
+#: Every entry was resolved by the website check in :func:`lookup_outlet` and is
+#: therefore confirmed by the item's own P856, not by a name that looked close
+#: enough.
+#:
+#: **The cached country is what makes the audit a measurement rather than a
+#: sample of Wikidata's availability.** Pinning the item alone was not enough:
+#: the audit still had to fetch each pinned item to read its country, roughly a
+#: fifth of those requests failed on any given run, and a failed request is
+#: indistinguishable from an outlet Wikidata cannot place. Two consecutive runs
+#: of identical code returned precision 0.936 and 0.917 for that reason alone.
+#: With the answer cached the audit touches the network only when re-pinning, so
+#: it returns the same table every time and can be checked offline.
+#:
+#: ``country`` is the ecosystem the item's country of origin maps to, or ``""``
+#: when the item records no country this register recognises — which is a
+#: finding, not a gap. A domain absent from this map was never resolved at all.
+#: Regenerate with ``scripts/run_register_audit.py --repin``.
+PINNED: dict[str, dict[str, str]] = {
+    "1prime.ru": {"qid": "Q4376388", "country": "RU", "label": "Prime"},
+    "1tv.ru": {"qid": "Q330067", "country": "RU", "label": "Channel One Russia"},
+    "7x7-journal.ru": {"qid": "Q104538016", "country": "RU", "label": "7х7"},
+    "aif.ru": {"qid": "Q212256", "country": "RU", "label": "Argumenty i Fakty"},
+    "apnews.com": {"qid": "Q40469", "country": "WEST", "label": "Associated Press"},
+    "axios.com": {"qid": "Q28230873", "country": "WEST", "label": "Axios"},
+    "barrons.com": {"qid": "Q4863797", "country": "WEST", "label": "Barron's"},
+    "bbc.co.uk": {"qid": "Q9531", "country": "WEST", "label": "British Broadcasting Corporation"},
+    "bloomberg.com": {"qid": "Q13975", "country": "WEST", "label": "Bloomberg Television"},
+    "businessinsider.com": {"qid": "Q286707", "country": "WEST", "label": "Business Insider"},
+    "cnbc.com": {"qid": "Q1023911", "country": "WEST", "label": ""},
+    "currenttime.tv": {"qid": "Q55663942", "country": "WEST", "label": "Current Time TV"},
+    "dw.com": {"qid": "Q153770", "country": "WEST", "label": "Deutsche Welle"},
+    "economist.com": {"qid": "Q180089", "country": "WEST", "label": "The Economist"},
+    "faz.net": {"qid": "Q10184", "country": "WEST", "label": "Frankfurter Allgemeine Zeitung"},
+    "forbes.com": {"qid": "Q956568", "country": "WEST", "label": "Forbes"},
+    "ft.com": {"qid": "Q2196240", "country": "WEST", "label": "FT Magazine"},
+    "gazeta.ru": {"qid": "Q595181", "country": "RU", "label": "gazeta.ru"},
+    "hromadske.ua": {"qid": "Q15280975", "country": "UA", "label": "Hromadske.TV"},
+    "inosmi.ru": {"qid": "Q4201249", "country": "RU", "label": "InoSMI"},
+    "iz.ru": {"qid": "Q753932", "country": "RU", "label": "Izvestia"},
+    "kommersant.ru": {"qid": "Q1780134", "country": "RU", "label": ""},
+    "korrespondent.net": {"qid": "Q1333067", "country": "UA", "label": "Korrespondent"},
+    "kp.ru": {"qid": "Q849047", "country": "RU", "label": "Komsomolskaya Pravda"},
+    "kyivindependent.com": {"qid": "Q111028947", "country": "UA", "label": "The Kyiv Independent"},
+    "kyivpost.com": {"qid": "Q1795015", "country": "UA", "label": "Kyiv Post"},
+    "lenta.ru": {"qid": "Q658909", "country": "RU", "label": "lenta.ru"},
+    "life.ru": {"qid": "Q4042868", "country": "RU", "label": "Life"},
+    "liga.net": {"qid": "Q61366112", "country": "", "label": "ЛІГА.net"},
+    "marketwatch.com": {"qid": "Q17068426", "country": "WEST", "label": "MarketWatch"},
+    "mediazona.ca": {"qid": "Q28135463", "country": "RU", "label": "MediaZona"},
+    "moscowtimes.ru": {"qid": "Q1202611", "country": "WEST", "label": "The Moscow Times"},
+    "mskagency.ru": {"qid": "Q94952743", "country": "RU", "label": "Moscow Municipal News Agency"},
+    "novayagazeta.eu": {"qid": "Q111654428", "country": "WEST", "label": "Novaya Gazeta Europe"},
+    "novayagazeta.ru": {"qid": "Q170135", "country": "RU", "label": "Novaya Gazeta"},
+    "npr.org": {"qid": "Q671510", "country": "WEST", "label": "NPR"},
+    "nytimes.com": {"qid": "Q9684", "country": "WEST", "label": "The New York Times"},
+    "obozrevatel.com": {"qid": "Q4329488", "country": "UA", "label": "OBOZ.UA"},
+    "politico.eu": {"qid": "Q991826", "country": "WEST", "label": "Politico Europe"},
+    "pravda.com.ua": {"qid": "Q904463", "country": "UA", "label": "Ukrainska Pravda"},
+    "rbc.ru": {"qid": "Q629733", "country": "RU", "label": "RBC Information Systems"},
+    "regnum.ru": {"qid": "Q1977770", "country": "RU", "label": "REGNUM News Agency"},
+    "ren.tv": {"qid": "Q1479649", "country": "RU", "label": "REN TV"},
+    "republic.ru": {"qid": "Q4049621", "country": "RU", "label": "Republic.ru"},
+    "reuters.com": {"qid": "Q130879", "country": "WEST", "label": "Reuters"},
+    "rg.ru": {"qid": "Q1853433", "country": "RU", "label": "Rossiyskaya Gazeta"},
+    "riafan.ru": {"qid": "Q48940498", "country": "RU", "label": "Federal News Agency"},
+    "rt.com": {"qid": "Q22868", "country": "RU", "label": "RT"},
+    "russian.rt.com": {"qid": "Q22868", "country": "RU", "label": "RT"},
+    "smotrim.ru": {"qid": "Q211511", "country": "RU", "label": "Russia-1"},
+    "spiegel.de": {"qid": "Q131478", "country": "WEST", "label": "Der Spiegel"},
+    "sputniknews.com": {"qid": "Q212196", "country": "RU", "label": "Voice of Russia"},
+    "strana.news": {"qid": "Q30889269", "country": "UA", "label": "Strana.ua"},
+    "svoboda.org": {"qid": "Q120484020", "country": "", "label": "RFE/RL's Russian Service"},
+    "tass.ru": {"qid": "Q223799", "country": "RU", "label": "TASS"},
+    "telegraph.co.uk": {"qid": "Q7696245", "country": "WEST", "label": "Telegraph Media Group"},
+    "theguardian.com": {"qid": "Q11148", "country": "WEST", "label": "The Guardian"},
+    "theins.ru": {"qid": "Q48940439", "country": "RU", "label": "The Insider"},
+    "themoscowtimes.com": {"qid": "Q1202611", "country": "WEST", "label": "The Moscow Times"},
+    "tvrain.ru": {"qid": "Q155172", "country": "RU", "label": "TV Rain"},
+    "ukrinform.net": {"qid": "Q987030", "country": "UA", "label": "Ukrinform"},
+    "ura.news": {"qid": "Q4476482", "country": "RU", "label": "ura.ru"},
+    "vesti.ru": {"qid": "Q628101", "country": "RU", "label": "Russia-24"},
+    "vm.ru": {"qid": "Q2614109", "country": "RU", "label": "Vechernyaya Moskva"},
+    "vz.ru": {"qid": "Q1970600", "country": "RU", "label": "Vzglyad"},
+    "washingtonpost.com": {"qid": "Q166032", "country": "WEST", "label": "The Washington Post"},
+    "wsj.com": {"qid": "Q164746", "country": "WEST", "label": "The Wall Street Journal"},
+    "zona.media": {"qid": "Q28135463", "country": "RU", "label": "MediaZona"},
 }
 
 
@@ -159,6 +197,31 @@ def _get(url: str, timeout: int = 45, retries: int = 3) -> dict | None:
         except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
             time.sleep(1.5 * (attempt + 1))
     return None
+
+
+def _country_from_claims(claims: dict) -> tuple[str | None, str | None]:
+    """The ecosystem an item's country of origin implies, present-day first.
+
+    P17 (country) and P495 (country of origin) are both used for media items,
+    inconsistently and often only one of the two, so both are read. Within them
+    a **present-day state outranks a defunct one**, whatever order Wikidata
+    lists them in — an outlet older than 1991 typically carries its whole
+    constitutional history, and the first entry is not the informative one.
+    """
+    seen: list[tuple[str, str]] = []
+    for prop in ("P17", "P495"):
+        for c in claims.get(prop, []):
+            try:
+                qid = c["mainsnak"]["datavalue"]["value"]["id"]
+            except (KeyError, TypeError):
+                continue
+            eco = COUNTRY_TO_ECOSYSTEM.get(qid)
+            if eco:
+                seen.append((qid, eco))
+    for qid, eco in seen:
+        if qid not in HISTORICAL_COUNTRIES:
+            return qid, eco
+    return seen[0] if seen else (None, None)
 
 
 def _chunks(seq, n):
@@ -326,22 +389,8 @@ def lookup_outlet(domain: str, pause: float = 0.15,
     result["qid"], result["wd_label"] = hit["id"], hit.get("label")
     result["identity"] = "website-confirmed"
 
-    # P17 (country) and P495 (country of origin) are both used for media items,
-    # inconsistently and often only one of the two. Reading both recovers a
-    # meaningful number of outlets that would otherwise be unverifiable, and the
-    # two never disagree in this register.
-    for prop in ("P17", "P495"):
-        for c in claims.get(prop, []):
-            try:
-                qid = c["mainsnak"]["datavalue"]["value"]["id"]
-            except (KeyError, TypeError):
-                continue
-            eco = COUNTRY_TO_ECOSYSTEM.get(qid)
-            if eco:
-                result["wd_country_qid"], result["wd_country_eco"] = qid, eco
-                break
-        if result["wd_country_eco"]:
-            break
+    qid_country, eco = _country_from_claims(claims)
+    result["wd_country_qid"], result["wd_country_eco"] = qid_country, eco
 
     # Ownership: a state or government owner is the signal for RU_STATE. This is
     # sparse on Wikidata, so absence is not evidence of independence.
@@ -386,16 +435,26 @@ def audit_register(register: dict[str, str], pause: float = 0.15) -> pd.DataFram
     # changes between calls, so a domain that resolves today and not tomorrow
     # would move measured coverage without anything having changed. Re-run with
     # ``--repin`` to fold newly resolvable outlets in deliberately.
-    pinned_only = bool(PINNED_QIDS)
+    pinned_only = bool(PINNED)
     rows = []
     for domain, eco in sorted(register.items()):
-        qid = PINNED_QIDS.get(domain)
-        if pinned_only and qid is None:
-            info = {"domain": domain, "qid": None, "wd_label": None,
-                    "wd_country_qid": None, "wd_country_eco": None,
-                    "state_owned": None, "identity": "unresolved"}
+        pin = PINNED.get(domain)
+        if pinned_only:
+            # Entirely offline: the pin carries the answer, so nothing here can
+            # fail differently between runs.
+            if pin is None:
+                info = {"domain": domain, "qid": None, "wd_label": None,
+                        "wd_country_qid": None, "wd_country_eco": None,
+                        "state_owned": None, "identity": "unresolved"}
+            else:
+                info = {"domain": domain, "qid": pin["qid"],
+                        "wd_label": pin.get("label") or None,
+                        "wd_country_qid": None,
+                        "wd_country_eco": pin.get("country") or None,
+                        "state_owned": None, "identity": "website-confirmed"}
         else:
-            info = lookup_outlet(domain, pause=pause, qid_hint=qid)
+            info = lookup_outlet(domain, pause=pause,
+                                 qid_hint=pin["qid"] if pin else None)
         claimed = ECOSYSTEM_TO_COUNTRY.get(eco, eco)
         found = info["wd_country_eco"]
         verdict = "unverified" if found is None else (

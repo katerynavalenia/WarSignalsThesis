@@ -20,14 +20,14 @@ in their own voice.
 | 1 | `01_introduction.md` | States the question, the answer, and the power behind it; sets out the three contributions and what is not claimed. | 1,932 |
 | 2 | `02_literature.md` | Places the thesis between text-based risk measurement and the perception literature; Bondarenko et al. (2024) as the anchor and the gap the thesis occupies. | 1,863 |
 | 3 | `03_data.md` | The 2015–2026 sample and why it starts where it does; news corpus, equity spine, Bloomberg referee, a basket validation that failed, and the data that no longer exists. | 2,185 |
-| 4 | `04_measurement.md` | What the previous indicators actually measured, and how the replacement is built: translingual corpus, four-tier publisher classifier, the two indices, and their validation. | 1,781 |
+| 4 | `04_measurement.md` | What the previous indicators actually measured, and how the replacement is built: translingual corpus, four-tier publisher classifier, the two indices, their validation, a sensitivity analysis across classification rules, and the automated precision audit. | 2,676 |
 | 5 | `05_stylized_facts.md` | The series before any of them explains a price: full-sample plots, attention and tone around the invasion, six anticipation episodes, and the correlation matrices. | 2,394 |
 | 6 | `06_response.md` | Gates 2–5 — whether local perception is priced in defence equities, in European gas, or anticipates escalation, each against a positive control whose verdict is reported gate by gate. | 3,050 |
 | 7 | `07_efficiency.md` | The out-of-sample forecasting grid, why Clark–West rather than Diebold–Mariano arbitrates it, and the simulated power curve that turns the null into a bound. | 2,505 |
 | 8 | `08_robustness.md` | The retraction record: five episodes, six claims, five distinct failure modes — plus the recovered firm-level exposure gradient and the standing limitations. | 4,557 |
 | 9 | `09_conclusion.md` | The answer, its mirror relation to Bondarenko et al., what survives, what is not established, and where the work goes next. | 1,942 |
 
-**Total, Chapters 1–9: 22,209 words.**
+**Total, Chapters 1–9: 23,104 words.**
 (`00_outline_and_numbers.md` adds 1,954 words of assembly notes, not part of the
 draft.)
 

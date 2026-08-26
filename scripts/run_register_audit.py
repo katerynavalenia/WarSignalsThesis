@@ -27,7 +27,7 @@ from src.data.ecosystems import (  # noqa: E402
     WEST_REGISTER,
 )
 from src.data.register_audit import (  # noqa: E402
-    PINNED_QIDS,
+    PINNED,
     audit_register,
     lookup_outlet,
     summarise,
@@ -52,7 +52,7 @@ def repin(register: dict[str, str], pause: float,
     """
     module = Path(__file__).resolve().parents[1] / "src" / "data" / "register_audit.py"
 
-    pins: dict[str, str] = dict(PINNED_QIDS) if only_missing else {}
+    pins: dict[str, dict[str, str]] = dict(PINNED) if only_missing else {}
     todo = sorted(d for d in register if not (only_missing and d in pins))
     print(f"re-resolving {len(todo)} outlets"
           f"{' (keeping %d already pinned)' % len(pins) if only_missing else ''}"
@@ -61,18 +61,27 @@ def repin(register: dict[str, str], pause: float,
     for i, domain in enumerate(todo, 1):
         info = lookup_outlet(domain, pause=pause)
         if info["qid"]:
-            pins[domain] = info["qid"]
+            pins[domain] = {
+                "qid": info["qid"],
+                "country": info["wd_country_eco"] or "",
+                "label": info["wd_label"] or "",
+            }
             print(f"  [{i:3d}/{len(todo)}] {domain:24s} -> {info['qid']:12s} "
-                  f"{info['wd_label']}", flush=True)
+                  f"{str(info['wd_country_eco'] or '-'):5s} {info['wd_label']}",
+                  flush=True)
         else:
             print(f"  [{i:3d}/{len(todo)}] {domain:24s} -> {info['identity']}",
                   flush=True)
 
-    body = "\n".join(f'    "{d}": "{q}",' for d, q in sorted(pins.items()))
+    body = "\n".join(
+        f'    "{d}": {{"qid": "{v["qid"]}", "country": "{v["country"]}", '
+        f'"label": "{v["label"]}"}},'
+        for d, v in sorted(pins.items()))
     src = module.read_text()
-    start = src.index("PINNED_QIDS: dict[str, str] = {")
-    end = src.index("}", start) + 1
-    src = src[:start] + "PINNED_QIDS: dict[str, str] = {\n" + body + "\n}" + src[end:]
+    start = src.index("PINNED: dict[str, dict[str, str]] = {")
+    end = src.index("\n}", start) + 2
+    src = (src[:start] + "PINNED: dict[str, dict[str, str]] = {\n" + body
+           + "\n}" + src[end:])
     module.write_text(src)
     print(f"\npinned {len(pins)} of {len(register)} outlets into {module}")
     print("re-run without --repin to produce the audit tables.")

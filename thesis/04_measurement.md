@@ -196,3 +196,100 @@ specified a hand-labelled audit — several hundred articles opened and classifi
 by a reader in Russian and Ukrainian — and that was never carried out. What
 replaces it is described in §4.6, and it is neither a substitute for reading
 articles nor as weak as that framing suggests.
+
+## 4.6 The precision audit, automated
+
+The research design specified a hand-labelled precision audit: several hundred
+articles opened and classified by a reader in Russian and Ukrainian, with a
+confusion matrix per tier. It was never carried out, and for most of this
+project's life it was the largest stated limitation. What follows is not that
+audit. It is a different one, and the case for why it substitutes is worth making
+carefully rather than asserting.
+
+**The classifier is a deterministic function of the domain.** Two articles from
+the same outlet on the same day receive the same label, always. Article-level
+precision is therefore domain-level precision weighted by article volume, and
+sampling articles reveals nothing that the domain assignments do not already
+contain — *provided* those assignments can be checked against something outside
+this project. Auditing the domains is not a weaker version of auditing articles;
+it is the same quantity computed exactly rather than estimated from a sample.
+
+Wikidata is that external source. It is maintained independently of GDELT and of
+this thesis, and it records the property the register claims: an outlet's country
+of origin.
+
+**Identity is established by the outlet's own website, not by its name.** This is
+the detail that makes the audit a measurement, and it was learned the hard way.
+An earlier version took the best-matching Wikidata item by name search, and that
+is not stable: across two runs of identical code `dw.com` resolved once to
+Deutsche Welle and once to *Der Westen*, an unrelated German regional paper.
+Every candidate item is now accepted only if its **official-website property**
+resolves to the registered domain, every candidate is examined rather than the
+first plausible one, and the confirmed identities are pinned to a committed map
+together with what they say. The audit consequently touches the network only when
+that map is rebuilt: it runs offline, in under a second, and returns a
+byte-identical table every time.
+
+| ecosystem | outlets | verifiable | agree | disagree | precision |
+|---|---|---|---|---|---|
+| Russian state | 28 | 23 | 23 | 0 | **1.000** |
+| Western | 28 | 23 | 23 | 0 | **1.000** |
+| Russian independent | 16 | 12 | 9 | 3 | 0.750 |
+| Ukrainian | 12 | 8 | 8 | 0 | **1.000** |
+
+Across the register, **44 of 66 verifiable outlets agree — precision 0.955**.
+The eighteen remaining outlets have no Wikidata item whose website resolves to
+the registered domain, or an item that records no country; they are reported as
+unverifiable and counted neither way, since an audit that dropped them silently
+would overstate its precision and one that assumed them correct would overstate
+its coverage.
+
+**Every one of the three disagreements is an exile newsroom**, and they are the
+same disagreement three times over:
+
+| domain | register says | Wikidata item | Wikidata country |
+|---|---|---|---|
+| `moscowtimes.ru` | Russian independent | The Moscow Times | Western |
+| `themoscowtimes.com` | Russian independent | The Moscow Times | Western |
+| `novayagazeta.eu` | Russian independent | Novaya Gazeta Europe | Western |
+
+This is the rule of §4.3 meeting the limit of the source rather than an error in
+either. Wikidata's country of origin is a *legal* fact — where an outlet is
+registered — and after 2022 these newsrooms are registered in Amsterdam and Riga.
+The register places them by whose perception they carry, which is Russian: they
+are Russian journalists reporting in Russian for a Russian readership. The
+disagreement is adjudicated in the decision log and deliberately not acted on,
+because acting on it would empty the independent Russian block of precisely the
+outlets that define it.
+
+The three blocks that carry the thesis's live claims — Russian state, Western and
+Ukrainian — return no disagreement at all.
+
+**What the audit found that validation had not.** It earned its place on the
+first run. `svoboda.org` — Radio Free Europe/Radio Liberty's Russian service,
+funded by the US Agency for Global Media — was sitting in the Russian
+*independent* register, which is the Deutsche Welle error of §8.3 repeated
+exactly. Both moved, under a rule now stated where it is applied. The audit found
+by validation what the earlier error had been found by luck.
+
+**Three limits, stated rather than blurred.**
+
+*It validates domains, not attribution.* Every check here establishes that a
+registered domain belongs to the country the register assigns it. None
+establishes that GDELT filed a given article under the right domain. If
+`SourceCommonName` is wrong for some fraction of articles, every result in this
+thesis inherits that error and nothing here would see it. That is the residual
+gap a reader with the languages would close, and it is narrower and better
+specified than the one the design began with.
+
+*Correctness was bought with coverage.* Requiring an item's own website to
+confirm the domain rejects the plausible-looking match, and sixteen outlets have
+no item that clears that bar. Two more — including `svoboda.org` itself — are
+confirmed but carry no country Wikidata will state, so they are identified and
+still unverifiable.
+
+*Ownership is not audited.* Wikidata records ownership far more sparsely than
+country, too sparsely to validate the state-versus-independent split. That
+dimension carries the one contrast this thesis has already retracted as
+underpowered (§8.3), and the audit neither rescues nor further damages it.
+

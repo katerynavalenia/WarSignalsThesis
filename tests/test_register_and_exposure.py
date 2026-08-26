@@ -304,29 +304,153 @@ class TestBatchFailureHandling:
 
 
 class TestPinsAreAuthoritative:
-    """With a pin map present, unpinned domains are not searched live.
+    """With a pin map present the audit is entirely offline.
 
-    Searching them would reintroduce the instability the pin exists to remove:
-    Wikidata's ranking varies between calls, so coverage would drift without
-    anything having changed.
+    Both halves matter. Searching unpinned domains would reintroduce the
+    instability the pin exists to remove — Wikidata's ranking varies between
+    calls, so coverage would drift without anything having changed. And fetching
+    *pinned* items to read their country reintroduced it a second time: roughly a
+    fifth of those requests failed on any given run, which is why two consecutive
+    runs of identical code once returned 0.936 and 0.917. The cached country is
+    what closed that.
     """
 
-    def test_unpinned_domain_is_unverified_without_a_network_call(self, monkeypatch):
+    def _audit(self, ra, monkeypatch, register):
+        called = []
+        monkeypatch.setattr(
+            ra, "lookup_outlet",
+            lambda domain, **kw: called.append(domain) or {})
+        return ra.audit_register(register, pause=0), called
+
+    def test_no_lookup_happens_at_all(self, monkeypatch):
         import src.data.register_audit as ra
 
-        monkeypatch.setattr(ra, "PINNED_QIDS", {"pinned.example": "Q1"})
-        called = []
-
-        def fake_lookup(domain, **kw):
-            called.append(domain)
-            return {"domain": domain, "qid": "Q1", "wd_label": "x",
-                    "wd_country_qid": "Q159", "wd_country_eco": "RU",
-                    "state_owned": None, "identity": "website-confirmed"}
-
-        monkeypatch.setattr(ra, "lookup_outlet", fake_lookup)
-        out = ra.audit_register({"pinned.example": "RU_STATE",
-                                 "unpinned.example": "RU_STATE"}, pause=0)
-        assert called == ["pinned.example"], "an unpinned domain was searched"
+        monkeypatch.setattr(ra, "PINNED", {
+            "pinned.example": {"qid": "Q1", "country": "RU", "label": "X"}})
+        out, called = self._audit(ra, monkeypatch, {
+            "pinned.example": "RU_STATE", "unpinned.example": "RU_STATE"})
+        assert called == [], "the audit went to the network"
         verdicts = dict(zip(out.domain, out.verdict))
-        assert verdicts["unpinned.example"] == "unverified"
         assert verdicts["pinned.example"] == "match"
+        assert verdicts["unpinned.example"] == "unverified"
+
+    def test_cached_country_drives_the_verdict(self, monkeypatch):
+        import src.data.register_audit as ra
+
+        monkeypatch.setattr(ra, "PINNED", {
+            "a.example": {"qid": "Q1", "country": "WEST", "label": "A"},
+            "b.example": {"qid": "Q2", "country": "RU", "label": "B"}})
+        out, _ = self._audit(ra, monkeypatch,
+                             {"a.example": "RU_INDEP", "b.example": "RU_INDEP"})
+        verdicts = dict(zip(out.domain, out.verdict))
+        assert verdicts["a.example"] == "mismatch"   # WEST != RU
+        assert verdicts["b.example"] == "match"
+
+    def test_confirmed_item_with_no_country_is_unverified_not_wrong(self, monkeypatch):
+        """svoboda.org's case: the item is confirmed, it just records no country.
+        That is not a disagreement and must not be counted as one."""
+        import src.data.register_audit as ra
+
+        monkeypatch.setattr(ra, "PINNED", {
+            "x.example": {"qid": "Q1", "country": "", "label": "X"}})
+        out, _ = self._audit(ra, monkeypatch, {"x.example": "RU_STATE"})
+        assert out.verdict.iloc[0] == "unverified"
+
+    def test_audit_is_reproducible(self, monkeypatch):
+        import src.data.register_audit as ra
+
+        monkeypatch.setattr(ra, "PINNED", {
+            "a.example": {"qid": "Q1", "country": "RU", "label": "A"}})
+        reg = {"a.example": "RU_STATE", "b.example": "UA"}
+        first, _ = self._audit(ra, monkeypatch, reg)
+        second, _ = self._audit(ra, monkeypatch, reg)
+        assert first.equals(second)
+
+
+class TestCountryFromClaims:
+    """A present-day state outranks a defunct one, whatever order Wikidata uses.
+
+    The concrete failure: `iz.ru` is Izvestia, a Russian newspaper, and its
+    Wikidata item lists the Ukrainian SSR, then the Soviet Union, then Russia,
+    in that order. Reading the first match classified a Russian state outlet as
+    Ukrainian and put a false disagreement in the audit table.
+    """
+
+    def _claims(self, *qids, prop="P17"):
+        return {prop: [{"mainsnak": {"datavalue": {"value": {"id": q}}}}
+                       for q in qids]}
+
+    def test_izvestia_ordering(self):
+        from src.data.register_audit import _country_from_claims
+
+        # Ukrainian SSR, USSR, Russia — exactly as the item lists them.
+        assert _country_from_claims(
+            self._claims("Q2305208", "Q15180", "Q159")) == ("Q159", "RU")
+
+    def test_defunct_state_decides_when_it_is_all_there_is(self):
+        """An outlet that records only the USSR is still Russian for this
+        classifier's purposes — the fallback must not be lost."""
+        from src.data.register_audit import _country_from_claims
+
+        assert _country_from_claims(self._claims("Q15180")) == ("Q15180", "RU")
+
+    def test_present_day_country_passes_through(self):
+        from src.data.register_audit import _country_from_claims
+
+        assert _country_from_claims(self._claims("Q212")) == ("Q212", "UA")
+        assert _country_from_claims(self._claims("Q30")) == ("Q30", "WEST")
+
+    def test_country_of_origin_is_read_when_country_is_absent(self):
+        """Media items use P17 and P495 inconsistently, often only one."""
+        from src.data.register_audit import _country_from_claims
+
+        assert _country_from_claims(
+            self._claims("Q159", prop="P495")) == ("Q159", "RU")
+
+    def test_no_country_and_malformed_claims_return_nothing(self):
+        from src.data.register_audit import _country_from_claims
+
+        assert _country_from_claims({}) == (None, None)
+        assert _country_from_claims({"P17": [{"mainsnak": {}}]}) == (None, None)
+
+    def test_unrecognised_country_is_not_invented(self):
+        """A country outside the register's map is not forced into an ecosystem."""
+        from src.data.register_audit import _country_from_claims
+
+        assert _country_from_claims(self._claims("Q148")) == (None, None)
+
+
+class TestPinnedMapIntegrity:
+    """The committed pin map is the audit's input, so its shape is asserted."""
+
+    def test_every_pin_has_the_three_required_keys(self):
+        from src.data.register_audit import PINNED
+
+        assert PINNED, "the pin map is empty; run --repin"
+        for domain, v in PINNED.items():
+            assert set(v) == {"qid", "country", "label"}, domain
+            assert v["qid"].startswith("Q") and v["qid"][1:].isdigit(), domain
+
+    def test_cached_countries_are_ecosystems_or_empty(self):
+        from src.data.register_audit import PINNED
+
+        allowed = {"RU", "UA", "WEST", ""}
+        for domain, v in PINNED.items():
+            assert v["country"] in allowed, f"{domain}: {v['country']!r}"
+
+    def test_every_pinned_domain_is_actually_registered(self):
+        """A pin for a domain no longer in the register is dead weight and would
+        quietly inflate coverage if the register shrank."""
+        from src.data.ecosystems import (
+            RU_INDEPENDENT, RU_STATE, UA_REGISTER, WEST_REGISTER,
+        )
+        from src.data.register_audit import PINNED
+
+        registered = RU_STATE | RU_INDEPENDENT | UA_REGISTER | WEST_REGISTER
+        assert set(PINNED) <= registered, set(PINNED) - registered
+
+    def test_izvestia_is_pinned_to_russia(self):
+        """Regression: this is the entry the ordering bug got wrong."""
+        from src.data.register_audit import PINNED
+
+        assert PINNED["iz.ru"]["country"] == "RU"
