@@ -68,7 +68,12 @@ REFIT_EVERY = 21
 #: Variance floor. QLIKE takes a logarithm, and a squared return can be exactly
 #: zero on a flat day; without a floor a single such day sends the loss to
 #: infinity and decides the comparison on its own.
-EPS = 1e-6
+#:
+#: Matched to the floor inside ``diebold_mariano(loss="qlike")``. If the two
+#: differ, the reported QLIKE means and the test that compares them are computed
+#: on slightly different numbers, which is the kind of discrepancy that is
+#: invisible until someone checks the fourth decimal.
+EPS = 1e-12
 
 GARCH_SPECS = {
     "GARCH": dict(vol="GARCH", p=1, o=0, q=1),

@@ -246,70 +246,135 @@ def main() -> None:
                 # is both available and the most informative thing there is.
                 y = (d[tgt].rolling(h).sum().shift(-(h - 1)) if h > 1
                      else d[tgt]).rename("y")
+
+                # One sample for every horse. Letting each information set drop
+                # its own missing rows would race them on different observations
+                # and different test periods, which is not a race. The widest
+                # set defines the common frame and everything runs on it.
+                widest = [c for c in sets["PNG"] if c in d.columns]
+                frame = pd.concat([y, d[widest]], axis=1).dropna()
+                if len(frame) < 400:
+                    continue
+                yy = frame["y"]
+                test_start = int(len(yy) * (1 - TEST_FRACTION))
+
+                # Baselines use no war variables and do not belong to any
+                # information set. Running them inside the set loop attributed
+                # an AR(1) win to whichever set it happened to be nested under
+                # -- "news wins this cell" when the news features were never
+                # read. They are computed once.
+                bench = expanding_oos(yy, frame[widest], "mean", test_start,
+                                      horizon=h)
+                baselines = {"historical mean": bench,
+                             "AR(1)": expanding_oos(yy, frame[widest], "ar1",
+                                                    test_start, horizon=h)}
+
+                preds: list[tuple[str, str, str, int, pd.Series]] = [
+                    ("(none)", name, "baseline", 0, fc)
+                    for name, fc in baselines.items()
+                ]
                 for name, cols in sets.items():
                     use = [c for c in cols if c in d.columns]
-                    frame = pd.concat([y, d[use]], axis=1).dropna()
-                    if len(frame) < 400:
+                    for model in ("ridge", "xgb"):
+                        # F carries no war variables, so a model on F is another
+                        # baseline -- which is exactly how the approved thesis's
+                        # Table 7 splits "best baseline" from "best extended".
+                        kind = "baseline" if name == "F" else "extended"
+                        preds.append((name, model, kind, len(use),
+                                      expanding_oos(yy, frame[use], model,
+                                                    test_start, horizon=h)))
+
+                for info_set, model, kind, nfeat, fc in preds:
+                    ok = pd.concat([yy, bench.rename("b"), fc.rename("f")],
+                                   axis=1).dropna()
+                    if len(ok) < 50:
                         continue
-                    yy, XX = frame["y"], frame[use]
-                    test_start = int(len(yy) * (1 - TEST_FRACTION))
-                    bench = expanding_oos(yy, XX, "mean", test_start,
-                                          horizon=h)
-                    for model in ("ar1", "ridge", "xgb"):
-                        fc = expanding_oos(yy, XX, model, test_start,
-                                           horizon=h)
-                        ok = pd.concat([yy, bench, fc], axis=1).dropna()
-                        if len(ok) < 50:
-                            continue
-                        # Series, not arrays: the evaluation helpers align on
-                        # the index before testing.
-                        a, b, c = ok.iloc[:, 0], ok.iloc[:, 1], ok.iloc[:, 2]
-                        r2 = campbell_thompson_r2_oos(a, c, b)
-                        # Clark-West, not Diebold-Mariano: every set nests the
-                        # one before it (F subset P subset PN subset PNG), and
-                        # DM is invalid under nesting. Comparing nested sets on
-                        # raw MAE -- as the approved thesis does -- is biased
-                        # toward the smaller model, so both are reported.
-                        cw = clark_west(a, b, c, horizon=h)
-                        rows.append({
-                            "sample": sample, "target": tgt, "horizon": h,
-                            "info_set": name, "model": model,
-                            "n_features": len(use), "n_train": test_start,
-                            "n_test": len(ok),
-                            "mae": float(np.mean(np.abs(a - c))),
-                            "mae_bench": float(np.mean(np.abs(a - b))),
-                            "rmse": float(np.sqrt(np.mean((a - c) ** 2))),
-                            # Share of dates on which the predicted and realised
-                            # return share a sign -- reported in the approved
-                            # thesis's Table 5 and cheap to carry.
-                            "dir_acc": float(np.mean(
-                                np.sign(a) == np.sign(c))),
-                            "r2_oos": float(r2),
-                            "cw_stat": float(cw.statistic),
-                            "cw_p": float(cw.pvalue),
-                        })
-                    print(f"  {sample:8s} {tgt:11s} h={h} {name:4s} done",
-                          flush=True)
+                    # Series, not arrays: the evaluation helpers align on the
+                    # index before testing.
+                    a, b, c = ok["y"], ok["b"], ok["f"]
+                    r2 = campbell_thompson_r2_oos(a, c, b)
+                    # Clark-West, not Diebold-Mariano: every set nests the one
+                    # before it (F subset P subset PN subset PNG), and DM is
+                    # invalid under nesting. Comparing nested sets on raw MAE --
+                    # as the approved thesis does -- is biased toward the
+                    # smaller model, so both are reported.
+                    # The benchmark row is the benchmark: comparing it with
+                    # itself gives a degenerate loss differential and no test.
+                    if model == "historical mean":
+                        cw_stat, cw_p = float("nan"), float("nan")
+                    else:
+                        try:
+                            cw = clark_west(a, b, c, horizon=h)
+                            cw_stat, cw_p = cw.statistic, cw.pvalue
+                        except ValueError:
+                            cw_stat, cw_p = float("nan"), float("nan")
+                    rows.append({
+                        "sample": sample, "target": tgt, "horizon": h,
+                        "info_set": info_set, "model": model, "kind": kind,
+                        "n_features": nfeat, "n_train": test_start,
+                        "n_test": len(ok),
+                        "mae": float(np.mean(np.abs(a - c))),
+                        "mae_bench": float(np.mean(np.abs(a - b))),
+                        "rmse": float(np.sqrt(np.mean((a - c) ** 2))),
+                        # Share of dates on which the predicted and realised
+                        # return share a sign -- reported in the approved
+                        # thesis's Table 5 and cheap to carry.
+                        "dir_acc": float(np.mean(np.sign(a) == np.sign(c))),
+                        "r2_oos": float(r2),
+                        "cw_stat": float(cw_stat),
+                        "cw_p": float(cw_p),
+                    })
+                print(f"  {sample:8s} {tgt:11s} h={h} done "
+                      f"({len(frame)} rows, {len(preds)} models)", flush=True)
 
     out = pd.DataFrame(rows)
     out["mae_gain_pct"] = 100 * (out.mae_bench - out.mae) / out.mae_bench
-    rej, padj, _, _ = multipletests(out.cw_p, alpha=0.05, method="fdr_bh")
-    out["cw_p_bh"], out["survives_bh"] = padj, rej
+    testable = out.cw_p.notna()
+    rej, padj, _, _ = multipletests(out.loc[testable, "cw_p"], alpha=0.05,
+                                    method="fdr_bh")
+    out.loc[testable, "cw_p_bh"] = padj
+    out.loc[testable, "survives_bh"] = rej
+    out["survives_bh"] = out["survives_bh"].fillna(False)
 
     out.to_csv(args.out_dir / "horse_race.csv", index=False)
 
-    print("\n=== best information set per cell, by out-of-sample R2 ===\n")
+    print("\n=== best baseline against best extended, per cell ===")
+    print("    (the approved thesis's Table 7 view: a baseline uses no war")
+    print("     variables, an extended set uses P, N, PN or PNG)\n")
+    tab = []
+    for key, g in out.groupby(["sample", "target", "horizon"]):
+        base = g[g.kind == "baseline"].nsmallest(1, "mae")
+        ext = g[g.kind == "extended"].nsmallest(1, "mae")
+        if base.empty or ext.empty:
+            continue
+        bm, em = base.iloc[0], ext.iloc[0]
+        tab.append({
+            "sample": key[0], "target": key[1], "horizon": key[2],
+            "best_baseline": f"{bm.model} ({bm.info_set})",
+            "mae_baseline": bm.mae,
+            "best_extended": f"{em.model} ({em.info_set})",
+            "mae_extended": em.mae,
+            "improvement_pct": 100 * (bm.mae - em.mae) / bm.mae,
+        })
+    t7 = pd.DataFrame(tab)
+    print(t7.round(4).to_string(index=False))
+    t7.to_csv(args.out_dir / "horse_race_baseline_vs_extended.csv", index=False)
+    print(f"\n  cells where a war-variable set beats every baseline on MAE: "
+          f"{int((t7.improvement_pct > 0).sum())} of {len(t7)}")
+
+    print("\n=== best model per cell, by out-of-sample R2 ===\n")
     best = (out.sort_values("r2_oos", ascending=False)
               .groupby(["sample", "target", "horizon"], as_index=False).first())
-    print(best[["sample", "target", "horizon", "info_set", "model", "r2_oos",
-                "mae_gain_pct", "cw_p"]].round(4).to_string(index=False))
+    print(best[["sample", "target", "horizon", "info_set", "model", "kind",
+                "r2_oos", "mae_gain_pct", "cw_p"]].round(4).to_string(index=False))
 
     print("\n=== how often does each set win its cell? ===")
     print(best.groupby(["sample", "info_set"]).size().to_string())
 
     print(f"\n  specifications            : {len(out)}")
     print(f"  positive R2_OS            : {int((out.r2_oos > 0).sum())}")
-    print(f"  Clark-West p<0.05 nominal : {int((out.cw_p < 0.05).sum())}")
+    print(f"  Clark-West p<0.05 nominal : {int((out.cw_p < 0.05).sum())}"
+          f" of {int(testable.sum())} testable")
     print(f"  surviving BH at FDR 5%    : {int(out.survives_bh.sum())}")
     print("\n  This race was NOT pre-registered. Any positive is exploratory,")
     print("  and Section 8.2 is what happens when that caveat is dropped.")
