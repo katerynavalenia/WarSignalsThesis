@@ -1,0 +1,998 @@
+\documentclass[12pt,a4paper,oneside]{article}
+
+\usepackage[margin=3cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\graphicspath{{../../outputs/figures/}}
+\usepackage{setspace}
+\usepackage[round,authoryear]{natbib}
+\usepackage[colorlinks=true,linkcolor=black,citecolor=blue,urlcolor=blue]{hyperref}
+
+\onehalfspacing
+\setlength{\parskip}{0.6em}
+\setlength{\parindent}{0pt}
+
+\title{\vspace{-2cm}\LARGE War Signals and Defense Equity Risk: Physical
+Air-Attack Intensity versus Multilingual News Narratives}
+\author{Khrystyna Kateryna Valenia}
+\date{August 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+\noindent This thesis studies whether daily information from the Russia--Ukraine
+war improves forecasts of defense-equity returns and volatility. The analysis
+combines official Bloomberg defense-equity indices, Ukrainian Air Force data on
+Russian air attacks, and multilingual GDELT news data classified by the country
+and ownership of the \emph{publisher} into Ukrainian, Russian state, Russian
+independent, Western, and native-English source groups. The main outcome is the
+Bloomberg World Large, Mid and Small Aerospace \& Defense Total Return Index
+(WAERLST), with the Bloomberg Europe Defense Select Total Return Index
+(BSHIELDT) and the iShares U.S. Aerospace \& Defense ETF (ITA) used as robustness
+outcomes. The empirical strategy is predictive rather than causal: information
+available through day $t$ is used to forecast defense-equity outcomes on future
+trading days. The thesis compares financial-only benchmarks with models that add
+physical attack variables, news variables, and narrative-gap variables in an
+out-of-sample expanding-window design, and evaluates them with out-of-sample
+$R^2$, tests appropriate to nested and non-nested comparisons, and a
+false-discovery-rate correction across the full grid of specifications. The main
+result is conservative: war-specific physical and news variables do not provide
+robust incremental predictive power beyond simple financial benchmarks, for
+returns or for volatility.
+\end{abstract}
+
+\section{Introduction}
+
+Russia's full-scale invasion of Ukraine has turned geopolitical risk into a daily
+financial-market concern. The war combines military escalation, sanctions, energy
+shocks, changes in defense budgets, and a continuous flow of news about attacks on
+Ukrainian cities and infrastructure. For investors, such information may matter
+not only because war increases aggregate uncertainty, but also because it can
+change expectations about future demand for aerospace and defense firms. This
+makes the defense sector an unusual setting: geopolitical shocks that are negative
+for broad markets may contain positive demand news for firms producing military
+equipment, air-defense systems, drones, missiles, aircraft, electronics, and
+related services.
+
+This thesis asks whether daily war information helps forecast defense-equity
+returns and volatility. The central research question is: do physical Russian
+air-attack intensity and multilingual news narratives provide incremental
+out-of-sample predictive information for defense-equity returns and volatility?
+The question is deliberately predictive rather than causal. The goal is not to
+claim that a given attack or article causes a stock-price movement. Instead, the
+thesis asks whether information available to investors by the end of day $t$
+improves forecasts of defense-equity outcomes on future trading days, relative to
+models that use only standard financial controls.
+
+The distinction between correlation, causality, and predictability is important
+for this topic. Wars create many simultaneous shocks: military events, political
+speeches, sanctions, procurement announcements, humanitarian events,
+energy-market movements, and changes in investor risk appetite. These channels
+make causal identification difficult without a separate research design. A
+forecasting design is more appropriate for the scope of this thesis because it
+evaluates whether a clearly defined information set improves prediction in real
+time. This also sets a high empirical standard, since equity-return predictability
+is difficult to establish out of sample \citep{welch2008}.
+
+The first challenge is to define a reliable defense-equity outcome. The primary
+financial target is the Bloomberg World Large, Mid and Small Aerospace \& Defense
+Total Return Index, hereafter WAERLST. This index provides a global defense-equity
+outcome and avoids the main limitation of using only a U.S. exchange-traded fund.
+The Bloomberg Europe Defense Select Total Return Index, hereafter BSHIELDT, is
+used as a European robustness outcome, while ITA, the iShares U.S. Aerospace \&
+Defense ETF, is retained as a U.S.-traded-proxy robustness outcome. Using all
+three outcomes separates the global question from two robustness perspectives:
+European defense exposure and U.S. defense exposure.
+
+The second challenge is to measure physical war intensity without introducing
+look-ahead bias. Russian air attacks often begin at night, cross calendar dates,
+and are officially reported only after the attack window closes. A naive date
+assignment could place information into the model before it was available to
+investors. To avoid this problem, the thesis uses a market-information date that
+reflects when verified attack information could enter the market's information
+set. The physical variables include total weapons launched, weapons destroyed,
+interception rates, weapon composition, attack-surprise measures, and large-attack
+indicators.
+
+A related and easily overlooked point concerns what the absence of an attack
+record means. The Ukrainian Air Force began publishing daily tallies in late
+September 2022, which is not the date on which air attacks began. Treating every
+earlier date as a day of zero attacks would be correct for the years before the
+full-scale invasion and plainly false for the months immediately after it.
+Section~\ref{sec:attacks} sets out the three-part treatment this requires.
+
+The third challenge is to separate realized physical intensity from media
+narratives. News coverage can amplify, interpret, or selectively emphasize
+military events. It may therefore contain information not captured by physical
+counts alone. At the same time, media attention is not a neutral mirror of the
+battlefield: Ukrainian, Russian, Western, and other sources may frame the same
+attack differently. The thesis addresses this issue using multilingual GDELT news
+data and a source-group classification built on the \emph{publisher} rather than
+on the subject matter of an article. Because outlets in this conflict routinely
+publish in a language other than that of their own country---many Ukrainian
+outlets publish in Russian---the classifier resolves country before language, and
+separates Russian state-controlled outlets from Russian independent and exile
+outlets. This design makes it possible to compare physical attacks, raw news
+attention, tone, and cross-source narrative differences within the same empirical
+framework.
+
+The fourth challenge is empirical evaluation. The thesis compares several
+information sets: financial controls only, financial controls plus physical
+attacks, financial controls plus news narratives, financial controls plus both
+attacks and news, and a final set adding narrative gaps across source groups.
+These comparisons are made using an out-of-sample time-series design, not random
+train-test splits. All models are estimated on identical forecast dates, and any
+preprocessing or estimated feature construction is designed to use only
+information available before the forecast. Because the design produces a large
+grid of specifications, the thesis applies a false-discovery-rate correction
+across that grid and uses tests appropriate to the nesting structure of the
+comparison, so that the number of significant cells is not itself a product of the
+number of cells examined.
+
+The empirical contribution of the thesis is to compare two layers of war
+information that are often studied separately. The physical layer measures what
+happened: the scale and composition of Russian air attacks and interception
+outcomes. The narrative layer measures how the war was reported: the amount and
+tone of multilingual news coverage across source groups, and the differences
+between them. The thesis asks whether one layer dominates the other, whether they
+are complementary, and whether the combination improves forecasts of returns or
+volatility beyond standard financial variables.
+
+The empirical results provide little evidence of incremental predictability from
+war-specific variables. Across 144 return specifications, spanning three outcomes,
+two horizons, two samples, and five information sets, 16 produce a positive
+out-of-sample $R^2$ and none survives a false-discovery-rate correction. Models
+using no war variables win eight of the twelve outcome-horizon-sample cells. The
+volatility results are equally conservative: standard GARCH-family benchmarks are
+not improved upon by war-augmented specifications under the QLIKE loss, and where
+the difference is statistically detectable the augmented model is worse. Overall,
+the evidence suggests that daily attack and news signals are either quickly
+incorporated into defense-equity prices, too noisy at the daily frequency, or
+dominated by broader financial dynamics.
+
+This thesis is related to a broad literature on uncertainty measurement and
+financial markets. \citet{baker2016} show that newspaper-based measures can
+capture economic policy uncertainty and are associated with stock-price
+volatility, investment, and employment. \citet{caldara2022} construct a
+news-based geopolitical-risk index and show that geopolitical risk is associated
+with weaker real activity, lower investment, and downside risks. Their distinction
+between geopolitical threats and realized adverse events is especially useful
+here, because this thesis separately measures realized air-attack intensity and
+news narratives about the war.
+
+The thesis also builds on research showing that media content can matter for asset
+prices. \citet{tetlock2007} finds that negative media content predicts short-run
+market movements, while \citet{loughran2011} shows that textual measures require
+careful domain-specific interpretation in financial applications. These papers
+motivate the use of news attention and tone as possible predictors, but they also
+caution against treating automated textual measures as perfect sentiment
+indicators. In this thesis, GDELT-based news measures are therefore interpreted as
+scalable proxies for attention and tone, not as complete measures of investor
+beliefs.
+
+A closely related contribution is \citet{bondarenko2024}, who construct
+geopolitical-risk indicators from local-language sources and from English-language
+sources separately, and find that the two behave differently: local-language risk
+shocks move Russian macroeconomic aggregates while English-language shocks do not.
+That result motivates the source-group design used here. If whose newspapers one
+reads changes the measured effect of the same underlying event, then a war-signal
+study that draws its national series from a single language population cannot
+speak to the question at all.
+
+The closest literature studies defense equities during periods of geopolitical
+stress. \citet{apergis2018} examine whether geopolitical risks predict returns and
+volatility of leading defense companies. \citet{zhang2022} study co-movements
+between daily geopolitical risk and the returns and volatility of global defense
+and aerospace firms. \citet{covachev2024} use an event-study design and report
+positive abnormal returns for European defense stocks after the start of the
+Russia--Ukraine war. \citet{klomp2025} similarly finds a positive relationship
+between conflict intensity and defense-industry returns.
+
+This thesis differs from much of the existing defense-stock literature in three
+ways. First, it uses daily physical attack measures rather than relying only on
+aggregate geopolitical-risk indices or major event dates. Second, it explicitly
+separates physical war intensity from multilingual media attention and
+source-group narratives, and does so by publisher rather than by subject. Third,
+it evaluates predictive performance out of sample, asking whether each information
+layer improves forecasts relative to financial benchmarks, and it bounds the
+resulting null with tests and corrections appropriate to the size of the
+specification grid. In this sense, the thesis contributes to the literature by
+shifting the focus from whether defense stocks react around major war events to
+whether daily war signals can help forecast defense-equity returns and volatility
+in a reproducible forecasting framework.
+
+\section{Data and Identification Strategy}
+
+\subsection{Overview}
+
+The empirical design combines three daily information sets: financial-market data,
+physical air-attack data, and multilingual news data. The financial data define
+the defense-equity outcomes to be forecast. The attack data measure the physical
+intensity and composition of Russian air attacks against Ukraine. The news data
+measure attention and tone across source groups. The final modeling dataset aligns
+these information sets by date so that information available through day $t$
+predicts market outcomes on future trading days.
+
+\subsection{Financial Outcomes}
+
+The primary financial outcome is the official Bloomberg WAERLST index. WAERLST is
+denominated in U.S. dollars and observed daily from 1 January 2020 to 30 June 2026
+in the Bloomberg export used for this thesis. The daily return is defined as
+\begin{equation}
+r^{W}_{t} = 100 \times \ln\!\left(\frac{P^{W}_{t}}{P^{W}_{t-1}}\right),
+\end{equation}
+where $P^{W}_{t}$ is the WAERLST closing index level on day $t$. Returns are
+expressed in percent so that forecast errors are interpretable in daily
+percentage-point units.
+
+The main robustness outcomes are official BSHIELDT returns and ITA returns.
+BSHIELDT is denominated in euros and provides a European defense-equity
+comparison. ITA is a liquid U.S. aerospace and defense ETF and is useful because
+it is traded, reproducible, and U.S.-focused. Using all three outcomes separates
+the global question from two robustness perspectives.
+
+The financial controls include broad equity-market returns, volatility, energy
+prices, exchange rates, and lagged defense-equity variables. The broad-market
+controls are included because defense equities may move with aggregate risk
+appetite rather than war-specific information. The volatility controls are
+included because geopolitical news may coincide with changes in market-wide
+uncertainty. The return controls also reduce the risk that attack or news
+variables are simply proxying for persistent financial conditions.
+
+All models are estimated on \emph{trading days}. Defense-equity returns exist only
+on days the relevant market is open, and carrying a realized return forward across
+a weekend would repeat the same outcome on several dates while the attack and news
+variables differ across them. That would ask a model to predict one identical
+value from several distinct inputs and would distort every out-of-sample statistic
+computed from it.
+
+\subsection{Physical Attack Variables}
+\label{sec:attacks}
+
+The physical attack dataset is based on Ukrainian Air Force records of Russian air
+attacks. The raw file contains 3{,}812 attack-level records from 29 September 2022
+to 21 June 2026. The processing pipeline aggregates these records to 809 unique
+market-information dates. Across the raw records, 102{,}396 weapons were launched
+and 76{,}126 were intercepted or destroyed, implying an aggregate interception rate
+of approximately 74.3 percent. UAVs dominate the sample, representing about 94.8
+percent of all launched weapons.
+
+The key timing rule is the market-information date:
+\begin{equation}
+\text{market\_info\_date} = \max(\text{attack\_date},\ \text{time\_end\_date}).
+\end{equation}
+This rule assigns an overnight attack to the day on which the attack ended and the
+verified count could plausibly become public. For example, an attack wave
+beginning late on day $t-1$ and ending in the morning of day $t$ is assigned to
+day $t$, not day $t-1$. This avoids look-ahead bias in the forecasting exercise.
+
+The main physical variables are total weapons launched, total weapons destroyed,
+interception rate, weapon diversity, and category-specific launch counts. Weapon
+categories include UAVs, cruise missiles, ballistic missiles, reconnaissance UAVs,
+loitering munitions, guided bombs, and other weapons. War intensity is measured as
+\begin{equation}
+\text{Attack intensity}_{t} = \ln(1 + \text{weapons launched}_{t}).
+\end{equation}
+The logarithmic transformation reduces the influence of extreme attack waves while
+preserving the ordering of attack intensity.
+
+The model also includes surprise-style attack measures. These variables compare
+recent attack intensity with rolling historical expectations, for example using
+seven-day, thirty-day, and ninety-day windows. The purpose is to distinguish
+routine wartime activity from unexpectedly large or intense attack days. In the
+forecasting interpretation, such variables ask whether unusually large attacks
+contain more market-relevant information than the level of attacks alone.
+
+\paragraph{Three periods, not one.} The attack series begins when the Ukrainian Air
+Force began publishing systematic daily tallies, which is not the date on which
+attacks began. The absence of a record therefore means different things at
+different times, and the sample is treated in three parts.
+
+Before 24 February 2022, the physical variables are set to zero. No Russian mass
+air campaign against Ukrainian cities existed in this period; the earlier phase of
+the conflict was fought with artillery and ground forces. This is a substantive
+assumption rather than an observation, and it is also what each formula returns on
+an all-zero history: no weapons, no composition, and no surprise relative to a
+rolling mean of nothing.
+
+Between 24 February 2022 and 28 September 2022 the physical variables are treated
+as \emph{unobserved}. This window contains the cruise-missile campaign against
+Kyiv, Vinnytsia, Kremenchuk, and Odesa; the attacks occurred and were not tallied
+in this format. Coding them as zero would assert that no air attacks took place
+during the invasion of Ukraine, and would do so across the period in which defense
+equities repriced most sharply---which would teach any model that attack intensity
+was nil precisely when the market moved most. These 149 trading days are therefore
+excluded from every specification, including those that use no physical variables,
+so that the information sets are compared on identical observations.
+
+From 29 September 2022 onward the variables are observed. Trading days inside this
+window with no published attack wave are genuine zeros and are treated as such;
+809 of the 931 trading days in the window carry a Ukrainian Air Force record.
+
+\subsection{News and Narrative Variables}
+
+The news dataset is constructed from GDELT GKG 2.0, a large-scale global database
+designed to measure events, locations, and tone from news sources
+\citep{leetaru2013}. The extraction covers 18 February 2015 to 20 May 2026, or
+4{,}027 days, which is 98 percent of the calendar in that span; the missing days
+are gaps in the GDELT archive itself. Coverage begins well before the full-scale
+invasion so that the news series are observed across quiet periods, the
+2021--2022 build-up, and the war itself, rather than only during the conflict.
+
+\paragraph{Classification is by publisher, not by subject.} A source group is
+assigned from the identity of the outlet that published an article, not from the
+country an article mentions. The distinction is essential rather than technical.
+Classifying by subject would place a Western wire report about Russia in the
+Russian group, so that all national series would be drawn from a single
+English-language population and would differ only in topic. The question this
+thesis asks---whether the perception carried by different media matters---cannot be
+answered by a classifier of that kind.
+
+The classifier applies four tiers in order. Syndication platforms with no newsroom
+of their own are excluded first, because they carry large volume but no editorial
+voice. A curated register of the highest-volume outlets is applied next, recording
+country and, for Russian outlets, state control versus independent or exile
+ownership. Country top-level domains are applied third. Source language is applied
+last and only where country remains unknown.
+
+\emph{Country resolves before language.} Many Ukrainian outlets publish heavily in
+Russian, so a language-first rule would file them as Russian media and manufacture
+agreement between the two ecosystems. Section~\ref{sec:classcheck} reports what a
+language-first rule costs in practice.
+
+Five source groups enter the tests: Ukrainian, Russian state, Russian independent,
+Western, and native-English. Russian outlets outside the register are retained as a
+residual group that is reported but not tested, so that unclassified Russian volume
+is visible rather than hidden inside another series.
+
+The daily news variables measure both attention and tone. Attention is each
+group's conflict-related coverage as a \emph{share} of its own total output rather
+than as a raw count. Shares are used because GDELT's source coverage drifts
+substantially over eleven years, and a count series would show that drift as a
+common trend in every group at once. Tone is the average GDELT tone score for
+conflict articles in a given group and day. Because GDELT tone is a scalable
+automated measure, it is interpreted as an indicator of article negativity or
+positivity rather than a perfect measure of investor sentiment, following the
+broader caution in financial textual analysis that dictionaries and automated
+textual scores may behave differently across domains \citep{loughran2011}.
+
+The narrative-gap variables compare tone across source groups. The main gaps are
+\begin{align}
+\text{UA--West gap}_{t} &= \text{Tone}^{UA}_{t} - \text{Tone}^{West}_{t},\\
+\text{RU--West gap}_{t} &= \text{Tone}^{RU}_{t} - \text{Tone}^{West}_{t},\\
+\text{UA--RU gap}_{t} &= \text{Tone}^{UA}_{t} - \text{Tone}^{RU}_{t},\\
+\text{State--independent gap}_{t} &= \text{Tone}^{RU\,state}_{t} - \text{Tone}^{RU\,indep}_{t}.
+\end{align}
+These variables are designed to measure whether differences in wartime framing
+contain predictive information beyond the volume of news. A strongly negative
+Ukrainian-versus-Western tone gap, for example, may indicate that local sources
+describe the war as more severe than Western sources do on the same day. The
+fourth gap isolates ownership while holding country and language fixed.
+
+\subsection{Forecasting Design}
+
+The empirical strategy is an out-of-sample forecasting horse race. Let $y_{t+h}$
+denote the defense-equity outcome over horizon $h$, where $h=1$ or $h=5$ trading
+days. The general predictive specification can be written as
+\begin{equation}
+y_{t+h} = \alpha + \beta' F_{t} + \gamma' P_{t} + \delta' N_{t} + \theta' G_{t}
++ \varepsilon_{t+h},
+\end{equation}
+where $F_t$ contains financial controls, $P_t$ contains physical attack variables,
+$N_t$ contains news attention and tone variables, and $G_t$ contains
+narrative-gap variables. All variables on the right-hand side are dated so that
+they are available before the forecast target is realized.
+
+The main information sets are defined in Table~\ref{tab:sets}.
+
+\begin{table}[htbp]
+\centering
+\caption{Information sets used in the forecasting horse race}
+\label{tab:sets}
+\begin{tabular}{llp{8.2cm}}
+\toprule
+Code & Name & Content \\
+\midrule
+F & Financial baseline & Lagged defense-equity returns and volatility proxies,
+broad equity-market returns, VIX, energy prices, exchange rates, long rates, and
+regime controls. \\
+P & Physical attacks & F plus Russian air-attack variables, including launched
+weapons, destroyed weapons, interception rate, weapon composition, attack
+surprises, and large-attack indicators. \\
+N & News & F plus news attention and tone variables by source group. \\
+PN & Physical + news & F plus physical attack variables and news variables. \\
+PNG & Physical + news + gaps & PN plus narrative-gap variables comparing Ukrainian,
+Russian state, Russian independent, and Western tone. \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.4em}
+{\footnotesize Notes: The model matrix contains 21 features in F, 62 in P, 31 in
+N, 72 in PN, and 76 in PNG.}
+\end{table}
+
+The out-of-sample design uses an expanding training window. The last quarter of the
+modeling sample is held out for testing. Models are estimated on the initial
+training period, forecasts are generated for the next block of test observations,
+and the training window is then expanded and the model refit at a fixed cadence.
+This procedure respects the time ordering of the data and avoids random train-test
+splits, which would be inappropriate for a forecasting problem.
+
+Two samples are reported throughout. The \emph{full} sample runs from February
+2015 and carries the pre-war period as substantive zeros in the physical block.
+The \emph{measured} sample is restricted to 29 September 2022 onward, so that
+every physical observation is a counted one. Reporting both makes the cost of the
+zero-fill assumption visible rather than assumed away. All information sets are
+estimated on one common set of observations within each sample, so that the
+comparison between them is not confounded by differences in coverage.
+
+\subsection{Models and Evaluation}
+
+The return-forecast baselines are the historical mean, an AR(1) model, and ridge
+regression. The historical mean is a difficult benchmark for daily return
+prediction because equity returns are noisy and close to unpredictable at short
+horizons. The AR(1) model tests whether return persistence matters; for the
+five-day horizon its predictor is the most recent fully realized five-day return,
+since overlapping windows would otherwise place part of the forecast target inside
+the predictor. Ridge regression tests whether the information sets improve
+forecasts in a linear model with shrinkage when many predictors are included.
+
+The main machine-learning model is XGBoost, a gradient-boosted tree algorithm
+\citep{chen2016}. XGBoost is useful here because it can capture nonlinearities and
+interactions between attacks, news, and financial variables while handling missing
+predictor values internally. Hyperparameters are held fixed and identical across
+information sets. This is deliberate: a comparison in which one information set
+receives tuning that the others do not is not a comparison of information sets.
+
+Volatility forecasts are evaluated with GARCH-family models. The benchmark
+specifications include GARCH, GJR-GARCH, and EGARCH, following the standard
+volatility-modeling literature \citep{bollerslev1986,glosten1993,nelson1991}.
+Because the available financial data are daily closing levels rather than intraday
+prices, realized volatility is proxied using squared returns or sums of squared
+returns over the forecast horizon.
+
+The war variables enter the volatility exercise through a heterogeneous
+autoregressive specification, HAR-RV-X: log realized variance is regressed on its
+own one-, five-, and twenty-two-day averages \citep{corsi2009}, and the war blocks
+are then added to that regression. This is the standard way to admit exogenous
+predictors to a volatility forecast when they cannot be placed in the variance
+equation of a GARCH model directly, and it has the practical advantage that the
+exogenous block demonstrably enters the fitted model rather than being carried
+alongside it without effect.
+
+The loss function for volatility is QLIKE, which is commonly used when evaluating
+volatility forecasts because it is robust to noise in the volatility proxy
+\citep{patton2011}. Mean absolute error, root mean squared error, and bias are
+reported alongside it.
+
+Forecast accuracy for returns is evaluated using mean absolute error, root mean
+squared error, directional accuracy, and the Campbell--Thompson out-of-sample
+$R^2$ \citep{campbell2008}, defined as one minus the ratio of the model's mean
+squared forecast error to that of the historical-mean benchmark.
+
+Formal comparisons follow the nesting structure of the design. Each information
+set contains the one before it, so a comparison between an information set and the
+financial baseline is a nested comparison, and the Diebold--Mariano statistic
+\citep{diebold1995} is not valid there; the Clark--West test is used instead
+\citep{clark2007}. Diebold--Mariano is used where the models being compared are
+genuinely non-nested, as when a GARCH-family model is compared with a HAR
+specification. Where the small-sample correction of \citet{harvey1997} applies it
+is used. Because the design produces a large grid of specifications, $p$-values
+are corrected across the whole grid using the Benjamini--Hochberg
+false-discovery-rate procedure \citep{benjamini1995}. The interpretation is always
+predictive: a lower forecast error means that the information set was useful for
+prediction in the test period, not that the predictors caused the market outcome.
+
+\subsection{Identification Challenges and Interpretation}
+
+The empirical strategy is designed for forecasting, not causal identification.
+Attacks are not randomly assigned, news coverage responds to both battlefield
+events and market conditions, and defense-equity returns are affected by many
+global shocks. Even if attack or news variables improve forecast accuracy, the
+result should be interpreted as evidence that these variables contain information
+useful for prediction, not as evidence that attacks or articles mechanically
+caused returns.
+
+The main identification challenge is information timing. The pipeline addresses
+this challenge by assigning physical attacks to a market-information date, lagging
+predictors before forecasting, and evaluating models only on future trading
+outcomes. The second challenge is avoiding overfitting in a small daily sample.
+The pipeline addresses this through out-of-sample testing, expanding-window
+validation, hyperparameters held fixed across information sets, comparisons
+against simple benchmarks, and a false-discovery-rate correction across the
+specification grid. The third challenge is measurement error in news and source
+classification. The pipeline addresses this by classifying on the publisher rather
+than the subject, by validating the classifier against an independent external
+source, and by re-running the central comparison under alternative classification
+rules; Section~\ref{sec:classcheck} reports both.
+
+\section{Descriptive Statistics}
+
+\subsection{Tables and Figures}
+
+The descriptive section uses a small number of tables and figures so that the
+thesis stays within the recommended limit of ten total tables and figures. The
+seven tables and three figures show the financial targets, the physical and
+narrative war signals, the main variable definitions, the validation of the
+source classification, forecast performance, and robustness checks. This keeps
+the empirical presentation compact and focused on the research question.
+
+\subsection{Financial Outcomes}
+
+The official WAERLST and BSHIELDT files provide complete weekday coverage from
+1 January 2020 to 30 June 2026. WAERLST has 1{,}695 daily observations, 100 percent
+non-missing price coverage, and no zero-volume days in the Bloomberg export.
+BSHIELDT also has 1{,}695 daily observations and 100 percent non-missing price
+coverage, but it contains several zero-volume European holiday dates. These
+holiday dates are handled so that non-trading days do not create artificial zero
+returns.
+
+\begin{table}[htbp]
+\centering
+\caption{Official Bloomberg defense-equity index data}
+\begin{tabular}{lccccc}
+\toprule
+Index & Currency & Start date & End date & Price coverage & Full-period daily std. \\
+\midrule
+WAERLST  & USD & 2020-01-01 & 2026-06-30 & 100.0\% & 1.518\% \\
+BSHIELDT & EUR & 2020-01-01 & 2026-06-30 & 100.0\% & 1.770\% \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.4em}
+{\footnotesize Notes: WAERLST is the Bloomberg World Large, Mid and Small
+Aerospace \& Defense Total Return Index and is the main outcome. BSHIELDT is the
+Bloomberg Europe Defense Select Total Return Index and is used for European
+robustness. Daily standard deviations are computed from log returns in percent
+over the full available Bloomberg sample.}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Main variable definitions}
+\label{tab:vars}
+\begin{tabular}{llp{7.4cm}}
+\toprule
+Variable & Unit & Definition \\
+\midrule
+$r^{W}_{t}$ & percent & Daily log return on WAERLST, computed as
+$100 \times \ln(P_t/P_{t-1})$. \\
+$r^{B}_{t}$ & percent & Daily log return on BSHIELDT, used as European
+robustness outcome. \\
+$r^{ITA}_{t}$ & percent & Daily log return on ITA, used as U.S. robustness
+outcome. \\
+Attack intensity & log count & $\ln(1 + \text{total weapons launched})$ on the
+market-information date. \\
+Interception rate & ratio & Total weapons destroyed divided by total weapons
+launched. \\
+Weapon composition & counts/shares & Counts or shares of launched weapons by
+category: UAVs, cruise missiles, ballistic missiles, reconnaissance UAVs,
+loitering munitions, guided bombs, and other weapons. \\
+News attention & share & Conflict-related articles as a share of a source
+group's own daily output. \\
+Tone & score & Average GDELT tone for conflict articles in a given source group
+and day. More negative values indicate more negative news language. \\
+Narrative gap & score difference & Difference between average tone in two source
+groups, for example Ukrainian tone minus Western tone. \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.4em}
+{\footnotesize Notes: Financial returns are measured in percent. Attack and news
+variables are dated before the financial target to avoid look-ahead bias. News
+attention is expressed as a share rather than a count because GDELT source
+coverage drifts substantially over the sample.}
+\end{table}
+
+During the model-window period beginning on 29 September 2022, WAERLST daily
+returns have a mean of 0.108 percent and a standard deviation of 1.056 percent.
+BSHIELDT daily returns have a mean of 0.148 percent and a standard deviation of
+1.445 percent over the same window. The return correlation between WAERLST and
+BSHIELDT over the full period is approximately 0.756, which indicates that the
+global and European defense indices are strongly related but not identical.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{fig1_outcomes.png}
+\caption{The three defense-equity outcomes, normalized to 100 on 1 January 2020.
+WAERLST is the global index and the main outcome; BSHIELDT is the European
+robustness outcome and ITA the U.S. one. The dashed line marks 24 February 2022.}
+\label{fig:outcomes}
+\end{figure}
+
+\subsection{Attack and News Variables}
+
+The attack data show that Russian air attacks became a frequent and high-intensity
+feature of the war. On days with a recorded attack, an average of about 127
+weapons were launched, with a standard deviation of about 144 and a maximum close
+to 982. The interception rate averages about 0.74 across the sample. These
+statistics show why both the level and composition of attacks may matter: the
+distribution is highly skewed, with a small number of very large attack waves.
+
+The news data contain broad daily coverage of the war across the whole
+2015--2026 span. Table~\ref{tab:eco} reports the five source groups that enter the
+tests. Volume differs substantially across groups, which is one reason attention is
+measured as a share of a group's own output rather than as a count. Tone differs
+as well: Ukrainian and Russian independent coverage is more negative on average
+than Western or Russian state coverage.
+
+\begin{table}[htbp]
+\centering
+\caption{Source groups entering the tests}
+\label{tab:eco}
+\begin{tabular}{lrrr}
+\toprule
+Source group & Median daily articles & Mean conflict tone & Invasion-day $z$ \\
+\midrule
+Ukrainian           & 4{,}988 & $-2.39$ & 2.97 \\
+Russian state       & 2{,}912 & $-1.78$ & 2.21 \\
+Russian independent &    387  & $-2.31$ & 2.05 \\
+Western             & 7{,}605 & $-1.80$ & 7.51 \\
+Native-English      & 6{,}770 & $-1.99$ & 7.29 \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.4em}
+{\footnotesize Notes: Median daily article counts are over the full 2015--2026
+window. Mean conflict tone is the average GDELT tone of conflict-related articles
+in that group. The invasion-day $z$-score is the standardized attention share on
+24 February 2022 relative to the group's own distribution.}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{fig2_war_layers.png}
+\caption{The two war-information layers. The upper panel shows Russian air
+attacks as a seven-day mean of weapons launched, beginning when the Ukrainian Air
+Force started publishing daily tallies. The lower panel shows conflict-related
+coverage as a share of each source group's own output, as a thirty-day mean, with
+the dashed line at 24 February 2022. Breaks in the lower panel are days absent
+from the news archive and are left as breaks rather than interpolated.}
+\label{fig:layers}
+\end{figure}
+
+The Russian independent group is much the smallest, and it is small for reasons
+connected to what it measures. Several of its constituent outlets were liquidated,
+blocked, or relocated abroad during the sample, so its volume falls sharply across
+the very event being studied. Results that depend specifically on that group are
+correspondingly less well determined than results resting on the larger groups.
+
+\subsection{Validating the Source Classification}
+\label{sec:classcheck}
+
+Because every news result is conditional on the classifier, it is validated in
+three ways that do not rely on the classifier itself.
+
+\paragraph{Agreement with an external index.} The Western and native-English
+attention series should track the published Caldara--Iacoviello geopolitical-risk
+index when that index is being driven by this conflict, and should not track it
+otherwise. Over the window in which geopolitical risk is dominated by the
+Russia--Ukraine conflict, the correlation in levels is 0.866 for the Western group
+and 0.884 for the native-English group. Over 2017--2019, when the index is driven
+by North Korea and Iran, the same correlations fall to 0.082 and 0.047. The series
+track the external benchmark when they should and ignore it when they should,
+which is the behavior an index specific to one conflict ought to display.
+
+\paragraph{Precision of the outlet register.} Because the classifier is a
+deterministic function of the publishing domain, the precision of its article
+assignments is the precision of its domain assignments weighted by article volume.
+The register is therefore checked domain by domain against Wikidata, an
+independently maintained source, matching each outlet by its official website
+rather than by name. Of the 84 registered outlets, 66 can be verified in this way,
+and 63 of those agree, a precision of 0.955. The Ukrainian, Russian state, and
+Western groups return no disagreement at all. All three disagreements are exile
+newsrooms, for which Wikidata records the country of legal registration while the
+register records the country whose readership the outlet serves; these are recorded
+and not acted upon.
+
+\paragraph{Sensitivity to the classification rule.} The central comparison is
+re-estimated under four alternative rules: using only the curated register, dropping
+the language tier, restoring the excluded syndication platforms, and---most
+importantly---resolving language before country. Under the primary alignment the
+number of specifications surviving correction is one under the shipped rule and
+between one and two under every alternative. The answer does not depend on the
+classification choices. The language-first rule is instructive in a second way:
+it cannot produce a Russian independent group at all, because Russian-language
+articles from independent outlets are claimed by the language tier before the
+register is consulted. That is the concrete cost of resolving language before
+country.
+
+\section{Empirical Findings, Interpretation, and Implications}
+
+\subsection{Forecasting Comparisons}
+
+The empirical findings are organized around information-set comparisons rather
+than individual coefficients. This is important because the research question asks
+whether physical and narrative war signals improve forecasts, not whether one
+isolated coefficient is statistically significant in one specification. The main
+comparison is therefore between the financial baseline and the larger information
+sets P, N, PN, and PNG.
+
+The first outcome is return predictability. Daily return prediction is difficult,
+and the prior from the equity-prediction literature is that out-of-sample
+improvements may be small \citep{welch2008}. If attack or news variables reduce
+forecast error for WAERLST returns, this would be meaningful because it would show
+that war-specific information adds value beyond standard financial controls. If
+they do not reduce forecast error, the result would still be informative because
+it would suggest that daily defense-equity returns incorporate such information
+quickly or that the signals are too noisy at the daily horizon.
+
+\begin{table}[htbp]
+\centering
+\caption{Out-of-sample return forecast performance, WAERLST}
+\label{tab:returns}
+\begin{tabular}{llrrrrr}
+\toprule
+Model & Information set & Horizon & MAE & RMSE & Dir.\ accuracy & $R^2_{OS}$ \\
+\midrule
+XGBoost         & PN     & 1 & 1.053 & 1.345 & 0.497 & $+0.043$ \\
+XGBoost         & P      & 1 & 1.062 & 1.357 & 0.510 & $+0.025$ \\
+XGBoost         & PNG    & 1 & 1.066 & 1.369 & 0.503 & $+0.008$ \\
+Historical mean & F      & 1 & 1.073 & 1.375 & 0.503 & $ 0.000$ \\
+XGBoost         & N      & 1 & 1.076 & 1.381 & 0.462 & $-0.009$ \\
+AR(1)           & F      & 1 & 1.083 & 1.380 & 0.483 & $-0.007$ \\
+Ridge           & F      & 1 & 1.088 & 1.432 & 0.462 & $-0.086$ \\
+XGBoost         & F      & 1 & 1.092 & 1.408 & 0.483 & $-0.049$ \\
+\midrule
+Historical mean & F      & 5 & 2.541 & 3.155 & 0.455 & $ 0.000$ \\
+AR(1)           & F      & 5 & 2.548 & 3.158 & 0.448 & $-0.002$ \\
+Ridge           & F      & 5 & 2.609 & 3.324 & 0.469 & $-0.111$ \\
+Ridge           & N      & 5 & 2.629 & 3.344 & 0.469 & $-0.124$ \\
+XGBoost         & PN     & 5 & 2.636 & 3.185 & 0.483 & $-0.019$ \\
+XGBoost         & P      & 5 & 2.649 & 3.232 & 0.503 & $-0.050$ \\
+XGBoost         & PNG    & 5 & 2.688 & 3.267 & 0.435 & $-0.072$ \\
+XGBoost         & F      & 5 & 2.805 & 3.477 & 0.476 & $-0.215$ \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.4em}
+{\footnotesize Notes: WAERLST out-of-sample forecasts on the measured sample,
+ordered by MAE within each horizon. MAE and RMSE are in return percentage points.
+Directional accuracy is the share of dates on which the predicted and realized
+return have the same sign. $R^2_{OS}$ is Campbell--Thompson out-of-sample $R^2$
+against the historical-mean benchmark. Both horizons use 145 forecast dates. F is
+the financial baseline, P adds physical attack variables, N adds news variables,
+PN combines them, and PNG adds narrative gaps.}
+\end{table}
+
+Table~\ref{tab:returns} shows that the return-forecast evidence is weak. At the
+one-day horizon three war-augmented XGBoost specifications improve on the
+historical mean, the best by 1.8 percent in MAE. At the five-day horizon the
+historical mean is the best model outright and every war-augmented specification
+is worse. The improvements at one day are small in absolute terms, and none of
+them survives the false-discovery-rate correction applied across the full grid.
+
+Across the whole design---three outcomes, two horizons, two samples, and five
+information sets, or 144 specifications---16 produce a positive out-of-sample
+$R^2$, 23 have a nominal Clark--West $p$-value below 0.05, and \emph{none}
+survives correction at a 5 percent false-discovery rate. Models using no war
+variables at all win eight of the twelve outcome-horizon-sample cells.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{fig3_forecast_error.png}
+\caption{One-day return forecast error by information set. Bars report mean
+absolute error for gradient-boosted models using financial controls only (F),
+physical attacks (P), news variables (N), physical plus news (PN), and physical
+plus news plus narrative gaps (PNG). The dashed line is the historical-mean
+benchmark for each outcome. Note the compressed vertical scale: the differences
+between information sets are small relative to the level of the error.}
+\label{fig:err}
+\end{figure}
+
+The volatility outcome is the more demanding test of the two, and it is worth
+saying why. Daily returns are close to unforecastable in general, so failing to
+predict them is the default outcome and weak evidence about the information
+content of a signal. Volatility is different: it clusters, it persists, and
+standard models forecast it with some success. It is also where geopolitical
+shocks would be expected to appear, since an attack wave may plausibly change
+uncertainty even when its direction for prices is ambiguous. A war signal that
+does not improve a volatility forecast has failed on favorable ground.
+
+\begin{table}[htbp]
+\centering
+\caption{Out-of-sample volatility forecast performance, WAERLST}
+\label{tab:vol}
+\begin{tabular}{lrrrrr}
+\toprule
+Model & Horizon & QLIKE & RMSE & MAE & Bias \\
+\midrule
+EGARCH          & 1 & 1.380 & 2.775 & 1.613 & $-0.233$ \\
+GJR-GARCH       & 1 & 1.405 & 2.786 & 1.613 & $-0.262$ \\
+GARCH           & 1 & 1.425 & 2.798 & 1.596 & $-0.327$ \\
+HAR-RV-X (P)    & 1 & 3.651 & 3.017 & 1.495 & $-1.124$ \\
+HAR-RV          & 1 & 3.795 & 3.093 & 1.479 & $-1.324$ \\
+HAR-RV-X (PN)   & 1 & 4.167 & 3.012 & 1.494 & $-1.093$ \\
+HAR-RV-X (N)    & 1 & 4.378 & 3.084 & 1.474 & $-1.303$ \\
+HAR-RV-X (PNG)  & 1 & 4.446 & 3.045 & 1.530 & $-1.090$ \\
+\midrule
+HAR-RV          & 5 & 0.171 & 3.910 & 2.282 & $-1.131$ \\
+HAR-RV-X (N)    & 5 & 0.172 & 3.940 & 2.331 & $-1.109$ \\
+HAR-RV-X (PN)   & 5 & 0.174 & 4.277 & 2.536 & $-0.352$ \\
+HAR-RV-X (PNG)  & 5 & 0.175 & 4.369 & 2.582 & $-0.380$ \\
+HAR-RV-X (P)    & 5 & 0.176 & 4.110 & 2.418 & $-0.400$ \\
+GJR-GARCH       & 5 & 0.335 & 6.885 & 4.539 & $-1.582$ \\
+GARCH           & 5 & 0.352 & 6.985 & 4.535 & $-1.770$ \\
+EGARCH          & 5 & 0.489 & 7.756 & 5.125 & $-3.102$ \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.4em}
+{\footnotesize Notes: WAERLST volatility forecasts on the measured sample, ordered
+by QLIKE within each horizon. The volatility target is a return-based
+realized-variance proxy because intraday prices are not available. QLIKE is the
+main volatility loss. Horizon 1 uses 233 forecast dates and horizon 5 uses 232.
+HAR-RV is the heterogeneous-autoregressive benchmark; HAR-RV-X adds the indicated
+war block to it.}
+\end{table}
+
+Table~\ref{tab:vol} shows that the GARCH family is the strongest set of
+benchmarks at the one-day horizon under QLIKE, with EGARCH the best single model,
+while the heterogeneous-autoregressive specifications are stronger at five days.
+Adding war variables does not improve on the relevant benchmark at either horizon.
+Across all 48 war-augmented volatility specifications, four have a lower QLIKE
+than the HAR-RV benchmark, \emph{none} of those differences is statistically
+significant, and eight augmented specifications are significantly \emph{worse}.
+Every specification that survives the false-discovery-rate correction is a
+deterioration rather than an improvement. Since QLIKE is the preferred volatility
+loss, the volatility evidence does not support a robust incremental role for
+attack and news variables.
+
+\subsection{Machine-Learning Interpretation}
+
+The XGBoost results are useful mainly as a nonlinear robustness check. If the
+war-specific variables contained strong nonlinear predictive information, the tree
+model should have been able to exploit it more easily than ridge regression. The
+results show a partial version of this pattern and no more. At the one-day horizon
+the war-augmented XGBoost specifications do improve on the historical mean for
+WAERLST, and the corresponding ridge specifications do not, which is consistent
+with any usable structure being nonlinear rather than linear. But the improvements
+are small, they do not survive correction across the grid, and they reverse at the
+five-day horizon, where the historical mean is best and every extended
+specification is worse.
+
+Because XGBoost does not deliver a robust forecast improvement, feature-importance
+interpretation is treated as secondary. A SHAP decomposition could be useful in an
+appendix, but it is not central evidence in the present draft because the
+forecasting improvement itself is small and unstable, and interpreting the drivers
+of an improvement that does not survive correction would give it more weight than
+it can carry.
+
+\subsection{Robustness and Interpretation}
+
+Robustness checks use ITA and BSHIELDT to test whether the results depend on the
+geographic scope of the defense-equity outcome. ITA checks whether the global
+WAERLST result also appears in a U.S.-traded aerospace and defense ETF. BSHIELDT
+checks whether the result is stronger in Europe, where the economic and political
+relevance of the Russia--Ukraine war may be more direct. Both samples are reported,
+so that the effect of carrying the pre-war period as zeros is also visible.
+
+\begin{table}[htbp]
+\centering
+\caption{Robustness checks across defense-equity outcomes and samples}
+\label{tab:robust}
+\begin{tabular}{llrrrr}
+\toprule
+Sample & Outcome, horizon & Best baseline & Best extended & Improvement \\
+\midrule
+Full     & WAERLST, $h=1$  & 0.937 & 0.931 & $+0.6\%$ \\
+Full     & WAERLST, $h=5$  & 2.211 & 2.308 & $-4.4\%$ \\
+Full     & BSHIELDT, $h=1$ & 1.335 & 1.351 & $-1.2\%$ \\
+Full     & BSHIELDT, $h=5$ & 2.933 & 3.066 & $-4.5\%$ \\
+Full     & ITA, $h=1$      & 1.041 & 1.063 & $-2.1\%$ \\
+Full     & ITA, $h=5$      & 2.264 & 2.196 & $+3.0\%$ \\
+\midrule
+Measured & WAERLST, $h=1$  & 1.073 & 1.053 & $+1.8\%$ \\
+Measured & WAERLST, $h=5$  & 2.541 & 2.629 & $-3.5\%$ \\
+Measured & BSHIELDT, $h=1$ & 1.413 & 1.411 & $+0.2\%$ \\
+Measured & BSHIELDT, $h=5$ & 3.232 & 3.302 & $-2.2\%$ \\
+Measured & ITA, $h=1$      & 1.175 & 1.202 & $-2.3\%$ \\
+Measured & ITA, $h=5$      & 2.603 & 2.588 & $+0.6\%$ \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.4em}
+{\footnotesize Notes: Loss is MAE in return percentage points. The best baseline is
+the best model that uses no attack or news variables, including the historical
+mean, AR(1), and models estimated on the financial set alone. The best extended
+loss is the best model using P, N, PN, or PNG. Positive improvement means lower
+MAE than the baseline. No extended specification in this table survives
+false-discovery-rate correction across the grid.}
+\end{table}
+
+The robustness evidence confirms the conservative interpretation. A war-augmented
+information set achieves a lower MAE than every baseline in five of the twelve
+cells, by between 0.2 and 3.0 percent, and is worse in the other seven. The gains
+are concentrated at the one-day horizon and reverse at five days, and none of them
+is statistically distinguishable from zero once the size of the specification grid
+is taken into account. Read together with Table~\ref{tab:returns}, the picture is
+of small, unstable differences around a benchmark rather than a detectable signal.
+
+The two samples also answer a question about the pre-war period directly. Carrying
+those years as zeros in the physical block does not change the verdict, and it does
+not help the physical layer: mean out-of-sample $R^2$ for the news set improves
+slightly on the longer sample (by 0.013) while the physical, combined, and
+narrative-gap sets all deteriorate (by 0.025 to 0.035). The reason is
+straightforward. In 1{,}757 of the added trading days every physical variable is
+identically zero, so those observations add sample size without adding variation in
+the quantity whose predictive content is being tested. The assumption is defensible
+and it is not free.
+
+\section{Conclusion}
+
+This thesis asks whether physical Russian air-attack intensity and multilingual
+news narratives improve out-of-sample forecasts of defense-equity returns and
+volatility. The analysis combines official Bloomberg defense-equity indices, daily
+physical attack data, and GDELT news variables classified by publisher, while
+enforcing timing rules designed to prevent look-ahead bias. The research design is
+predictive rather than causal: it evaluates whether information available before
+the forecast date improves forecast accuracy.
+
+The main contribution is to compare physical and narrative war signals in the same
+forecasting framework. The physical layer measures realized military intensity
+through weapons launched, weapons destroyed, interception rates, weapon
+composition, and attack-surprise variables. The narrative layer measures news
+attention, tone, and differences in tone across Ukrainian, Russian state, Russian
+independent, Western, and native-English source groups. This distinction is useful
+because the market may respond differently to what happens physically and to how
+those events are reported. Classifying sources by publisher rather than by subject
+is what makes the second half of that comparison meaningful, and the classifier is
+validated externally, audited domain by domain, and re-estimated under alternative
+rules so that the news result does not rest on one set of unexamined choices.
+
+The final answer to the research question is cautious. Physical air-attack
+intensity and multilingual news narratives do not provide robust incremental
+out-of-sample predictive power for defense-equity returns or volatility in this
+sample. Across 144 return specifications, 16 improve on the historical mean and
+none survives a false-discovery-rate correction; models using no war variables win
+two-thirds of the outcome-horizon cells. The one-day WAERLST results show small
+improvements from the combined physical-and-news set, but they are not
+statistically distinguishable from zero and they reverse at the five-day horizon.
+For volatility, standard GARCH-family benchmarks are not improved upon by
+war-augmented specifications under QLIKE, and every statistically detectable
+difference runs the wrong way. The evidence therefore supports a null or near-null
+conclusion rather than a strong predictability result.
+
+The thesis has several limitations. First, the analysis does not identify causal
+effects of attacks or news on defense-equity prices. Second, the daily frequency
+may be too coarse for some market reactions and too noisy for others; intraday
+data would allow a cleaner analysis of immediate price discovery. Third,
+volatility is measured using close-to-close returns rather than high-frequency
+realized volatility. Fourth, GDELT tone remains an imperfect proxy for media
+narratives: the source classification is validated externally at the level of the
+publishing domain, but that validation cannot establish that GDELT has attributed
+every article to the right domain in the first place, which only a reader with the
+relevant languages could check. Fifth, physical attack data exist only from late
+September 2022, so the months of the invasion itself lie outside every
+specification that uses them, and the number of out-of-sample forecast
+observations remains modest.
+
+Several extensions are possible. Future work could use intraday financial data to
+study whether attack announcements or major news releases are incorporated within
+hours rather than days. A second extension would use point-in-time index
+constituents to study firm-level heterogeneity by country, product type, or
+exposure to government procurement. A third extension would apply multilingual
+transformer models to article text, which could measure narrative content more
+directly than GDELT tone. A final extension would compare the Russia--Ukraine war
+with other geopolitical conflicts to test whether defense-equity predictability is
+conflict-specific or more general.
+
+The contribution of this thesis is therefore narrow but evidence-based. It does not
+find strong incremental predictability from daily physical attacks or multilingual
+news narratives, but it shows this through a transparent dataset, a careful timing
+design, a source classification that is validated rather than assumed, and an
+out-of-sample comparison of physical and narrative war information in which the
+size of the specification grid is accounted for. The study contributes to the
+literature by testing a clear forecasting question in a setting where geopolitical
+risk, news, and defense-equity markets meet.
+
+\clearpage
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}
