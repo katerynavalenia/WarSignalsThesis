@@ -175,7 +175,7 @@ working record behind it.
 
 ```bash
 python scripts/run_shap_attribution.py  # regenerate the attribution figure
-python scripts/plot_thesis_figures.py   # and the other five
+python scripts/plot_thesis_figures.py   # and the other four
 cd thesis/latex && ./build.sh           # -> Master_Thesis_3.pdf
 ```
 
@@ -230,7 +230,7 @@ a LaTeX engine and none is installed on the machine the thesis was written on.
 | `run_volatility_race.py` | `outputs/tables/volatility_race.csv` |
 | `diagnose_v1_weekend.py` | `outputs/tables/v1_weekend_diagnostic.csv` |
 | `run_horse_race.py` (Table 7 view) | `outputs/tables/horse_race_baseline_vs_extended.csv` |
-| `plot_thesis_figures.py` | `outputs/figures/fig1_defense_indices.png`, `fig2_attacks_news.png`, `fig3_return_mae_infosets.png`, `fig10_master_coverage.png`, `fig11_target_distribution.png` |
+| `plot_thesis_figures.py` | `outputs/figures/fig1_defense_indices.png`, `fig2_attacks_news.png`, `fig3_return_mae_infosets.png`, `figA1_diagnostics.png` |
 | `run_shap_attribution.py` | `outputs/tables/shap_by_block.csv`, `shap_by_feature.csv`, `outputs/figures/fig4_shap_attribution.png` |
 
 ## What reproduces, and what deliberately does not
@@ -295,7 +295,7 @@ python scripts/run_horse_race.py         # F/P/N/PN/PNG on returns
 python scripts/run_volatility_race.py    # GARCH family + HAR-RV-X on variance
 python scripts/diagnose_v1_weekend.py    # what the v1 weekend grid costs
 python scripts/run_shap_attribution.py   # Ch 4: where the fitted model looks
-python scripts/plot_thesis_figures.py    # the five manuscript figures
+python scripts/plot_thesis_figures.py    # the remaining manuscript figures
 ```
 
 `run_volatility_race.py` fits GARCH(1,1), GJR-GARCH and EGARCH as benchmarks and

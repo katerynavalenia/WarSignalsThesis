@@ -1,6 +1,6 @@
-"""The five figures the manuscript uses, under the manuscript's own filenames.
+"""The figures the manuscript uses, under the manuscript's own filenames.
 
-Three in the body and two in the appendix, matching the layout the write-up
+Three in the body and one in the appendix, matching the layout the write-up
 describes. Filenames are kept as the manuscript references them so the LaTeX
 source does not have to change when the figures are regenerated.
 
@@ -130,34 +130,41 @@ def fig3_return_mae(out: Path) -> None:
     plt.close(fig)
 
 
-def fig11_target_distribution(out: Path) -> None:
+def figA1_diagnostics(out: Path) -> None:
+    """Target distribution and news coverage, as one appendix exhibit.
+
+    Both are diagnostics that support the main results without being needed to
+    follow them, and they are combined so the appendix carries one figure rather
+    than two near-identical ones.
+    """
     s = pd.read_parquet(INTERIM / "spine_full.parquet")
     r = s.loc[s.date >= UAF_REPORTING_START, "r_waerlst"].dropna()
-    fig, (a1, a2) = plt.subplots(1, 2, figsize=(7.2, 2.9))
-    for ax in (a1, a2):
+    idx = _indices()
+
+    fig = plt.figure(figsize=(7.2, 5.6))
+    gs = fig.add_gridspec(2, 2, height_ratios=[1, 1.15], hspace=0.45, wspace=0.28)
+
+    for col, log in ((0, False), (1, True)):
+        ax = fig.add_subplot(gs[0, col])
         ax.hist(r, bins=60, color="0.45")
         ax.set_xlabel("Daily log return, %")
-    a1.set_ylabel("Count")
-    a2.set_yscale("log")
-    a2.set_ylabel("Count (log scale)")
-    fig.tight_layout()
-    fig.savefig(out / "fig11_target_distribution.png")
-    plt.close(fig)
+        ax.set_ylabel("Count (log scale)" if log else "Count")
+        if log:
+            ax.set_yscale("log")
 
-
-def fig10_master_coverage(out: Path) -> None:
-    idx = _indices()
-    fig, ax = plt.subplots(figsize=(7.2, 3.2))
-    for att, _, label in GROUPS:
-        if att in idx:
-            share = idx[att].notna().resample("ME").mean()
-            ax.plot(share.index, 100 * share, lw=1.1, label=label)
-    ax.axvline(UAF_REPORTING_START, color="0.3", ls="--", lw=0.9)
-    ax.set_ylabel("Non-missing days in month, %")
-    ax.set_ylim(-3, 103)
-    ax.legend(frameon=False, ncol=2, fontsize=8, loc="lower left")
-    fig.tight_layout()
-    fig.savefig(out / "fig10_master_coverage.png")
+    # One series, not four. Every source group is derived from the same
+    # extraction, so a day is observed for all of them or for none; drawing four
+    # identical lines would show only the last one plotted while the legend
+    # implied they differed.
+    ax = fig.add_subplot(gs[1, :])
+    share = idx["att_UA"].notna().resample("ME").mean()
+    ax.fill_between(share.index, 100 * share, color="0.55", lw=0, step="mid")
+    ax.axvline(UAF_REPORTING_START, color="0.15", ls="--", lw=1.0)
+    ax.set_ylabel("Days observed in month, %")
+    ax.set_ylim(0, 103)
+    ax.set_title("Coverage is common to all five source groups",
+                 fontsize=8, loc="left")
+    fig.savefig(out / "figA1_diagnostics.png", bbox_inches="tight")
     plt.close(fig)
 
 
@@ -167,7 +174,7 @@ def main() -> None:
     args = ap.parse_args()
     args.out_dir.mkdir(parents=True, exist_ok=True)
     for fn in (fig1_defense_indices, fig2_attacks_news, fig3_return_mae,
-               fig11_target_distribution, fig10_master_coverage):
+               figA1_diagnostics):
         fn(args.out_dir)
     for f in sorted(args.out_dir.glob("fig*.png")):
         print(f"wrote {f}")

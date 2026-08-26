@@ -240,11 +240,6 @@ The main identification challenge is information timing. The pipeline addresses 
 
 \section{Descriptive Statistics}
 
-\subsection{Table and Figures}
-
-The empirical presentation is deliberately compact. The tables and figures that follow report the financial targets, the physical and narrative war signals, the main variable definitions, descriptive statistics, the validation of the source classification, forecast performance, and robustness checks; diagnostic material that supports these but is not needed to follow the argument is placed in the appendix. The aim is to keep the reader's attention on the research question rather than on the apparatus behind it.
-
-
 \subsection{Financial Outcomes}
 
 The official WAERLST and BSHIELDT files provide complete weekday coverage from 1 January 2020 to 30 June 2026. WAERLST has 1,695 daily observations, 100 percent non-missing price coverage, and no zero-volume days in the Bloomberg export. BSHIELDT also has 1,695 daily observations and 100 percent non-missing price coverage, but it contains several zero-volume European holiday dates. These holiday dates should be handled carefully in robustness analysis so that non-trading days do not create artificial zero returns.
@@ -347,9 +342,13 @@ The second is the precision of the outlet register. Because the classifier is a 
 
 \begin{table}[H]
 \centering
-\caption{Precision of the outlet register against an external source}
-\label{tab:register_audit}
+\caption{Validation of the source classification}
+\label{tab:classification_validation}
 \begin{threeparttable}
+
+\footnotesize
+\textit{Panel A. Precision of the outlet register against an external source}
+
 \begin{tabular}{lrrrr}
 \toprule
 Source group & Outlets & Verifiable & Agreeing & Precision \\
@@ -362,41 +361,36 @@ Western             & 28 & 23 & 23 & 1.000 \\
 All groups          & 84 & 66 & 63 & 0.955 \\
 \bottomrule
 \end{tabular}
-\begin{tablenotes}
-\small
-\item Notes: An outlet is verifiable when an external record can be matched to it by its official website and that record states a country. Outlets without such a record are counted neither as successes nor as failures, since counting them either way would misstate the audit. Precision is agreeing outlets as a share of verifiable ones.
-\end{tablenotes}
-\end{threeparttable}
-\end{table}
 
-Table~\ref{tab:register_audit} reports the result. The three groups that carry the thesis's main comparisons return no disagreement at all. All three disagreements fall in the Russian independent group and are the same disagreement three times over: they are exile newsrooms, for which the external source records the country of legal registration while the register records the country whose readership the outlet serves. These are recorded and not acted upon, since acting on them would empty the independent Russian group of precisely the outlets that define it.
+\vspace{1em}
+\textit{Panel B. The central comparison under alternative classification rules}
 
-The third is sensitivity to the classification rule itself. Every rule in Section~\ref{sec:news} is a judgement --- which tier applies first, whether to infer a country from a top-level domain, whether to fall back on language at all, whether syndication platforms count as media --- and a reader is entitled to ask what happens if they are made differently. The central comparison is therefore re-estimated under four alternatives.
-
-\begin{table}[H]
-\centering
-\caption{The central comparison under alternative classification rules}
-\label{tab:class_sensitivity}
-\begin{threeparttable}
 \begin{tabular}{llrr}
 \toprule
 Rule & Groups it produces & Nominal at 5\% & Surviving correction \\
 \midrule
-As specified          & Five & 7 & 1 \\
-Register only         & Four, no native-English & 8 & 1 \\
-No language tier      & Four, no native-English & 8 & 1 \\
+As specified            & Five                        & 7 & 1 \\
+Register only           & Four, no native-English     & 8 & 1 \\
+No language tier        & Four, no native-English     & 8 & 1 \\
 Language before country & Four, no Russian independent & 3 & 2 \\
-Syndication restored  & Five & 7 & 1 \\
+Syndication restored    & Five                        & 7 & 1 \\
 \bottomrule
 \end{tabular}
+
 \begin{tablenotes}
 \small
-\item Notes: Each row re-estimates the same grid of 31 specifications under a different classification rule, holding everything else fixed. Counts are of specifications significant at the 5 percent level before and after false-discovery-rate correction.
+\item Notes: In Panel A an outlet is verifiable when an external record can be matched to it by its official website and that record states a country. Outlets without such a record are counted neither as successes nor as failures, since counting them either way would misstate the audit; precision is agreeing outlets as a share of verifiable ones. In Panel B each row re-estimates the same grid of 31 specifications under a different classification rule, holding everything else fixed, and counts are of specifications significant at the 5 percent level before and after false-discovery-rate correction.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
 
-Table~\ref{tab:class_sensitivity} shows that the answer does not depend on these choices: one specification survives correction under the rule used here and between one and two under every alternative. Two rows repay closer reading. Dropping the language tier removes the native-English group entirely, so that row is the result holding while the control block is cut from two groups to one. And resolving language before country cannot produce a Russian independent group at all, because Russian-language articles from independent outlets are claimed by the language tier before the register is consulted. That is the concrete cost of the ordering, and it is a stronger argument for resolving country first than any appeal to principle.
+Panel A of Table~\ref{tab:classification_validation} reports the result. The three groups that carry the thesis's main comparisons return no disagreement at all. All three disagreements fall in the Russian independent group and are the same disagreement three times over: they are exile newsrooms, for which the external source records the country of legal registration while the register records the country whose readership the outlet serves. These are recorded and not acted upon, since acting on them would empty the independent Russian group of precisely the outlets that define it.
+
+The third is sensitivity to the classification rule itself. Every rule in Section~\ref{sec:news} is a judgement --- which tier applies first, whether to infer a country from a top-level domain, whether to fall back on language at all, whether syndication platforms count as media --- and a reader is entitled to ask what happens if they are made differently. The central comparison is therefore re-estimated under four alternatives.
+
+
+
+Panel B shows that the answer does not depend on these choices: one specification survives correction under the rule used here and between one and two under every alternative. Two rows repay closer reading. Dropping the language tier removes the native-English group entirely, so that row is the result holding while the control block is cut from two groups to one. And resolving language before country cannot produce a Russian independent group at all, because Russian-language articles from independent outlets are claimed by the language tier before the register is consulted. That is the concrete cost of the ordering, and it is a stronger argument for resolving country first than any appeal to principle.
 
 \subsection{Descriptive Figures}
 
@@ -616,16 +610,9 @@ The contribution of this thesis is therefore narrow but evidence-based. It does 
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=1\textwidth]{fig11_target_distribution.png}
-\caption{Distribution of the one-day WAERLST return forecasting target. The left panel reports daily log returns in percent. The right panel reports the same distribution with a logarithmic count axis, which makes the tails of the return distribution easier to see.}
-\label{fig:appendix_target_distribution}
-\end{figure}
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=1\textwidth]{fig10_master_coverage.png}
-\caption{Monthly data coverage by source group. Each line reports the share of non-missing observations for the corresponding source group in a given month. The dashed vertical line marks the beginning of the common modeling window on 29 September 2022.}
-\label{fig:appendix_coverage}
+\includegraphics[width=1\textwidth]{figA1_diagnostics.png}
+\caption{Diagnostics for the forecasting target and the news sample. The upper panels report the distribution of the one-day WAERLST return target, on a linear count axis and on a logarithmic one that makes the tails easier to see. The lower panel reports monthly coverage of the news extraction, as the share of days in each month for which the series are observed; coverage is common to all five source groups, since they are derived from the same extraction. The dashed vertical line marks the beginning of the measured attack window on 29 September 2022.}
+\label{fig:appendix_diagnostics}
 \end{figure}
 
 \newpage
