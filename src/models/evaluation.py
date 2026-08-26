@@ -112,6 +112,11 @@ def diebold_mariano(
     rescales the statistic and uses a t-distribution. It matters at the sample
     sizes this thesis works with and is on by default.
 
+    ``loss`` may be ``"squared"``, ``"absolute"`` or ``"qlike"``. Use ``qlike``
+    for variance forecasts: squared error on a variance is noise-dominated, and
+    Patton (2011) shows QLIKE keeps the ranking of forecasts undistorted when the
+    realised-volatility proxy is noisy.
+
     Do **not** use this where one model nests the other — under the null the
     loss differential is degenerate and the statistic is not normal. That case
     is :func:`clark_west`.
@@ -121,6 +126,18 @@ def diebold_mariano(
         d = (a - fa) ** 2 - (a - fb) ** 2
     elif loss == "absolute":
         d = np.abs(a - fa) - np.abs(a - fb)
+    elif loss == "qlike":
+        # Patton (2011). For *variance* forecasts, squared error is dominated by
+        # a handful of extreme days and ranks forecasts unreliably; QLIKE is
+        # robust to noise in the volatility proxy, which matters acutely when
+        # the proxy is a single squared return. Both arguments must be positive
+        # variances, so they are floored rather than allowed to send a
+        # logarithm to infinity on one flat day.
+        eps = 1e-12
+        av = np.maximum(a, eps)
+        ra = av / np.maximum(fa, eps)
+        rb = av / np.maximum(fb, eps)
+        d = (ra - np.log(ra) - 1.0) - (rb - np.log(rb) - 1.0)
     else:
         raise ValueError(f"unknown loss: {loss!r}")
 

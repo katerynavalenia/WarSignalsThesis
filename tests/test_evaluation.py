@@ -205,3 +205,60 @@ def test_romano_wolf_stops_stepping_after_a_failure():
 def test_romano_wolf_validates_the_draw_shape():
     with pytest.raises(ValueError, match="n_tests"):
         romano_wolf(pd.Series({"a": 1.0, "b": 2.0}), np.zeros((10, 3)))
+
+
+class TestQLIKELoss:
+    """QLIKE for variance forecasts — Patton (2011).
+
+    Squared error on a variance is dominated by a handful of extreme days and
+    ranks forecasts unreliably, which is why the volatility race is decided on
+    QLIKE. These tests pin the properties that make it usable.
+    """
+
+    def _dm(self, actual, fa, fb, **kw):
+        from src.models.evaluation import diebold_mariano
+
+        return diebold_mariano(pd.Series(actual), pd.Series(fa),
+                               pd.Series(fb), loss="qlike", **kw)
+
+    def test_a_perfect_forecast_beats_a_biased_one(self):
+        rng = np.random.default_rng(0)
+        rv = rng.chisquare(2, 400)
+        perfect = np.full(400, 2.0)      # the true mean of chi2(2)
+        biased = np.full(400, 8.0)
+        r = self._dm(rv, biased, perfect)
+        assert r.statistic > 0, "positive statistic must mean the first is worse"
+        assert r.pvalue < 0.01
+
+    def test_direction_reverses_when_arguments_swap(self):
+        rng = np.random.default_rng(1)
+        rv = rng.chisquare(2, 400)
+        a, b = np.full(400, 8.0), np.full(400, 2.0)
+        assert self._dm(rv, a, b).statistic == pytest.approx(
+            -self._dm(rv, b, a).statistic, rel=1e-9)
+
+    def test_zero_realised_variance_does_not_explode(self):
+        """A flat day gives a squared return of exactly zero. Without a floor the
+        logarithm sends the loss to infinity and one day decides the test."""
+        rv = np.concatenate([np.full(199, 1.0), [0.0]])
+        r = self._dm(rv, np.full(200, 1.0), np.full(200, 2.0))
+        assert np.isfinite(r.statistic) and np.isfinite(r.pvalue)
+
+    def test_qlike_penalises_under_forecasting_asymmetrically(self):
+        """QLIKE is asymmetric by design: under-forecasting risk costs more than
+        over-forecasting it by the same factor. That asymmetry is the point."""
+        from src.models.evaluation import diebold_mariano
+
+        rv = np.full(300, 4.0)
+        under, over = np.full(300, 1.0), np.full(300, 16.0)
+        # same factor of four in each direction
+        r = diebold_mariano(pd.Series(rv), pd.Series(under), pd.Series(over),
+                            loss="qlike", small_sample=False)
+        assert r.statistic > 0, "under-forecasting should carry the larger loss"
+
+    def test_unknown_loss_is_rejected(self):
+        from src.models.evaluation import diebold_mariano
+
+        with pytest.raises(ValueError, match="unknown loss"):
+            diebold_mariano(pd.Series([1.0, 2.0]), pd.Series([1.0, 1.0]),
+                            pd.Series([2.0, 2.0]), loss="qlik")
