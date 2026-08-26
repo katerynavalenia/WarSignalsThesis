@@ -150,7 +150,7 @@ Following \citet{caldara2022}, each ecosystem's Ukraine/Russia coverage is furth
 
 The primary financial targets are two official Bloomberg defence-equity indices: the Bloomberg World Large, Mid and Small Aerospace \& Defense Total Return Index (\textbf{WAERLST}, USD) and the Bloomberg Europe Defense Select Total Return Index (\textbf{BSHIELDT}, EUR), both running from 2 January 2020 to 29 June 2026 (1,619 trading days, no missing observations). Three further targets extend coverage backwards and separate the two regions, giving five in total: the iShares U.S.\ Aerospace \& Defense ETF (\textbf{ITA}), available for the whole 2015--2026 window and so covering the years before the full-scale invasion that the Bloomberg indices miss; and two hand-built equal-weighted baskets of listed defence names, one European (\textbf{EU basket}) and one American (\textbf{US basket}), which extend the same coverage to constituents rather than index vehicles. The two baskets are constructed from free data and are the targets the Gate 3 pre-registration excluded from its primary arm, precisely because they are hand-built.
 
-The choice of market control is not a matter of convenience, and Section~\ref{sec:robustness} shows it to be the specification decision on which the largest results in this setting turn. Controlling \textit{European} defence returns with the S\&P 500 is superficially reasonable, since the two markets are highly correlated over long horizons. Over the build-up window, however, their correlation is only 0.409, so a U.S.\ control leaves a substantial component of ordinary European market variation in the residual --- and that residual correlates 0.26 with the threat measure being tested. Every regression reported here therefore uses the regional market return appropriate to its target: the STOXX 600 for European targets and the S\&P 500 for global and U.S.\ ones. The remaining controls are the VIX, which absorbs general risk appetite, and lagged defence-equity returns, which absorb own-momentum.
+The choice of market control is not a matter of convenience, and Section~\ref{sec:robustness} shows it to be the specification decision on which the largest results in this setting turn. Controlling \textit{European} defence returns with the S\&P 500 is superficially reasonable, since the two markets are highly correlated over long horizons. Over the build-up window, however, their correlation is only 0.409, so a U.S.\ control leaves a substantial component of ordinary European market variation in the residual --- and that residual correlates 0.26 with the threat measure being tested. Every regression reported here therefore uses the regional market return appropriate to its target: the STOXX 600 for European targets and the S\&P 500 for global and U.S.\ ones. The only other control is the VIX, which absorbs general risk appetite, and it enters as the natural logarithm of the previous day's close, standardised. Lagging it matters: the same-day VIX is contemporaneous with the return being explained and would absorb part of what the news variables are being asked to account for. The defence-equity specifications contain no lagged dependent variable. Gate 4 adds one, because daily gas returns are materially autocorrelated where defence returns are not, and Gate 5 uses no market control at all, since no equity index is the relevant benchmark for a geopolitical-risk series, conditioning instead on its own dynamics. Both departures are noted where they arise.
 
 \subsection{Physical attack data (supplementary context)}
 \label{sec:attacks}
@@ -173,7 +173,7 @@ The core test asks whether local media add explanatory power to defence returns 
 r_{i,t} = \alpha + \beta_{\mathrm{West}} \mathbf{X}^{\mathrm{West}}_t + \beta_{\mathrm{Local}} \mathbf{X}^{\mathrm{Local}}_t + \gamma Z_t + \varepsilon_{i,t},
 \label{eq:main}
 \end{equation}
-where $r_{i,t}$ is the return on defence-equity target $i$, $\mathbf{X}^{\mathrm{West}}_t$ contains attention-share and tone changes for the Western and EN\_GLOBAL ecosystems, $\mathbf{X}^{\mathrm{Local}}_t$ contains the same for UA, RU\_STATE, and RU\_INDEP, and $Z_t$ contains the market control and VIX. Standard errors are HAC(5) throughout.
+where $r_{i,t}$ is the return on defence-equity target $i$, $\mathbf{X}^{\mathrm{West}}_t$ contains attention-share and tone changes for the Western and EN\_GLOBAL ecosystems, $\mathbf{X}^{\mathrm{Local}}_t$ contains the same for UA, RU\_STATE, and RU\_INDEP, and $Z_t$ contains exactly two controls: the contemporaneous return on the regional market index, and the standardised log VIX of the previous close. Standard errors are HAC(5) throughout, and the same $Z_t$ is used in Gates 2 and 3 and in Table~\ref{tab:regression}.
 
 The object of interest is a \textbf{joint F-test on $\beta_{\mathrm{Local}}$}, with the Western block already in the regression. This conditioning is what separates ``local media add something'' from ``local and Western media correlate with returns for the same reason''. The test is run across frequency (daily and weekly), six conflict-episode windows and the full sample, and five targets. That grid has 70 cells, of which 31 clear a minimum-observation rule requiring at least 40 observations and at least four per estimated parameter. The remainder are too thin to estimate reliably and are dropped before any test is run, rather than being estimated and then discounted afterwards.
 
@@ -226,7 +226,7 @@ Interception rate & ratio & Weapons destroyed divided by weapons launched; captu
 \addlinespace
 \multicolumn{3}{l}{\textit{Financial controls}} \\
 Market return & \% & STOXX 600 (European targets) or S\&P 500 (global/U.S.\ targets) daily log return. \\
-VIX & index pts & CBOE Volatility Index (levels). \\
+Log VIX, lagged & index pts & Natural log of the previous day's CBOE Volatility Index close, standardised. The one control besides the market return in the defence-equity regressions. \\
 TTF gas return & \% & Daily log return on Dutch TTF month-ahead natural gas; the Gate 4 outcome. \\
 \bottomrule
 \end{tabular}
@@ -360,7 +360,7 @@ test for a break at an unknown date places Ukrainian tone's largest break on
 \subsection{Gates 2 and 3: local perception and defence-equity returns}
 \label{sec:gate3}
 
-Before the grid of tests, Table~\ref{tab:regression} reports the estimated specification itself, so that the size of the associations at issue is on the page rather than implied by a $p$-value. Column (1) contains only the market control and lagged volatility; column (2) adds the Western block; column (3) adds the local block with news credited to the day it was published; and column (4) is the same full model with the news lagged by one trading day, the only alignment at which it could have been traded. Regressors are standardised, so a coefficient is the percentage-point change in the daily BSHIELDT return associated with a one-standard-deviation move in that series.
+Before the grid of tests, Table~\ref{tab:regression} reports the estimated specification itself, so that the size of the associations at issue is on the page rather than implied by a $p$-value. Column (1) contains only the two controls of equation~(\ref{eq:main}), the regional market return and the lagged log VIX; column (2) adds the Western block; column (3) adds the local block with news credited to the day it was published; and column (4) is the same full model with the news lagged by one trading day, the only alignment at which it could have been traded. Regressors are standardised, so a coefficient is the percentage-point change in the daily BSHIELDT return associated with a one-standard-deviation move in that series.
 
 \begin{table}[htbp]
 \centering
@@ -508,7 +508,13 @@ Horizon $h=5$ days & 629 & 0.227 & \textbf{0.033} \\
 \item Notes: Each entry is the $p$-value of a joint $F$-test on one block, with
 the other block and the controls already in the regression; HAC(5) standard
 errors, bold marks $p<0.05$, and $n$ is the number of observations at the
-frequency named in the row. Gate 4 regresses daily Dutch TTF gas returns over
+frequency named in the row. The controls differ from equation~(\ref{eq:main})
+in one respect in each gate. Gate 4 adds a one-day lag of the dependent
+variable to the market return and lagged log VIX, because daily gas returns are
+materially autocorrelated where defence returns are not; Gate 5 carries no
+market or volatility control, since neither is the relevant benchmark for a
+geopolitical-risk series, and conditions instead on six lags of its own outcome
+in levels and six in first differences. Gate 4 regresses daily Dutch TTF gas returns over
 windows (a) June 2021 to June 2022, (b) June 2022 to June 2023 and (c) June 2021
 to December 2023. Gate 5 regresses the realised-conflict component of the
 \citet{caldara2022} index on held-out days never used in sample, 637 at $h=1$
@@ -521,7 +527,7 @@ Gate 4 shows that the null is not a property of defence equities being a weak te
 
 Gate 4 also demonstrates how a significant result in this setting can dissolve under replication alone. Estimated exploratorily on an initial 81-day subsample of gas-crisis coverage, the build-up specification returned $p = 0.0028$ under the controls the confirmatory test would later use, and $p = 0.0020$ under an alternative control set --- stable enough across specifications to appear robust. The pre-registered confirmatory estimate, on the same asset, specification, controls and calendar period, with nothing altered but the quantity of data, returned $p = 0.399$ on 222 continuous days. The result was not overturned by a better control or a stricter correction, but by fuller coverage of the period it had always concerned. This is the failure mode that pre-registration is designed to expose, and it is invisible to any robustness check conducted within the smaller sample.
 
-Gate 5 removes prices from the test entirely and asks whether local perception anticipates the war's own escalation. If local media carry genuine information about the conflict, they should at minimum lead a measure of realised conflict, whether or not any asset prices it. On 637 held-out days never used in sample they do not: the local block returns $p = 0.21$ at one day and $p = 0.23$ at five, and remains insignificant when twelve lags of the outcome are added. This gate is weaker evidence than the other three, because its own Western control is significant at five days ($p = 0.033$) but not at one ($p = 0.171$); it is reported because a pre-registered test must be reported whatever it returns, and because a null on a non-market outcome closes off the possibility that the earlier nulls are artefacts of market microstructure.
+Gate 5 removes prices from the test entirely and asks whether local perception anticipates the war's own escalation. If local media carry genuine information about the conflict, they should at minimum lead a measure of realised conflict, whether or not any asset prices it. On 637 held-out days never used in sample they do not: the local block returns $p = 0.21$ at one day and $p = 0.23$ at five, and remains insignificant when the outcome's own dynamics are added, as six lags in levels and six in first differences. This gate is weaker evidence than the other three, because its own Western control is significant at five days ($p = 0.033$) but not at one ($p = 0.171$); it is reported because a pre-registered test must be reported whatever it returns, and because a null on a non-market outcome closes off the possibility that the earlier nulls are artefacts of market microstructure.
 
 \subsection{Out-of-sample predictability}
 \label{sec:efficiency}
