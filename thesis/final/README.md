@@ -17,7 +17,7 @@ into the PDF.
 
 Section balance against the brief: Introduction pp. 4–7 (the brief asks for
 about four), Data and Identification pp. 8–11, Descriptive Statistics
-pp. 12–19, Empirical Findings pp. 20–30, Conclusion pp. 31–32, References
+pp. 12–19, Empirical Findings pp. 20–29, Conclusion pp. 30–32, References
 pp. 33–34.
 
 ## What supersedes what
