@@ -152,6 +152,7 @@ Between 24 February 2022 and 28 September 2022 the physical variables are treate
 From 29 September 2022 onward the variables are observed. Trading days inside this window with no published attack wave are genuine zeros and are treated as such; 809 of the 931 trading days in the window carry a Ukrainian Air Force record.
 
 \subsection{News and Narrative Variables}
+\label{sec:news}
 
 The news dataset is constructed from GDELT GKG 2.0, a large-scale global database designed to measure events, locations, and tone from news sources \citep{leetaru2013gdelt}. The extraction covers 18 February 2015 to 20 May 2026, or 4,027 days, which is 98 percent of the calendar in that span; the missing days are gaps in the GDELT archive itself. Coverage begins well before the full-scale invasion so that the news series are observed across quiet periods, the 2021--2022 build-up, and the war itself, rather than only during the conflict.
 
@@ -241,7 +242,7 @@ The main identification challenge is information timing. The pipeline addresses 
 
 \subsection{Table and Figures}
 
-The descriptive section uses a small number of tables and figures so that the thesis stays within the professor's recommended limit of ten total tables and figures. The selected outputs show the financial targets, the physical and narrative war signals, the main variable definitions, descriptive statistics, the validation of the source classification, forecast performance, and robustness checks. This keeps the empirical presentation compact and focused on the research question.
+The empirical presentation is deliberately compact. The tables and figures that follow report the financial targets, the physical and narrative war signals, the main variable definitions, descriptive statistics, the validation of the source classification, forecast performance, and robustness checks; diagnostic material that supports these but is not needed to follow the argument is placed in the appendix. The aim is to keep the reader's attention on the research question rather than on the apparatus behind it.
 
 
 \subsection{Financial Outcomes}
@@ -342,9 +343,60 @@ Because every news result is conditional on the classifier, it is validated in t
 
 The first is agreement with an external index. The Western and native-English attention series should track the published Caldara--Iacoviello geopolitical-risk index when that index is being driven by this conflict, and should not track it otherwise. Over the window in which geopolitical risk is dominated by the Russia--Ukraine conflict, the correlation in levels is 0.866 for the Western group and 0.884 for the native-English group. Over 2017--2019, when the index is driven by North Korea and Iran, the same correlations fall to 0.082 and 0.047. The series track the external benchmark when they should and ignore it when they should, which is the behavior an index specific to one conflict ought to display.
 
-The second is the precision of the outlet register. Because the classifier is a deterministic function of the publishing domain, the precision of its article assignments is the precision of its domain assignments weighted by article volume. The register is therefore checked domain by domain against Wikidata, an independently maintained source, matching each outlet by its official website rather than by name. Of the 84 registered outlets, 66 can be verified in this way and 63 of those agree, a precision of 0.955. The Ukrainian, Russian state, and Western groups return no disagreement at all. All three disagreements are exile newsrooms, for which Wikidata records the country of legal registration while the register records the country whose readership the outlet serves; these are recorded and not acted upon.
+The second is the precision of the outlet register. Because the classifier is a deterministic function of the publishing domain, the precision of its article assignments is the precision of its domain assignments weighted by article volume. Auditing the domains is therefore not a weaker substitute for auditing articles: it is the same quantity, computed exactly rather than estimated from a sample. The register is checked domain by domain against Wikidata, an independently maintained source, matching each outlet by its official website rather than by name, so that an outlet is accepted only when the external record and the register refer demonstrably to the same publication.
 
-The third is sensitivity to the classification rule itself. The central comparison is re-estimated under four alternatives: using only the curated register, dropping the language tier, restoring the excluded syndication platforms, and resolving language before country. Under the primary alignment the number of specifications surviving correction is one under the rule used here and between one and two under every alternative, so the answer does not depend on these choices. The language-first rule is instructive in a second way: it cannot produce a Russian independent group at all, because Russian-language articles from independent outlets are claimed by the language tier before the register is consulted. That is the concrete cost of resolving language before country.
+\begin{table}[H]
+\centering
+\caption{Precision of the outlet register against an external source}
+\label{tab:register_audit}
+\begin{threeparttable}
+\begin{tabular}{lrrrr}
+\toprule
+Source group & Outlets & Verifiable & Agreeing & Precision \\
+\midrule
+Ukrainian           & 12 &  8 &  8 & 1.000 \\
+Russian state       & 28 & 23 & 23 & 1.000 \\
+Russian independent & 16 & 12 &  9 & 0.750 \\
+Western             & 28 & 23 & 23 & 1.000 \\
+\midrule
+All groups          & 84 & 66 & 63 & 0.955 \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\small
+\item Notes: An outlet is verifiable when an external record can be matched to it by its official website and that record states a country. Outlets without such a record are counted neither as successes nor as failures, since counting them either way would misstate the audit. Precision is agreeing outlets as a share of verifiable ones.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+Table~\ref{tab:register_audit} reports the result. The three groups that carry the thesis's main comparisons return no disagreement at all. All three disagreements fall in the Russian independent group and are the same disagreement three times over: they are exile newsrooms, for which the external source records the country of legal registration while the register records the country whose readership the outlet serves. These are recorded and not acted upon, since acting on them would empty the independent Russian group of precisely the outlets that define it.
+
+The third is sensitivity to the classification rule itself. Every rule in Section~\ref{sec:news} is a judgement --- which tier applies first, whether to infer a country from a top-level domain, whether to fall back on language at all, whether syndication platforms count as media --- and a reader is entitled to ask what happens if they are made differently. The central comparison is therefore re-estimated under four alternatives.
+
+\begin{table}[H]
+\centering
+\caption{The central comparison under alternative classification rules}
+\label{tab:class_sensitivity}
+\begin{threeparttable}
+\begin{tabular}{llrr}
+\toprule
+Rule & Groups it produces & Nominal at 5\% & Surviving correction \\
+\midrule
+As specified          & Five & 7 & 1 \\
+Register only         & Four, no native-English & 8 & 1 \\
+No language tier      & Four, no native-English & 8 & 1 \\
+Language before country & Four, no Russian independent & 3 & 2 \\
+Syndication restored  & Five & 7 & 1 \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\small
+\item Notes: Each row re-estimates the same grid of 31 specifications under a different classification rule, holding everything else fixed. Counts are of specifications significant at the 5 percent level before and after false-discovery-rate correction.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+Table~\ref{tab:class_sensitivity} shows that the answer does not depend on these choices: one specification survives correction under the rule used here and between one and two under every alternative. Two rows repay closer reading. Dropping the language tier removes the native-English group entirely, so that row is the result holding while the control block is cut from two groups to one. And resolving language before country cannot produce a Russian independent group at all, because Russian-language articles from independent outlets are claimed by the language tier before the register is consulted. That is the concrete cost of the ordering, and it is a stronger argument for resolving country first than any appeal to principle.
 
 \subsection{Descriptive Figures}
 
@@ -464,9 +516,24 @@ This is the more demanding of the two tests, and it is worth saying why. Daily r
 \subsection{Machine-Learning Interpretation}
 \label{sec:mlinterp}
 
-The XGBoost results are useful mainly as a nonlinear robustness check. If the war-specific variables contained strong nonlinear predictive information, the tree model should have been able to exploit it more easily than OLS or ridge regression. The results show a partial version of this pattern and no more. At the one-day horizon the war-augmented XGBoost specifications do improve on the historical mean for WAERLST, and the corresponding ridge specifications do not, which is consistent with any usable structure being nonlinear rather than linear. But the improvements are small, they do not survive correction across the grid, and they reverse at the five-day horizon, where the historical mean is best and every extended specification is worse. For BSHIELDT the AR(1) benchmark dominates at both horizons. This pattern argues against a strong machine-learning forecasting result.
+The XGBoost results are useful mainly as a nonlinear robustness check. If the war-specific variables contained strong nonlinear predictive information, the tree model should have been able to exploit it more easily than ridge regression. The results show a partial version of this pattern and no more. At the one-day horizon the war-augmented XGBoost specifications do improve on the historical mean for WAERLST, and the corresponding ridge specifications do not, which is consistent with any usable structure being nonlinear rather than linear. But the improvements are small, they do not survive correction across the grid, and they reverse at the five-day horizon, where the historical mean is best and every extended specification is worse. For BSHIELDT the AR(1) benchmark dominates at both horizons. This pattern argues against a strong machine-learning forecasting result.
 
-Because XGBoost does not deliver a robust forecast improvement, feature-importance interpretation is treated as secondary. A SHAP decomposition could be useful in an appendix, but it is not central evidence in the present draft because the forecasting improvement itself is small and unstable, and interpreting the drivers of an improvement that does not survive correction would give it more weight than it can carry.
+A forecast comparison answers whether a block of variables improves prediction. It does not answer a prior and more direct question about the same model: how much of the weight it places on its inputs goes to war variables at all. A model that never looked at the attack and news blocks would produce the same null as a model that looked hard and found nothing, and the two would mean different things. The fitted model is therefore decomposed by TreeSHAP, which splits each prediction exactly into per-feature contributions, averaged in absolute value over the held-out period so that a variable pushing forecasts up as often as down still registers.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{fig4_shap_attribution.png}
+\caption{Attribution of the fitted model across variable blocks. The left panel reports each block's share of total absolute contribution, annotated with the average per predictor in that block. The right panel reports the twelve largest individual contributions, colored by block: grey for financial controls, blue for news variables, red for physical attack variables. The model is the physical-plus-news specification for one-day WAERLST returns, decomposed over the held-out period.}
+\label{fig:shap}
+\end{figure}
+
+Figure~\ref{fig:shap} shows that the model is not ignoring the war variables. They receive 43.3 percent of its total attribution: 21.9 percent to news attention and tone, and 21.5 percent to physical attacks. The single largest contribution from outside the financial block is the change in Russian state media's conflict attention, which ranks sixth of the seventy-two predictors, and a ballistic-missile attack-surprise measure ranks eighth.
+
+That is the more interesting version of the null. The model had the war variables, used them substantially, and still did not beat a historical mean by a margin that survives correction. Attribution measures how much a fitted model relies on a variable, not whether that reliance helps out of sample; a tree that splits on noise attributes weight to that noise. The forecast comparison and the attribution are therefore consistent rather than contradictory, and together they say something the forecast comparison alone cannot: the failure is not one of attention.
+
+The per-predictor figures qualify this in a way the totals conceal. The physical block reaches its 21.5 percent share across 41 predictors, an average of 0.52 percent each, while the 21 financial controls average 2.70 percent and the 10 news variables 2.19 percent. Measured per variable, physical attack measures are the weakest of the three blocks by a factor of four or five. The block accumulates attribution largely by being large.
+
+Two cautions belong with this reading. The model being decomposed does not beat its benchmark by a detectable margin, so the ranking of individual variables inside a block should not be over-interpreted; it is the comparison across blocks that carries the argument. And attribution is computed on one specification --- the physical-plus-news set for one-day WAERLST returns --- chosen because it is the best-performing extended specification in Table~\ref{tab:return_forecasts}, which makes it the most favourable case for the war variables rather than a representative one.
 
 \subsection{Robustness and Interpretation}
 

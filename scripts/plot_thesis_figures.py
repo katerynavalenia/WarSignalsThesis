@@ -86,7 +86,7 @@ def fig2_attacks_news(out: Path) -> None:
         if att in idx:
             a2.plot(idx.index, 100 * idx[att].rolling(30, min_periods=20).mean(),
                     lw=1.0, label=label)
-    a2.set_ylabel("Conflict share of\noutput, \\% (30-day mean)")
+    a2.set_ylabel("Conflict share of\noutput, % (30-day mean)")
     a2.legend(frameon=False, ncol=2, fontsize=8)
 
     for _, tone, label in GROUPS:
@@ -136,7 +136,7 @@ def fig11_target_distribution(out: Path) -> None:
     fig, (a1, a2) = plt.subplots(1, 2, figsize=(7.2, 2.9))
     for ax in (a1, a2):
         ax.hist(r, bins=60, color="0.45")
-        ax.set_xlabel("Daily log return, \\%")
+        ax.set_xlabel("Daily log return, %")
     a1.set_ylabel("Count")
     a2.set_yscale("log")
     a2.set_ylabel("Count (log scale)")
@@ -153,7 +153,7 @@ def fig10_master_coverage(out: Path) -> None:
             share = idx[att].notna().resample("ME").mean()
             ax.plot(share.index, 100 * share, lw=1.1, label=label)
     ax.axvline(UAF_REPORTING_START, color="0.3", ls="--", lw=0.9)
-    ax.set_ylabel("Non-missing days in month, \\%")
+    ax.set_ylabel("Non-missing days in month, %")
     ax.set_ylim(-3, 103)
     ax.legend(frameon=False, ncol=2, fontsize=8, loc="lower left")
     fig.tight_layout()
