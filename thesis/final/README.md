@@ -10,10 +10,13 @@ The directory is self-contained — `thesis.tex`, `references.bib` and
 `figures/` are everything the document needs. It can be zipped and uploaded to
 Overleaf as-is, with `thesis.tex` set as the main file.
 
-Verified build: **34 pages, 7 tables, 3 figures, no overfull boxes, and no
-unresolved citations or cross-references**, with tectonic 0.17. `build.sh`
-also tries `latexmk` and `pdflatex`, and warns if any `[?]` marker survives
-into the PDF.
+Verified build: **32 pages, 7 tables, 3 figures, no overfull boxes, and no
+unresolved citations or cross-references**, with both tectonic 0.17 and Debian
+TeX Live 2025. `build.sh` tries `tectonic`, then `latexmk`, then a three-pass
+`pdflatex` + `bibtex`, and warns if any `[?]` marker survives into the PDF.
+
+The title and abstract share page one, and there is no table of contents. The
+abstract is set single-spaced to fit; the body stays one-and-a-half spaced.
 
 **On a Debian or Ubuntu TeX Live install** the document needs one package
 beyond `texlive-latex-recommended`, because every table uses `threeparttable`
@@ -27,10 +30,10 @@ Nothing else is required. The euro sign uses `\texteuro` from the kernel
 rather than the `eurosym` package, specifically so that the roughly 1 GB
 `texlive-fonts-extra` set is not a dependency of one character.
 
-Section balance against the brief: Introduction pp. 4–7 (the brief asks for
-about four), Data and Identification pp. 8–11, Descriptive Statistics
-pp. 12–19, Empirical Findings pp. 20–29, Conclusion pp. 30–32, References
-pp. 33–34.
+Section balance against the brief: Introduction pp. 2–5 (the brief asks for
+about four), Data and Identification pp. 6–9, Descriptive Statistics
+pp. 10–17, Empirical Findings pp. 18–27, Conclusion pp. 28–30, References
+pp. 31–32.
 
 ## What supersedes what
 
