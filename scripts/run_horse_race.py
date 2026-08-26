@@ -147,7 +147,8 @@ def build_panel() -> tuple[pd.DataFrame, dict[str, list[str]]]:
 
 
 def expanding_oos(
-    y: pd.Series, X: pd.DataFrame, model: str, test_start: int
+    y: pd.Series, X: pd.DataFrame, model: str, test_start: int,
+    horizon: int = 1,
 ) -> pd.Series:
     """One-step-ahead expanding-window forecasts over the held-out tail.
 
@@ -161,6 +162,30 @@ def expanding_oos(
     for t in range(test_start, len(y)):
         if model == "mean":
             out.iloc[t] = float(np.nanmean(yv[:t]))
+            continue
+        if model == "ar1":
+            # The approved thesis's AR(1) baseline, which wins its five-day
+            # cells outright -- so leaving it out would omit the model actually
+            # to beat.
+            #
+            # The lag is h, not 1. For an overlapping h-day target, y[t-1]
+            # covers days t-1 .. t+h-2 and therefore contains returns from the
+            # forecast date onward: using it is look-ahead, and at h=5 it
+            # produced an R2_OS of 0.65 because four fifths of the answer was
+            # already inside the predictor. y[t-h] is the most recent h-day sum
+            # that is fully realised before the forecast date.
+            if t - horizon < 1:
+                out.iloc[t] = float(np.nanmean(yv[:t]))
+                continue
+            ytr = yv[:t]
+            lagged, current = ytr[:-horizon], ytr[horizon:]
+            ok = np.isfinite(lagged) & np.isfinite(current)
+            if ok.sum() < 30 or not np.isfinite(yv[t - horizon]):
+                out.iloc[t] = float(np.nanmean(ytr))
+                continue
+            design = np.column_stack([np.ones(ok.sum()), lagged[ok]])
+            beta, *_ = np.linalg.lstsq(design, current[ok], rcond=None)
+            out.iloc[t] = float(beta[0] + beta[1] * yv[t - horizon])
             continue
         if t - last_fit >= (REFIT_EVERY if model == "xgb" else 1):
             ytr, Xtr = yv[:t], Xv[:t]
@@ -214,9 +239,13 @@ def main() -> None:
         d = panel if sample == "full" else panel[panel.date >= UAF_REPORTING_START]
         for tgt in TARGETS:
             for h in HORIZONS:
-                y = (d[tgt].rolling(h).sum().shift(-h) if h > 1
-                     else d[tgt].shift(-1))
-                y = y.rename("y")
+                # Every feature on row t is already dated t-1 or earlier, so
+                # the target on row t is the return *of* day t (or the h-day
+                # sum starting at t). Shifting the target as well would open a
+                # two-day gap and quietly discard the most recent return, which
+                # is both available and the most informative thing there is.
+                y = (d[tgt].rolling(h).sum().shift(-(h - 1)) if h > 1
+                     else d[tgt]).rename("y")
                 for name, cols in sets.items():
                     use = [c for c in cols if c in d.columns]
                     frame = pd.concat([y, d[use]], axis=1).dropna()
@@ -224,9 +253,11 @@ def main() -> None:
                         continue
                     yy, XX = frame["y"], frame[use]
                     test_start = int(len(yy) * (1 - TEST_FRACTION))
-                    bench = expanding_oos(yy, XX, "mean", test_start)
-                    for model in ("ridge", "xgb"):
-                        fc = expanding_oos(yy, XX, model, test_start)
+                    bench = expanding_oos(yy, XX, "mean", test_start,
+                                          horizon=h)
+                    for model in ("ar1", "ridge", "xgb"):
+                        fc = expanding_oos(yy, XX, model, test_start,
+                                           horizon=h)
                         ok = pd.concat([yy, bench, fc], axis=1).dropna()
                         if len(ok) < 50:
                             continue
@@ -247,6 +278,12 @@ def main() -> None:
                             "n_test": len(ok),
                             "mae": float(np.mean(np.abs(a - c))),
                             "mae_bench": float(np.mean(np.abs(a - b))),
+                            "rmse": float(np.sqrt(np.mean((a - c) ** 2))),
+                            # Share of dates on which the predicted and realised
+                            # return share a sign -- reported in the approved
+                            # thesis's Table 5 and cheap to carry.
+                            "dir_acc": float(np.mean(
+                                np.sign(a) == np.sign(c))),
                             "r2_oos": float(r2),
                             "cw_stat": float(cw.statistic),
                             "cw_p": float(cw.pvalue),

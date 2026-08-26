@@ -90,9 +90,16 @@ def qlike(realised: np.ndarray, forecast: np.ndarray) -> float:
 
 
 def realised_variance(r: pd.Series, h: int) -> pd.Series:
-    """Squared returns, summed over the forecast horizon and dated at its start."""
+    """Squared returns, summed over the forecast horizon and dated at its start.
+
+    Row t carries the variance realised over days t..t+h-1, which is exactly the
+    span a GARCH forecast made from data through t-1 covers. Shifting one day
+    further would compare each model against a window it never forecast, and
+    would penalise the GARCH family in particular, since their forecasts are
+    aligned correctly by construction.
+    """
     sq = r.pow(2)
-    return (sq.rolling(h).sum().shift(-h) if h > 1 else sq.shift(-1))
+    return (sq.rolling(h).sum().shift(-(h - 1)) if h > 1 else sq)
 
 
 def garch_forecasts(r: pd.Series, spec: dict, h: int, test_start: int) -> pd.Series:
@@ -252,6 +259,7 @@ def main() -> None:
                         "model": name, "n_test": len(ok),
                         "qlike": qlike(a, f), "qlike_har": qlike(a, b),
                         "mse": float(np.mean((a - f) ** 2)),
+                        "rmse": float(np.sqrt(np.mean((a - f) ** 2))),
                         "mae": float(np.mean(np.abs(a - f))),
                         "bias": float(np.mean(f - a)),
                         # positive DM statistic = this model has the LARGER
