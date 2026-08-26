@@ -97,7 +97,10 @@ def fig2_attacks_news(out: Path) -> None:
 
     for ax in (a1, a2, a3):
         ax.axvline(INVASION, color="0.3", ls="--", lw=0.9)
-        ax.set_xlim(pd.Timestamp("2021-01-01"), idx.index.max())
+        # The whole sample, not just the war years: the point of extending the
+        # news extraction back to 2015 is to show the indicators in a quiet
+        # period as well as a loud one.
+        ax.set_xlim(idx.index.min(), idx.index.max())
     fig.tight_layout()
     fig.savefig(out / "fig2_attacks_news.png")
     plt.close(fig)

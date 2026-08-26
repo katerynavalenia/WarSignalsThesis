@@ -272,6 +272,10 @@ The attack data show that Russian air attacks became a frequent and high-intensi
 
 The news data contain broad daily coverage of the war across the whole 2015--2026 span. Volume differs substantially across source groups, which is one reason attention is measured as a share of a group's own output rather than as a count: the Western group publishes a median of about 7,600 conflict-related articles a day and the Russian independent group about 390. Tone differs as well. Ukrainian and Russian independent coverage is more negative on average, at about $-2.39$ and $-2.31$, than Western coverage at about $-1.80$ or Russian state coverage at about $-1.78$.
 
+Panel B of Table~\ref{tab:summary_statistics} reports how the indicators move together over the full sample, which bears directly on whether the two layers are worth separating. They are. Attack intensity correlates with the narrative indicators at between 0.23 and 0.58 in absolute value, so the physical and media layers are related without being substitutes for one another. The pattern within that range is itself informative: attack intensity moves with Russian state attention at 0.58 and against Ukrainian attention at $-0.35$, so the same battlefield activity is reflected very differently depending on which press is doing the reflecting. Ukrainian and Western attention are the most closely related pair at 0.66, and the three tone series move together at 0.45 to 0.50, which is what one would expect of measures that respond to the same events with different emphasis.
+
+The published geopolitical risk index sits closest to Western attention at 0.46 and to attack intensity at 0.42, and is almost unrelated to Ukrainian attention at 0.07. That is consistent with a global index built largely from Anglophone coverage, and it is one reason a source-group design can say something an aggregate index cannot.
+
 The Russian independent group is much the smallest, and it is small for reasons connected to what it measures. Several of its constituent outlets were liquidated, blocked, or relocated abroad during the sample, so its volume falls sharply across the very event being studied. Results that depend specifically on that group are correspondingly less well determined than results resting on the larger groups.
 
 \begin{table}[H]
@@ -303,9 +307,13 @@ Narrative gap & score difference & Difference between average tone in two source
 
 \begin{table}[H]
 \centering
-\caption{Descriptive statistics for selected modeling variables}
+\caption{Descriptive statistics and correlations}
 \label{tab:summary_statistics}
 \begin{threeparttable}
+
+\footnotesize
+\textit{Panel A. Summary statistics for selected modeling variables}
+
 \begin{tabular}{lrrrrr}
 \toprule
 Variable & Mean & Std. dev. & Min & Max & N \\
@@ -324,9 +332,31 @@ Russian independent tone & -2.312 & --- & --- & --- & 4027 \\
 Western tone & -1.802 & --- & --- & --- & 4027 \\
 \bottomrule
 \end{tabular}
+
+\vspace{1em}
+\textit{Panel B. Correlations among the war indicators, in levels}
+
+\footnotesize
+\begin{tabular}{lrrrrrrrr}
+\toprule
+ & (1) & (2) & (3) & (4) & (5) & (6) & (7) & (8) \\
+\midrule
+(1) Attack intensity              &  1.00 &       &       &       &       &       &       &      \\
+(2) Ukrainian attention           & -0.35 &  1.00 &       &       &       &       &       &      \\
+(3) Russian state attention       &  0.58 &  0.36 &  1.00 &       &       &       &       &      \\
+(4) Russian independent attention & -0.54 &  0.38 & -0.20 &  1.00 &       &       &       &      \\
+(5) Western attention             &  0.27 &  0.66 &  0.52 &  0.24 &  1.00 &       &       &      \\
+(6) Ukrainian tone                & -0.42 & -0.24 & -0.42 &  0.14 & -0.51 &  1.00 &       &      \\
+(7) Russian state tone            & -0.38 &  0.18 & -0.10 &  0.26 & -0.09 &  0.50 &  1.00 &      \\
+(8) Western tone                  & -0.23 & -0.16 & -0.37 &  0.18 & -0.30 &  0.50 &  0.45 & 1.00 \\
+\midrule
+Geopolitical risk index           &  0.42 &  0.07 &  0.31 & -0.16 &  0.46 & -0.36 & -0.28 & -0.30 \\
+\bottomrule
+\end{tabular}
+
 \begin{tablenotes}
 \small
-\item Notes: WAERLST and BSHIELDT return statistics are computed from the official Bloomberg index files over the model-window period beginning 29 September 2022. Attack statistics are over the 809 dates carrying a Ukrainian Air Force record. News statistics are over the full 4,027-day extraction; article counts are medians because the distributions are strongly right-skewed, and tone is the mean GDELT tone of conflict-related articles. Returns are in percent.
+\item Notes: In Panel A, WAERLST and BSHIELDT return statistics are computed from the official Bloomberg index files over the model-window period beginning 29 September 2022. Attack statistics are over the 809 dates carrying a Ukrainian Air Force record. News statistics are over the full 4,027-day extraction; article counts are medians because the distributions are strongly right-skewed, and tone is the mean GDELT tone of conflict-related articles. Returns are in percent. Panel B reports Pearson correlations in levels over the 1,956 days on which every indicator is observed. Attack intensity is the log of one plus weapons launched. The geopolitical risk index is the published Caldara--Iacoviello series and is not used as a predictor; it is included as an external reference point.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
@@ -427,32 +457,32 @@ The second outcome is volatility predictability. The prior is stronger for volat
 \caption{Out-of-sample return forecast performance}
 \label{tab:return_forecasts}
 \begin{threeparttable}
-\begin{tabular}{llrrrrr}
+\begin{tabular}{llrrrrrr}
 \toprule
-Model & Information set & Horizon & MAE & RMSE & Directional accuracy & $R^2_{OS}$ \\
+Model & Information set & Horizon & MAE & RMSE & Dir.\ acc. & $R^2_{OS}$ & CW $p$ \\
 \midrule
-Historical mean & F & 1 & 1.073 & 1.375 & 0.503 & 0.000 \\
-AR(1) & F & 1 & 1.083 & 1.380 & 0.483 & -0.007 \\
-Ridge & F & 1 & 1.088 & 1.432 & 0.462 & -0.086 \\
-XGBoost & F & 1 & 1.092 & 1.408 & 0.483 & -0.049 \\
-XGBoost & P & 1 & 1.062 & 1.357 & 0.510 & 0.025 \\
-XGBoost & N & 1 & 1.076 & 1.381 & 0.462 & -0.009 \\
-XGBoost & PN & 1 & 1.053 & 1.345 & 0.497 & 0.043 \\
-XGBoost & PNG & 1 & 1.066 & 1.369 & 0.503 & 0.008 \\
+Historical mean & F & 1 & 1.073 & 1.375 & 0.503 & 0.000 & --- \\
+AR(1) & F & 1 & 1.083 & 1.380 & 0.483 & -0.007 & 0.542 \\
+Ridge & F & 1 & 1.088 & 1.432 & 0.462 & -0.086 & 0.512 \\
+XGBoost & F & 1 & 1.092 & 1.408 & 0.483 & -0.049 & 0.183 \\
+XGBoost & P & 1 & 1.062 & 1.357 & 0.510 & 0.025 & 0.013 \\
+XGBoost & N & 1 & 1.076 & 1.381 & 0.462 & -0.009 & 0.059 \\
+XGBoost & PN & 1 & 1.053 & 1.345 & 0.497 & 0.043 & 0.006 \\
+XGBoost & PNG & 1 & 1.066 & 1.369 & 0.503 & 0.008 & 0.025 \\
 \addlinespace
-Historical mean & F & 5 & 2.541 & 3.155 & 0.455 & 0.000 \\
-AR(1) & F & 5 & 2.548 & 3.158 & 0.448 & -0.002 \\
-Ridge & F & 5 & 2.609 & 3.324 & 0.469 & -0.111 \\
-XGBoost & F & 5 & 2.805 & 3.477 & 0.476 & -0.215 \\
-XGBoost & P & 5 & 2.649 & 3.232 & 0.503 & -0.050 \\
-XGBoost & N & 5 & 2.807 & 3.424 & 0.448 & -0.178 \\
-XGBoost & PN & 5 & 2.636 & 3.185 & 0.483 & -0.019 \\
-XGBoost & PNG & 5 & 2.688 & 3.267 & 0.435 & -0.072 \\
+Historical mean & F & 5 & 2.541 & 3.155 & 0.455 & 0.000 & --- \\
+AR(1) & F & 5 & 2.548 & 3.158 & 0.448 & -0.002 & 0.517 \\
+Ridge & F & 5 & 2.609 & 3.324 & 0.469 & -0.111 & 0.189 \\
+XGBoost & F & 5 & 2.805 & 3.477 & 0.476 & -0.215 & 0.121 \\
+XGBoost & P & 5 & 2.649 & 3.232 & 0.503 & -0.050 & 0.072 \\
+XGBoost & N & 5 & 2.807 & 3.424 & 0.448 & -0.178 & 0.149 \\
+XGBoost & PN & 5 & 2.636 & 3.185 & 0.483 & -0.019 & 0.069 \\
+XGBoost & PNG & 5 & 2.688 & 3.267 & 0.435 & -0.072 & 0.120 \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}
 \small
-\item Notes: The table reports WAERLST out-of-sample forecasts on the measured sample. MAE and RMSE are in return percentage points. Directional accuracy is the share of dates on which the predicted and realized return have the same sign. $R^2_{OS}$ is the Campbell--Thompson out-of-sample $R^2$ against the historical-mean benchmark. Both horizons use 145 forecast dates. F is the financial baseline, P adds physical attack variables, N adds news variables, PN combines physical and news variables, and PNG adds narrative gaps. No specification in this table survives false-discovery-rate correction across the full grid.
+\item Notes: The table reports WAERLST out-of-sample forecasts on the measured sample. MAE and RMSE are in return percentage points. Directional accuracy is the share of dates on which the predicted and realized return have the same sign. $R^2_{OS}$ is the Campbell--Thompson out-of-sample $R^2$ against the historical-mean benchmark, and CW $p$ is the Clark--West $p$-value for that comparison, which is the appropriate test because every specification nests the benchmark. Both horizons use 145 forecast dates. F is the financial baseline, P adds physical attack variables, N adds news variables, PN combines physical and news variables, and PNG adds narrative gaps. No specification in this table survives false-discovery-rate correction across the full grid.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
