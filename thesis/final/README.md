@@ -15,6 +15,18 @@ unresolved citations or cross-references**, with tectonic 0.17. `build.sh`
 also tries `latexmk` and `pdflatex`, and warns if any `[?]` marker survives
 into the PDF.
 
+**On a Debian or Ubuntu TeX Live install** the document needs one package
+beyond `texlive-latex-recommended`, because every table uses `threeparttable`
+for its notes:
+
+```bash
+sudo apt install texlive-latex-extra    # ~112 MB
+```
+
+Nothing else is required. The euro sign uses `\texteuro` from the kernel
+rather than the `eurosym` package, specifically so that the roughly 1 GB
+`texlive-fonts-extra` set is not a dependency of one character.
+
 Section balance against the brief: Introduction pp. 4–7 (the brief asks for
 about four), Data and Identification pp. 8–11, Descriptive Statistics
 pp. 12–19, Empirical Findings pp. 20–29, Conclusion pp. 30–32, References

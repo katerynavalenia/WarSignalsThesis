@@ -20,7 +20,9 @@
 \usepackage{float}
 \usepackage{array}
 \usepackage{tabularx}
-\usepackage{eurosym}
+% \texteuro is available from the LaTeX kernel, so the eurosym package (and the
+% ~1 GB font set it depends on) is not needed for the one euro sign used here.
+\usepackage{textcomp}
 
 % ---------- Math and symbols ----------
 \usepackage{amsmath}
@@ -442,7 +444,7 @@ Horizon $h=5$ days & 629 & 0.227 & \textbf{0.033} \\
 \end{threeparttable}
 \end{table}
 
-Gate 4 shows that the null is not a property of defence equities being a weak testbed. European gas is the asset where Russian supply signals should matter most --- Russia supplied roughly 40\% of EU gas and TTF moved from about \euro{}20 to over \euro{}300 --- and Russian state media is the channel through which supply intent was signalled. Yet the local block returns $p = 0.399$ in the build-up window, and all four pre-registered conditions fail. In the same specification the Western block is detected at $p = 4\times10^{-5}$, which demonstrates that the apparatus finds effects where they exist.
+Gate 4 shows that the null is not a property of defence equities being a weak testbed. European gas is the asset where Russian supply signals should matter most --- Russia supplied roughly 40\% of EU gas and TTF moved from about \texteuro{}20 to over \texteuro{}300 --- and Russian state media is the channel through which supply intent was signalled. Yet the local block returns $p = 0.399$ in the build-up window, and all four pre-registered conditions fail. In the same specification the Western block is detected at $p = 4\times10^{-5}$, which demonstrates that the apparatus finds effects where they exist.
 
 Gate 4 also demonstrates how a significant result in this setting can dissolve under replication alone. Estimated exploratorily on an initial 81-day subsample of gas-crisis coverage, the build-up specification returned $p = 0.0028$ under the controls the confirmatory test would later use, and $p = 0.0020$ under an alternative control set --- stable enough across specifications to appear robust. The pre-registered confirmatory estimate, on the same asset, specification, controls and calendar period, with nothing altered but the quantity of data, returned $p = 0.399$ on 222 continuous days. The result was not overturned by a better control or a stricter correction, but by fuller coverage of the period it had always concerned. This is the failure mode that pre-registration is designed to expose, and it is invisible to any robustness check conducted within the smaller sample.
 
