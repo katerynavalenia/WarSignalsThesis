@@ -412,7 +412,7 @@ Gate 3 also produced a coefficient pattern with an economic interpretation, whic
 
 Gates 4 and 5 move the test to the two outcomes where local information should matter most, and the null survives both. If the defence-equity result were an artefact of defence equities being a poor testbed --- which is a fair objection, since the link from a Russian newspaper to a U.S.\ contractor's share price runs entirely through Western investors --- then it should break on an asset with a direct physical transmission channel, or on an outcome with no market in it at all. Table~\ref{tab:gates45} tests both. European natural gas is the asset through which the conflict physically transmitted to Europe; realised escalation is the war outcome itself, with no asset price involved. Both tests were pre-registered before their data were ingested.
 
-\begin{table}[H]
+\begin{table}[htbp]
 \centering
 \caption{Local-media joint tests on European gas (Gate 4) and realised escalation (Gate 5)}
 \label{tab:gates45}
@@ -422,10 +422,11 @@ Gates 4 and 5 move the test to the two outcomes where local information should m
 \toprule
 Gate / Window & $n$ & $p$ (local block) & $p$ (Western block) \\
 \midrule
-\multicolumn{4}{l}{\textit{Gate 4: Dutch TTF natural gas, daily returns}} \\
-(a) Build-up and invasion, Jun 2021 -- Jun 2022 & 222 & 0.399 & \textbf{0.00004} \\
-(b) Shutdown and aftermath, Jun 2022 -- Jun 2023 & 231 & 0.533 & 0.193 \\
-(c) Full crisis, Jun 2021 -- Dec 2023 & 563 & 0.250 & 0.066 \\
+\multicolumn{4}{l}{\textit{Gate 4: Dutch TTF natural gas returns}} \\
+(a) Build-up and invasion, daily & 222 & 0.399 & \textbf{0.00004} \\
+(b) Shutdown and aftermath, daily & 231 & 0.533 & 0.193 \\
+(c) Full crisis, daily & 563 & 0.250 & 0.066 \\
+(c) Full crisis, weekly & 133 & 0.907 & 0.052 \\
 \addlinespace
 \multicolumn{4}{l}{\textit{Gate 5: realised escalation (GPR\_ACT), held-out sample}} \\
 Horizon $h=1$ day & 637 & 0.212 & 0.171 \\
@@ -434,7 +435,7 @@ Horizon $h=5$ days & 629 & 0.227 & \textbf{0.033} \\
 \end{tabular}
 \begin{tablenotes}
 \small
-\item Notes: Each entry is the $p$-value of a joint $F$-test on one block --- local (Ukrainian, Russian state, Russian independent attention and tone changes) or Western --- with the other block and the controls already in the regression; HAC(5) standard errors. Bold marks $p<0.05$; $n$ is the number of daily observations in the estimation window. Gate 4 regresses daily TTF returns; Gate 5 regresses the realised-conflict component of the \citet{caldara2022} index on held-out days never used in sample: 637 at $h=1$ and 629 at $h=5$. Both tests were pre-registered, and in both cases the data were collected after the pre-registration was committed, so the ordering of specification and observation is verifiable rather than asserted.
+\item Notes: Each entry is the $p$-value of a joint $F$-test on one block --- local (Ukrainian, Russian state, Russian independent attention and tone changes) or Western --- with the other block and the controls already in the regression; HAC(5) standard errors. Bold marks $p<0.05$; $n$ is the number of observations in the estimation window, at the frequency named in the row. Gate 4's windows are (a) June 2021 to June 2022, (b) June 2022 to June 2023 and (c) June 2021 to December 2023. All four Gate 4 cells estimated are reported, and both Gate 5 horizons. Gate 4 regresses daily TTF returns; Gate 5 regresses the realised-conflict component of the \citet{caldara2022} index on held-out days never used in sample: 637 at $h=1$ and 629 at $h=5$. Both tests were pre-registered, and in both cases the data were collected after the pre-registration was committed, so the ordering of specification and observation is verifiable rather than asserted.
 \item All four of Gate 4's pre-registered conditions fail, and they fail in different ways, which is what makes the verdict robust rather than marginal: no BH survivor in either required window; the placebo condition breached, since local perception is jointly significant for Brent crude ($p = 0.0014$) as readily as for European gas; the build-up result does not survive dropping the ten largest TTF moves ($0.399 \rightarrow 0.840$); and the ordering is wrong, with Russian \textit{independent} rather than Russian \textit{state} media leading the local block, which inverts the supply-signalling mechanism the test was built to detect.
 \item The Western block behaves differently in the two gates, and on this evidence Gate 4 carries the positive control and Gate 5 corroborates it only weakly. In Gate 4's build-up window the Western block is detected at $p = 4\times10^{-5}$ in the same specification where the local block returns 0.399 --- the sharpest positive control anywhere in this thesis. In Gate 5 the Western block is significant at the five-day horizon ($p = 0.033$) but not at one day ($p = 0.171$), so Gate 5 on its own would not establish that the design has power; it is reported as corroboration, not as an independent control. A placebo in which the local-block series are randomly reordered in time returns $p = 0.557$ at $h=1$ and $0.799$ at $h=5$, confirming the procedure does not manufacture significance from noise.
 \end{tablenotes}
