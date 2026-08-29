@@ -6,6 +6,10 @@ Evidence from the Russia–Ukraine War*
 **One-sentence answer:** the Western narrative's — and the test had the power to
 find otherwise.
 
+The compiled submission draft is [`final/`](final/); the defence deck built
+from it is [`presentation/`](presentation/), which produces both `defence.pptx`
+and `defence.pdf` from one source.
+
 Read the chapters in order, `01` through `09`. `00_outline_and_numbers.md` is not
 a chapter: it is the assembly map that fixes every number the draft is allowed to
 state and names the file each one comes from. Before citing any figure from

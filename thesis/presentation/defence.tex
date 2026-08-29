@@ -1,0 +1,108 @@
+% Defence deck for "Whose Perception of Geopolitical Risk Is Priced in Defence
+% Equities?".  The frames come from slides.tex, which make_beamer.py generates
+% out of slides.py; only this preamble is hand-written, so a content change is
+% made in one place and both this PDF and defence.pptx pick it up.
+%
+% Build:  bash build.sh      (or: pdflatex defence.tex, twice)
+
+\documentclass[aspectratio=169,11pt]{beamer}
+
+% The metropolis theme is not in a Debian TeX Live base install, so the deck is
+% styled by hand on top of the default theme rather than depending on a package
+% that may not be there on the machine it is presented from.
+\usetheme{default}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[scaled=0.92]{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+
+% Beamer's default sans maths font has no glyph for \Delta, which the
+% descriptive-statistics tables need on every row, and it renders as a black
+% box rather than warning. Setting maths in Latin Modern serif fixes that and
+% sets the one displayed equation properly at the same time.
+\usefonttheme[onlymath]{serif}
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{textcomp}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{appendixnumberbeamer}   % backup slides do not inflate the count
+
+\graphicspath{{figures/}}
+
+% ---------- Palette ----------
+% Blue matches the WAERLST series in Figure 1, so the deck and the exhibits
+% read as one document.
+\definecolor{deckink}{HTML}{16222E}
+\definecolor{deckaccent}{HTML}{1F6FB2}
+\definecolor{deckmuted}{HTML}{5A6B7A}
+\definecolor{deckrule}{HTML}{CBD5DD}
+\definecolor{deckband}{HTML}{F2F6F9}
+
+\setbeamercolor{normal text}{fg=deckink}
+\setbeamercolor{frametitle}{fg=deckink}
+\setbeamercolor{itemize item}{fg=deckaccent}
+\setbeamercolor{itemize subitem}{fg=deckmuted}
+\setbeamercolor{structure}{fg=deckaccent}
+\setbeamercolor{background canvas}{bg=white}
+
+\setbeamerfont{frametitle}{size=\large,series=\bfseries}
+\setbeamerfont{title}{size=\LARGE}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize item}{\color{deckaccent}\rule[0.25ex]{0.55ex}{0.55ex}}
+\setbeamertemplate{itemize subitem}{\color{deckmuted}\textendash}
+
+% Wider text block than beamer's default: these slides carry sentences, not
+% keywords, and the default 1cm margins waste a fifth of a 16:9 frame.
+\setbeamersize{text margin left=0.9cm,text margin right=0.9cm}
+
+% ---------- Frame title: section label, title, rule ----------
+% \slidesection is reset before every frame by the generated slides.tex.
+\newcommand{\slidesection}{}
+
+\setbeamertemplate{frametitle}{%
+  \vspace{0.55em}%
+  \ifx\slidesection\empty\else
+    {\scriptsize\bfseries\color{deckaccent}\MakeUppercase{\slidesection}\par}%
+    \vspace{0.15em}%
+  \fi
+  {\usebeamerfont{frametitle}\color{deckink}\insertframetitle\par}%
+  \vspace{0.25em}%
+  {\color{deckrule}\rule{\linewidth}{0.8pt}}%
+}
+
+% ---------- Footline: slide number only ----------
+\setbeamertemplate{footline}{%
+  \hfill{\tiny\color{deckmuted}\insertframenumber\,/\,\inserttotalframenumber}%
+  \hspace{0.9cm}\vspace{0.35em}%
+}
+
+% ---------- Lists ----------
+\setlength{\leftmargini}{1.4em}
+\setlength{\leftmarginii}{1.2em}
+\addtobeamertemplate{block begin}{}{\justifying}
+
+% A wrapping, left-aligned X column. Every generated table uses it for the
+% label column so that long row labels break instead of overrunning the frame.
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+
+% Ragged right throughout: justified text on a 16:9 frame opens rivers in any
+% line holding a long index name.
+\raggedright
+
+% ---------- Speaker notes ----------
+% Uncomment ONE of these to get the notes out. The first interleaves a note
+% page after each slide; the second drives a two-screen presenter display.
+% \setbeameroption{show notes}
+% \setbeameroption{show notes on second screen=right}
+
+\begin{document}
+
+\input{slides.tex}
+
+\end{document}

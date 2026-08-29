@@ -126,6 +126,13 @@ build/
 **/thesis/**/*.synctex.gz
 **/thesis/**/*.toc
 
+# Beamer leaves three more beside the source: the navigation file, the slide
+# notes file, and the verbatim scratch file. Listed here before the deck in
+# thesis/presentation/ was first built, not after.
+**/thesis/**/*.nav
+**/thesis/**/*.snm
+**/thesis/**/*.vrb
+
 # ── Secrets ─────────────────────────────
 *.pem
 *.key

@@ -54,3 +54,7 @@ yfinance>=0.2            # long-history defence basket + market controls back to
 google-cloud-bigquery>=3.20
 db-dtypes>=1.2           # BigQuery → pandas type mapping
 google-api-python-client>=2.100   # Drive API, if Drive access is configured
+
+# ── Defence presentation (thesis/presentation/) ──
+# Builds the .pptx half of the deck; the Beamer PDF needs only TeX Live.
+python-pptx>=1.0         # thesis/presentation/make_pptx.py
